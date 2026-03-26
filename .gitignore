@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# package manager
+.pnpm-store/
+
+# Expo
+.expo/
+**/.expo/
+dist/
+web-build/
+
+# Native build output
+ios/
+android/
+
+# local env files
+.env
+.env.local
+.env*.local
+
+# macOS
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
