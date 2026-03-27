@@ -158,6 +158,8 @@ export function MapScreen() {
       const pool = visibleSpots.length > 0 ? visibleSpots : spots;
       const nearest = getNearbySpots(pool, result, 1)[0];
       if (nearest) setSelectedSpotSlug(nearest.spot.slug);
+    } else {
+      setUserCameraCoords(null);
     }
     setLocationLoading(false);
   };
