@@ -10,6 +10,7 @@ import {
   spotKeys,
 } from '../../../shared/data/spotRepository';
 import { openNaverNavigation } from '../../../shared/lib/naverMap';
+import { resolveSpotImage } from '../../../shared/lib/resolveSpotImage';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { SectionCard } from '../../../shared/ui/SectionCard';
@@ -53,7 +54,7 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
 
   return (
     <ScreenShell title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
-      <ImageHero fallbackTone={spot.tone} imageSource={spot.thumbnailUrl ? { uri: spot.thumbnailUrl } : undefined}>
+      <ImageHero fallbackTone={spot.tone} imageSource={resolveSpotImage(spot) ?? undefined}>
         <View style={styles.heroGlowTop} />
         <View style={styles.heroGlowBottom} />
         <View style={styles.heroBadge}>
@@ -85,7 +86,7 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
             </View>
           </View>
           <View style={styles.heroArt}>
-            {!spot.thumbnailUrl ? <BloomArt size="lg" tone={spot.tone} /> : null}
+            {!resolveSpotImage(spot) ? <BloomArt size="lg" tone={spot.tone} /> : null}
           </View>
         </View>
       </ImageHero>
