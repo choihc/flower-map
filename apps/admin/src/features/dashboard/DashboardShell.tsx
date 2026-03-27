@@ -1,35 +1,26 @@
 import React from 'react';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
+
+import { AdminSidebar } from './AdminSidebar';
+import { AdminTopbar } from './AdminTopbar';
 
 type DashboardShellProps = {
   title: string;
+  description?: string;
+  actions?: ReactNode;
   children: ReactNode;
 };
 
-const links = [
-  { href: '/flowers', label: '꽃 관리' },
-  { href: '/spots', label: '명소 관리' },
-  { href: '/spots/import', label: 'JSON 등록' },
-];
-
-export function DashboardShell({ title, children }: DashboardShellProps) {
+export function DashboardShell({ title, description, actions, children }: DashboardShellProps) {
   return (
-    <main>
-      <header>
-        <p>꽃 어디 어드민</p>
-        <h1>{title}</h1>
-        <nav aria-label="관리 메뉴">
-          <ul>
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href}>{link.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </header>
-      <section>{children}</section>
-    </main>
+    <div className="min-h-screen bg-[#F6F7FB]">
+      <div className="mx-auto grid min-h-screen max-w-[1600px] gap-6 px-5 py-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <AdminSidebar />
+        <main className="min-w-0">
+          <AdminTopbar title={title} description={description} actions={actions} />
+          <section className="mt-6">{children}</section>
+        </main>
+      </div>
+    </div>
   );
 }
