@@ -92,6 +92,7 @@ export function HomeScreen() {
   const nearbySpots = userCoords ? getNearbySpots(featuredSpots, userCoords) : [];
 
   const handleLocationPress = async () => {
+    if (locationState === 'loading') return;
     setLocationState('loading');
     const result = await requestAndGetLocation();
     if (result === 'denied') {
@@ -145,6 +146,8 @@ export function HomeScreen() {
             ))}
           </View>
         </>
+      ) : locationState === 'granted' ? (
+        null
       ) : locationState === 'denied' ? (
         <View style={styles.locationDenied}>
           <Text style={styles.locationDeniedText}>
