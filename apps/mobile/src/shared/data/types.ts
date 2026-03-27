@@ -16,6 +16,7 @@ export type FlowerSpot = {
   location: string;
   parking: string;
   place: string;
+  thumbnailUrl: string | null;
   tone: FlowerSpotTone;
 };
 
@@ -40,4 +41,5 @@ export type PublishedSpotRow = {
   is_featured: boolean;
   latitude: number;
   longitude: number;
+  thumbnail_url: string | null;
 };
