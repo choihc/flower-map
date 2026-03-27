@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useRouter } from 'expo-router';
-import { ImageBackground, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native';
+import { ImageBackground, Platform, Pressable, ScrollView, StyleSheet, Text, UIManager, View } from 'react-native';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -16,6 +16,11 @@ import { resolveSpotImage } from '../../../shared/lib/resolveSpotImage';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
+import {
+  type Coords,
+  getNearbySpots,
+  requestAndGetLocation,
+} from '../../../shared/lib/location';
 
 const defaultCamera = {
   latitude: 37.534,
@@ -32,10 +37,11 @@ const isNativeNaverMapAvailable =
 type NativeMapCanvasProps = {
   spots: FlowerSpot[];
   selectedSpotSlug: string;
+  userCamera?: Coords;
   onSelectSpot: (spotSlug: string) => void;
 };
 
-function NativeMapCanvas({ spots, selectedSpotSlug, onSelectSpot }: NativeMapCanvasProps) {
+function NativeMapCanvas({ spots, selectedSpotSlug, userCamera, onSelectSpot }: NativeMapCanvasProps) {
   const { NaverMapMarkerOverlay, NaverMapView } =
     require('@mj-studio/react-native-naver-map') as typeof import('@mj-studio/react-native-naver-map');
 
@@ -51,13 +57,15 @@ function NativeMapCanvas({ spots, selectedSpotSlug, onSelectSpot }: NativeMapCan
     <NaverMapView
       animationDuration={700}
       camera={
-        selectedCoordinate
-          ? {
-              latitude: selectedCoordinate.latitude,
-              longitude: selectedCoordinate.longitude,
-              zoom: selectedSpot.flower === '유채꽃' ? 8.6 : 10.4,
-            }
-          : defaultCamera
+        userCamera
+          ? { latitude: userCamera.latitude, longitude: userCamera.longitude, zoom: 11 }
+          : selectedCoordinate
+            ? {
+                latitude: selectedCoordinate.latitude,
+                longitude: selectedCoordinate.longitude,
+                zoom: selectedSpot.flower === '유채꽃' ? 8.6 : 10.4,
+              }
+            : defaultCamera
       }
       isExtentBoundedInKorea
       isShowCompass={false}
@@ -125,28 +133,55 @@ function NativeMapUnavailableFallback() {
 
 export function MapScreen() {
   const router = useRouter();
-  const { data: spots = [], isLoading } = useQuery({
+  const { data: spots = [], isLoading, error } = useQuery({
     queryKey: spotKeys.all,
     queryFn: getPublishedSpots,
   });
+  if (error) console.error('[MapScreen] spots query error:', error);
   const flowerLabels = deriveFlowerLabels(spots);
   const flowerFilters = ['전체', ...flowerLabels];
   const [selectedFlower, setSelectedFlower] = useState('전체');
-  const [selectedSpotSlug, setSelectedSpotSlug] = useState(spots[0]?.slug ?? '');
+  const [selectedSpotSlug, setSelectedSpotSlug] = useState('');
+  const [userCameraCoords, setUserCameraCoords] = useState<Coords | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const visibleSpots = selectedFlower === '전체' ? spots : spots.filter((spot) => spot.flower === selectedFlower);
   const selectedSpot = visibleSpots.find((spot) => spot.slug === selectedSpotSlug) ?? visibleSpots[0] ?? spots[0];
-  const spotImage = resolveSpotImage(selectedSpot);
+  const spotImage = selectedSpot ? resolveSpotImage(selectedSpot) : null;
+
+  const handleLocationPress = async () => {
+    if (locationLoading) return;
+    setLocationLoading(true);
+    const result = await requestAndGetLocation();
+    if (result !== 'denied' && result !== null) {
+      setUserCameraCoords(result);
+      const pool = visibleSpots.length > 0 ? visibleSpots : spots;
+      const nearest = getNearbySpots(pool, result, 1)[0];
+      if (nearest) setSelectedSpotSlug(nearest.spot.slug);
+    }
+    setLocationLoading(false);
+  };
+
+  const handleSelectSpot = (spotSlug: string) => {
+    setUserCameraCoords(null);
+    setSelectedSpotSlug(spotSlug);
+  };
+
+  const handleFlowerChange = (flower: string) => {
+    setSelectedFlower(flower);
+    setUserCameraCoords(null);
+  };
 
   useEffect(() => {
-    if (!visibleSpots.some((spot) => spot.slug === selectedSpotSlug) && visibleSpots[0]) {
-      setSelectedSpotSlug(visibleSpots[0].slug);
+    if (!visibleSpots.some((spot) => spot.slug === selectedSpotSlug) && visibleSpots.length > 0) {
+      const randomSpot = visibleSpots[Math.floor(Math.random() * visibleSpots.length)];
+      setSelectedSpotSlug(randomSpot.slug);
     }
   }, [selectedSpotSlug, visibleSpots]);
 
   if (isLoading) {
     return (
-      <ScreenShell title="지도" subtitle="명소를 불러오는 중...">
+      <ScreenShell title="지도 탐색">
         <SkeletonBox height={400} borderRadius={24} />
         <SkeletonBox height={80} borderRadius={20} />
         <SkeletonBox height={80} borderRadius={20} />
@@ -154,29 +189,33 @@ export function MapScreen() {
     );
   }
 
+  if (spots.length === 0) {
+    return (
+      <ScreenShell title="지도 탐색" subtitle="등록된 명소가 없습니다.">
+        <View style={{ alignItems: 'center', paddingTop: 60 }}>
+          <BloomArt size="md" tone="green" />
+          <Text style={{ color: colors.textMuted, fontSize: 16, marginTop: 20 }}>
+            {error ? '데이터를 불러오지 못했습니다' : '곧 새로운 명소가 등록될 예정이에요'}
+          </Text>
+        </View>
+      </ScreenShell>
+    );
+  }
+
   return (
     <ScreenShell title="지도 탐색" subtitle="지금 갈 만한 꽃 명소를 지도와 리스트 흐름으로 바로 비교해보세요.">
-      <View style={styles.topBar}>
-        <Pressable style={styles.locationButton}>
-          <Text style={styles.locationButtonText}>대한민국</Text>
-        </Pressable>
-        <View style={styles.topActions}>
-          <Pressable onPress={() => router.push('/filters')} style={styles.topActionGhost}>
-            <Text style={styles.topActionGhostText}>필터</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push('/list')} style={styles.topActionSolid}>
-            <Text style={styles.topActionSolidText}>리스트</Text>
-          </Pressable>
-        </View>
-      </View>
-
       <View style={styles.mapFrame}>
         {Platform.OS === 'web' ? (
           <WebMapFallback />
         ) : !isNativeNaverMapAvailable ? (
           <NativeMapUnavailableFallback />
         ) : (
-          <NativeMapCanvas onSelectSpot={setSelectedSpotSlug} selectedSpotSlug={selectedSpot.slug} spots={visibleSpots} />
+          <NativeMapCanvas
+            onSelectSpot={handleSelectSpot}
+            selectedSpotSlug={selectedSpot.slug}
+            spots={visibleSpots}
+            userCamera={userCameraCoords ?? undefined}
+          />
         )}
 
         <View pointerEvents="box-none" style={styles.mapFloatingLayer}>
@@ -184,27 +223,46 @@ export function MapScreen() {
             <Text style={styles.mapOverlayTitle}>{selectedSpot.place}</Text>
             <Text style={styles.mapOverlayCopy}>{selectedSpot.helper}</Text>
           </View>
+          {Platform.OS !== 'web' && (
+            <Pressable
+              disabled={locationLoading}
+              onPress={handleLocationPress}
+              style={[
+                styles.floatingLocationButton,
+                locationLoading ? styles.floatingButtonDisabled : null,
+              ]}
+            >
+              <Text style={styles.floatingLocationButtonText}>
+                {locationLoading ? '...' : '📍'}
+              </Text>
+            </Pressable>
+          )}
           <Pressable onPress={() => router.push(`/spot/${selectedSpot.slug}`)} style={styles.floatingAction}>
             <Text style={styles.floatingActionText}>상세</Text>
           </Pressable>
         </View>
       </View>
 
-      <View style={styles.chipsRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chipsCarousel}
+        style={styles.chipsCarouselWrapper}
+      >
         {flowerFilters.map((flower) => {
           const isActive = selectedFlower === flower;
 
           return (
             <Pressable
               key={flower}
-              onPress={() => setSelectedFlower(flower)}
+              onPress={() => handleFlowerChange(flower)}
               style={[styles.flowerChip, isActive ? styles.flowerChipActive : null]}
             >
               <Text style={[styles.flowerChipText, isActive ? styles.flowerChipTextActive : null]}>{flower}</Text>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       <View style={styles.summaryPanel}>
         {spotImage ? (
@@ -248,11 +306,31 @@ export function MapScreen() {
 }
 
 const styles = StyleSheet.create({
-  chipsRow: {
+  chipsCarousel: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 4,
+  },
+  floatingButtonDisabled: {
+    opacity: 0.5,
+  },
+  floatingLocationButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    bottom: 60,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    position: 'absolute',
+    right: 16,
+  },
+  floatingLocationButtonText: {
+    fontSize: 18,
+  },
+  chipsCarouselWrapper: {
     marginBottom: 16,
+    marginHorizontal: -20,
   },
   floatingAction: {
     backgroundColor: '#FFFFFF',
@@ -284,19 +362,6 @@ const styles = StyleSheet.create({
   },
   flowerChipTextActive: {
     color: '#FFFFFF',
-  },
-  locationButton: {
-    backgroundColor: 'rgba(255,255,255,0.82)',
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  locationButtonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
   },
   mapFloatingLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -478,39 +543,5 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 24,
     fontWeight: '700',
-  },
-  topActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  topActionGhost: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  topActionGhostText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  topActionSolid: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  topActionSolidText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
   },
 });
