@@ -21,20 +21,30 @@ export function ImageUploader({ defaultUrl }: ImageUploaderProps) {
     setUploading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    const result: UploadImageResult = await res.json();
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
 
-    setUploading(false);
+      if (!res.ok) {
+        setError('업로드에 실패했습니다. 다시 시도해 주세요.');
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error.message);
-      return;
+      const result: UploadImageResult = await res.json();
+
+      if (!result.success) {
+        setError(result.error.message);
+        return;
+      }
+
+      setUrl(result.data.url);
+    } catch {
+      setError('네트워크 오류가 발생했습니다. 연결을 확인해 주세요.');
+    } finally {
+      setUploading(false);
     }
-
-    setUrl(result.data.url);
   }
 
   return (
