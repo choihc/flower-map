@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { FormSection } from '@/features/dashboard/FormSection';
+import { FormSection } from '@/components/ui/form-section';
 import type { FlowerInsert } from '@/lib/types';
 
 import { flowerSchema } from './flowerSchema';
