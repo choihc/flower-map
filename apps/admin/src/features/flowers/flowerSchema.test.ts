@@ -7,6 +7,7 @@ describe('flowerSchema', () => {
     const result = flowerSchema.safeParse({
       slug: 'cherry-blossom',
       name_ko: '벚꽃',
+      name_en: null,
       color_hex: '#F6B7C1',
       season_start_month: 3,
       season_end_month: 4,

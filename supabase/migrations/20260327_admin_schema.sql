@@ -37,7 +37,7 @@ create table if not exists public.spots (
   bloom_end_at date not null,
   thumbnail_url text,
   status text not null default 'draft' check (status in ('draft', 'published')),
-  source_type text not null default 'manual_json',
+  source_type text not null default 'manual_json' check (source_type = 'manual_json'),
   source_note text,
   is_featured boolean not null default false,
   display_order integer not null default 0,
