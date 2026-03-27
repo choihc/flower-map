@@ -11,6 +11,7 @@ export const flowerSchema = z.object({
   season_end_month: monthSchema,
   sort_order: z.number().int().default(0),
   is_active: z.boolean().default(true),
+  thumbnail_url: z.string().url().nullable().optional(),
 });
 
 export type FlowerSchema = z.infer<typeof flowerSchema>;

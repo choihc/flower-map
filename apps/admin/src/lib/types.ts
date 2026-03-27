@@ -8,6 +8,7 @@ export type FlowerRow = {
   season_end_month: number;
   sort_order: number;
   is_active: boolean;
+  thumbnail_url: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -59,6 +60,7 @@ export type FlowerInsert = {
   season_end_month: number;
   sort_order?: number;
   is_active?: boolean;
+  thumbnail_url?: string | null;
   id?: string;
   created_at?: string;
   updated_at?: string;
