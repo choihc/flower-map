@@ -38,3 +38,5 @@ export const importPayloadSchema = z.union([
     spot: importedSpotSchema,
   }),
 ]);
+
+export type ImportPayload = z.infer<typeof importPayloadSchema>;
