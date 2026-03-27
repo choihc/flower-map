@@ -1,3 +1,5 @@
+import { put } from '@vercel/blob';
+
 export type UploadImageResult =
   | {
       success: true;
@@ -34,19 +36,17 @@ export function invalidUploadRequest(message: string): UploadImageResult {
       message,
     },
   };
-};
+}
 
 export async function uploadImage(file: File): Promise<UploadImageResult> {
+  const blob = await put(file.name, file, { access: 'public' });
   return {
-    success: false,
+    success: true,
     data: {
       filename: file.name,
       contentType: file.type || null,
-      url: null,
+      url: blob.url,
     },
-    error: {
-      code: 'upload_unavailable',
-      message: 'Implement Vercel Blob upload after wiring env vars.',
-    },
+    error: null,
   };
 }

@@ -9,11 +9,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "create-admin": "dotenv -e .env.local -- tsx scripts/create-admin.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.57.4",
+    "@vercel/blob": "^2.3.1",
     "clsx": "^2.1.1",
     "next": "^15.5.2",
     "react": "19.2.0",
@@ -29,11 +31,13 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "autoprefixer": "10.4.20",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^15.5.14",
     "jsdom": "^26.1.0",
     "postcss": "8.4.49",
     "tailwindcss": "3.4.17",
+    "tsx": "^4.19.3",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
