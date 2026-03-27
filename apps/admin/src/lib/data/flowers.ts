@@ -12,6 +12,7 @@ export function buildFlowerWriteInput(input: FlowerWriteDraft): FlowerInsert {
   return {
     ...input,
     name_en: emptyToNull(input.name_en),
+    thumbnail_url: emptyToNull(input.thumbnail_url),
     sort_order: input.sort_order ?? 0,
     is_active: input.is_active ?? true,
   };
