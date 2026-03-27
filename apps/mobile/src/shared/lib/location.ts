@@ -53,6 +53,7 @@ export function getNearbySpots(
 
 export function formatDistance(km: number): string {
   if (km < 1) {
+    // 1km 미만은 m 단위로 반올림 (예: 0.9999km → "1000m", 1.0km는 아래 분기에서 처리)
     return `${Math.round(km * 1000)}m`;
   }
   const rounded = Math.round(km * 10) / 10;

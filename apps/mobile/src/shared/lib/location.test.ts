@@ -65,6 +65,13 @@ describe('getNearbySpots', () => {
     const result = getNearbySpots([spot], userCoords);
     expect(result[0].distanceKm).toBeGreaterThan(0);
   });
+
+  it('알려진 좌표 간 거리를 근사치로 계산한다', () => {
+    // 서울(37.5, 126.9) → 수원(37.27, 127.0) 직선거리 약 27km
+    const suwon = makeSpot('suwon', 37.27, 127.0);
+    const result = getNearbySpots([suwon], { latitude: 37.5, longitude: 126.9 }, 1);
+    expect(result[0].distanceKm).toBeCloseTo(27, 0); // 27km ± 0.5km 허용
+  });
 });
 
 describe('formatDistance', () => {
