@@ -68,6 +68,7 @@ describe('planImportWrite', () => {
           short_tip: '팁',
           bloom_start_at: '2026-03-28',
           bloom_end_at: '2026-04-10',
+          status: 'published',
         },
         {
           slug: 'yeouido-yunjung-ro',
@@ -81,6 +82,7 @@ describe('planImportWrite', () => {
           short_tip: '팁',
           bloom_start_at: '2026-03-28',
           bloom_end_at: '2026-04-10',
+          status: 'published',
         },
       ],
     };

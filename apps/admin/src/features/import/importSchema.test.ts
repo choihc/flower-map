@@ -73,8 +73,14 @@ describe('importPayloadSchema', () => {
     });
 
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.spot.thumbnail_url).toBeUndefined();
+    if (!result.success) {
+      throw new Error('Expected import payload to parse successfully');
     }
+
+    if (!('spot' in result.data)) {
+      throw new Error('Expected single-spot payload to contain spot');
+    }
+
+    expect(result.data.spot.thumbnail_url).toBeUndefined();
   });
 });
