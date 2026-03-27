@@ -51,7 +51,7 @@ export default async function SpotsPage() {
         </div>
 
         <Card className="bg-card/90 backdrop-blur">
-          <CardContent className="grid gap-4 px-5 py-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,220px)_minmax(0,220px)_auto]">
+          <CardContent className="grid gap-4 px-5 py-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,220px)_minmax(0,220px)_minmax(0,220px)_auto]">
             <div className="space-y-2">
               <label htmlFor="spot-search" className="text-sm font-medium text-foreground">
                 검색
@@ -79,6 +79,17 @@ export default async function SpotsPage() {
                     {flower.name_ko}
                   </option>
                 ))}
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="spot-region-filter" className="text-sm font-medium text-foreground">
+                지역
+              </label>
+              <Select id="spot-region-filter" defaultValue="all">
+                <option value="all">전체 지역</option>
+                <option value="서울">서울</option>
+                <option value="부산">부산</option>
+                <option value="제주">제주</option>
               </Select>
             </div>
             <div className="flex items-end">

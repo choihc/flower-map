@@ -147,6 +147,7 @@ describe('SpotsPage', () => {
     expect(screen.getByText('게시됨', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText('대표', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: '검색' })).toBeInTheDocument();
+    expect(screen.getByLabelText('지역')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '등록된 명소' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '명소 정보 입력' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '기본 정보' })).toBeInTheDocument();
@@ -154,6 +155,8 @@ describe('SpotsPage', () => {
     expect(screen.getByRole('heading', { name: '개화/축제 일정' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '이미지와 메모' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '공개 상태' })).toBeInTheDocument();
+    expect(screen.getByLabelText('정렬 순서')).toBeInTheDocument();
+    expect(screen.getByLabelText('대표 명소')).toBeInTheDocument();
 
     const table = screen.getByRole('table');
     expect(within(table).getByText('벚꽃길')).toBeInTheDocument();

@@ -17,7 +17,7 @@ import { spotSchema } from './spotSchema';
 type SpotFormProps = {
   defaultValue?: Partial<SpotInsert>;
   flowers: Array<Pick<FlowerRow, 'id' | 'name_ko' | 'slug'>>;
-  submitAction?: (value: SpotInsert) => Promise<void> | void;
+  submitAction: (value: SpotInsert) => Promise<void> | void;
 };
 
 export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps) {
@@ -50,6 +50,8 @@ export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps)
         thumbnail_url: getOptionalText(formData.get('thumbnail_url')),
         source_note: getOptionalText(formData.get('source_note')),
         status: formData.get('status') === 'published' ? 'published' : 'draft',
+        display_order: Number(formData.get('display_order') ?? 0),
+        is_featured: formData.get('is_featured') === 'on',
       }),
     );
 
@@ -59,7 +61,7 @@ export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps)
     }
 
     try {
-      await submitAction?.(parsed.data);
+      await submitAction(parsed.data);
       setSuccessMessage('명소 정보를 저장했습니다.');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '명소 저장 중 오류가 발생했습니다.');
@@ -288,7 +290,7 @@ export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps)
         title="공개 상태"
         description="초안과 게시 상태를 전환합니다."
       >
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,180px)_minmax(0,180px)_minmax(0,1fr)]">
           <div className="space-y-2">
             <label htmlFor="spot-status" className="text-sm font-medium text-foreground">
               상태
@@ -298,10 +300,34 @@ export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps)
               <option value="published">게시됨</option>
             </Select>
           </div>
-          <div className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-            검토 중인 명소는 draft로 저장되고, 게시되면 운영 화면에 노출됩니다.
+          <div className="space-y-2">
+            <label htmlFor="spot-display-order" className="text-sm font-medium text-foreground">
+              정렬 순서
+            </label>
+            <Input
+              id="spot-display-order"
+              name="display_order"
+              type="number"
+              defaultValue={defaultValue?.display_order ?? 0}
+            />
           </div>
+          <label
+            htmlFor="spot-is-featured"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground"
+          >
+            <input
+              id="spot-is-featured"
+              name="is_featured"
+              type="checkbox"
+              defaultChecked={defaultValue?.is_featured ?? false}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+            />
+            대표 명소
+          </label>
         </div>
+        <p className="text-sm text-muted-foreground">
+          검토 중인 명소는 draft로 저장되고, 게시되면 운영 화면에 노출됩니다.
+        </p>
       </FormSection>
 
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}
