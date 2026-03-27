@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { toFlowerSpot } from './spotMappers';
 
 describe('toFlowerSpot', () => {
-  it('maps a published spot row into the existing mobile card shape', () => {
+  it('keeps the database id and exposes slug separately for route lookups', () => {
     const result = toFlowerSpot({
       id: 'spot-1',
       slug: 'yeouido-yunjung-ro',
@@ -23,9 +23,40 @@ describe('toFlowerSpot', () => {
       longitude: 126.9291,
     });
 
+    expect(result.id).toBe('spot-1');
+    expect(result.slug).toBe('yeouido-yunjung-ro');
     expect(result.place).toBe('여의도 윤중로');
     expect(result.flower).toBe('벚꽃');
     expect(result.badge).toBe('이번 주 절정');
     expect(result.festivalDate).toBe('2026.04.01 - 2026.04.07');
+  });
+
+  it('derives fallback presentation labels from raw row data', () => {
+    const result = toFlowerSpot(
+      {
+        id: 'spot-2',
+        slug: 'jeju-noksan-ro',
+        name: '제주 녹산로',
+        flower: { name_ko: '유채꽃' },
+        region_secondary: '제주 서귀포시',
+        description: '도로를 따라 길게 펼쳐지는 유채꽃 풍경이 인상적인 드라이브 코스',
+        short_tip: '넓게 펼쳐진 노란 들판과 드라이브 감성이 좋은 코스',
+        admission_fee: '무료',
+        parking_info: '도로변 지정 주차 구역 확인 필요',
+        festival_start_at: '2026-03-20',
+        festival_end_at: '2026-04-15',
+        bloom_start_at: '2026-03-20',
+        bloom_end_at: '2026-04-20',
+        is_featured: false,
+        latitude: 33.4342,
+        longitude: 126.6735,
+      },
+      new Date('2026-03-29T00:00:00Z'),
+    );
+
+    expect(result.badge).toBe('지금 방문 추천');
+    expect(result.bloomStatus).toBe('포토 스팟');
+    expect(result.eventEndsIn).toBe('D-18');
+    expect(result.tone).toBe('yellow');
   });
 });

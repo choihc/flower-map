@@ -1,5 +1,5 @@
 import { toFlowerSpot } from '../data/spotMappers';
-import type { FlowerSpot, PublishedSpotRow } from '../data/types';
+import type { PublishedSpotRow } from '../data/types';
 
 export const publishedSpotRows: PublishedSpotRow[] = [
   {
@@ -19,9 +19,6 @@ export const publishedSpotRows: PublishedSpotRow[] = [
     is_featured: true,
     latitude: 37.5288,
     longitude: 126.9291,
-    badge_label: '이번 주 절정',
-    bloom_status_label: '지금 보기 좋아요',
-    event_ends_in_label: 'D-12',
   },
   {
     id: 'spot-2',
@@ -40,9 +37,6 @@ export const publishedSpotRows: PublishedSpotRow[] = [
     is_featured: false,
     latitude: 33.4342,
     longitude: 126.6735,
-    badge_label: '지금 방문 추천',
-    bloom_status_label: '포토 스팟',
-    event_ends_in_label: 'D-18',
   },
   {
     id: 'spot-3',
@@ -61,9 +55,6 @@ export const publishedSpotRows: PublishedSpotRow[] = [
     is_featured: false,
     latitude: 37.2944,
     longitude: 127.2023,
-    badge_label: '가족 나들이 추천',
-    bloom_status_label: '이번 주 추천',
-    event_ends_in_label: 'D-22',
   },
   {
     id: 'spot-4',
@@ -82,13 +73,18 @@ export const publishedSpotRows: PublishedSpotRow[] = [
     is_featured: false,
     latitude: 37.5512,
     longitude: 126.9882,
-    badge_label: '산책 코스 추천',
-    bloom_status_label: '이번 주 추천',
-    event_ends_in_label: 'D-10',
   },
 ];
 
-export const featuredSpots: FlowerSpot[] = publishedSpotRows.map(toFlowerSpot);
+export const featuredSpots = publishedSpotRows.map((row) => {
+  const spot = toFlowerSpot(row);
+
+  return {
+    ...spot,
+    id: spot.slug,
+    recordId: spot.id,
+  };
+});
 
 export const regionSummaries = [
   '서울/경기',

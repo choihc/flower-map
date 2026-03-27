@@ -2,6 +2,7 @@ export type FlowerSpotTone = 'green' | 'pink' | 'yellow';
 
 export type FlowerSpot = {
   id: string;
+  slug: string;
   badge: string;
   bloomStatus: string;
   description: string;
@@ -39,7 +40,4 @@ export type PublishedSpotRow = {
   is_featured: boolean;
   latitude: number;
   longitude: number;
-  badge_label?: string;
-  bloom_status_label?: string;
-  event_ends_in_label?: string;
 };

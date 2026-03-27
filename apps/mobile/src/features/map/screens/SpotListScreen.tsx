@@ -30,7 +30,7 @@ export function SpotListScreen() {
 
       <SectionCard title={sectionTitle}>
         {visibleSpots.map((spot) => (
-          <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.id}`)} style={styles.spotRow}>
+          <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.slug}`)} style={styles.spotRow}>
             <View style={[styles.spotAccent, spot.tone === 'pink' ? styles.accentPink : spot.tone === 'yellow' ? styles.accentYellow : styles.accentGreen]} />
             <View style={styles.spotContent}>
               <Text style={styles.spotTitle}>{spot.place}</Text>

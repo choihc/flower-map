@@ -36,7 +36,7 @@ export function HomeScreen() {
     <ScreenShell title="꽃 어디" subtitle="오늘 피어 있는 곳부터 감성 있게, 빠르게 보여드릴게요.">
       <ImageBackground
         imageStyle={styles.heroImageInner}
-        source={spotImages[selectedSpot.id]}
+        source={spotImages[selectedSpot.slug]}
         style={styles.hero}
       >
         <View style={styles.heroShade} />
@@ -66,7 +66,7 @@ export function HomeScreen() {
           </View>
 
           <View style={styles.heroActionRow}>
-            <Pressable onPress={() => router.push(`/spot/${selectedSpot.id}`)} style={styles.heroPrimaryButton}>
+            <Pressable onPress={() => router.push(`/spot/${selectedSpot.slug}`)} style={styles.heroPrimaryButton}>
               <Text style={styles.heroPrimaryButtonText}>상세 보기</Text>
             </Pressable>
             <Pressable onPress={() => router.push('/map')} style={styles.heroSecondaryButton}>
@@ -112,13 +112,13 @@ export function HomeScreen() {
             badge={pick.badge}
             flower={pick.flower}
             helper={pick.helper}
-            imageSource={spotImages[pick.id]}
+            imageSource={spotImages[pick.slug]}
             isFeatured={pick.id === selectedSpot.id}
             place={pick.place}
             tone={pick.tone}
             onDirectionsPress={() => router.push('/map')}
             onPress={() => setSelectedFlower(pick.flower)}
-            onViewMapPress={() => router.push(`/spot/${pick.id}`)}
+            onViewMapPress={() => router.push(`/spot/${pick.slug}`)}
           />
         ))}
       </View>
@@ -127,7 +127,7 @@ export function HomeScreen() {
       <View style={styles.eventCard}>
         <ImageBackground
           imageStyle={styles.eventImageInner}
-          source={spotImages[endingSoonSpot.id]}
+          source={spotImages[endingSoonSpot.slug]}
           style={styles.eventImage}
         >
           <View style={styles.eventImageShade} />
@@ -141,7 +141,7 @@ export function HomeScreen() {
             {endingSoonSpot.festivalDate} · {endingSoonSpot.location}
           </Text>
           <Text style={styles.eventDescription}>{endingSoonSpot.helper}</Text>
-          <Pressable onPress={() => router.push(`/spot/${endingSoonSpot.id}`)} style={styles.eventAction}>
+          <Pressable onPress={() => router.push(`/spot/${endingSoonSpot.slug}`)} style={styles.eventAction}>
             <Text style={styles.eventActionText}>행사 자세히 보기</Text>
           </Pressable>
         </View>

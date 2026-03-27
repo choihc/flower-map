@@ -4,7 +4,7 @@ import type { ImageSourcePropType } from 'react-native';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  getPublishedSpotById,
+  getPublishedSpotBySlug,
   getPublishedSpots,
 } from '../../../shared/data/spotRepository';
 import { openNaverNavigation } from '../../../shared/lib/naverMap';
@@ -21,11 +21,11 @@ type SpotDetailScreenProps = {
 export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
   const router = useRouter();
   const featuredSpots = getPublishedSpots();
-  const spot = getPublishedSpotById(spotId) ?? featuredSpots[0];
+  const spot = getPublishedSpotBySlug(spotId) ?? featuredSpots[0];
 
   return (
     <ScreenShell title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
-      <ImageHero fallbackTone={spot.tone} imageSource={spotImages[spot.id]}>
+      <ImageHero fallbackTone={spot.tone} imageSource={spotImages[spot.slug]}>
         <View style={styles.heroGlowTop} />
         <View style={styles.heroGlowBottom} />
         <View style={styles.heroBadge}>
@@ -57,7 +57,7 @@ export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
             </View>
           </View>
           <View style={styles.heroArt}>
-            {!spotImages[spot.id] ? <BloomArt size="lg" tone={spot.tone} /> : null}
+            {!spotImages[spot.slug] ? <BloomArt size="lg" tone={spot.tone} /> : null}
           </View>
         </View>
       </ImageHero>
@@ -88,7 +88,7 @@ export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
         {featuredSpots
           .filter((item) => item.id !== spot.id)
           .map((item) => (
-            <Pressable key={item.id} onPress={() => router.push(`/spot/${item.id}`)} style={styles.relatedItem}>
+            <Pressable key={item.id} onPress={() => router.push(`/spot/${item.slug}`)} style={styles.relatedItem}>
               <View>
                 <Text style={styles.relatedTitle}>{item.place}</Text>
                 <Text style={styles.relatedMeta}>

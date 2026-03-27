@@ -21,10 +21,6 @@ function toFlowerTone(flowerName: string): FlowerSpotTone {
 }
 
 function toBadgeLabel(row: PublishedSpotRow) {
-  if (row.badge_label) {
-    return row.badge_label;
-  }
-
   if (row.is_featured) {
     return '이번 주 절정';
   }
@@ -41,10 +37,6 @@ function toBadgeLabel(row: PublishedSpotRow) {
 }
 
 function toBloomStatus(row: PublishedSpotRow) {
-  if (row.bloom_status_label) {
-    return row.bloom_status_label;
-  }
-
   if (row.is_featured) {
     return '지금 보기 좋아요';
   }
@@ -57,10 +49,6 @@ function toBloomStatus(row: PublishedSpotRow) {
 }
 
 function toEventEndsIn(row: PublishedSpotRow, now = new Date()) {
-  if (row.event_ends_in_label) {
-    return row.event_ends_in_label;
-  }
-
   if (!row.festival_end_at) {
     return undefined;
   }
@@ -79,13 +67,14 @@ function toEventEndsIn(row: PublishedSpotRow, now = new Date()) {
   return `D-${daysRemaining}`;
 }
 
-export function toFlowerSpot(row: PublishedSpotRow): FlowerSpot {
+export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpot {
   return {
-    id: row.slug,
+    id: row.id,
+    slug: row.slug,
     badge: toBadgeLabel(row),
     bloomStatus: toBloomStatus(row),
     description: row.description,
-    eventEndsIn: toEventEndsIn(row),
+    eventEndsIn: toEventEndsIn(row, now),
     fee: row.admission_fee ?? '정보 없음',
     festivalDate: formatDateRange(row.festival_start_at, row.festival_end_at),
     flower: row.flower.name_ko,
