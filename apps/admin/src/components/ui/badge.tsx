@@ -9,9 +9,9 @@ export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
 };
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-[#3182F6] text-white',
-  secondary: 'bg-[#EAF1FF] text-[#1F4B99]',
-  outline: 'border border-[#D7DEE8] bg-white text-[#4E5968]',
+  default: 'bg-primary text-primary-foreground',
+  secondary: 'bg-muted/20 text-foreground',
+  outline: 'border border-border bg-background text-muted-foreground',
   destructive: 'bg-[#FDECEC] text-[#C6282D]',
 };
 

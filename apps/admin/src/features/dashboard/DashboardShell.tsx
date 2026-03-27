@@ -13,7 +13,7 @@ type DashboardShellProps = {
 
 export function DashboardShell({ title, description, actions, children }: DashboardShellProps) {
   return (
-    <div className="min-h-screen bg-[#F6F7FB]">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto grid min-h-screen max-w-[1600px] gap-6 px-5 py-5 lg:grid-cols-[280px_minmax(0,1fr)]">
         <AdminSidebar />
         <main className="min-w-0">
