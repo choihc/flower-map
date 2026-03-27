@@ -6,7 +6,10 @@ import { spotSchema } from '../spots/spotSchema';
 const { flower_id: _flowerId, ...importedSpotShape } = spotSchema.shape;
 
 const importedSpotSchema = z
-  .object(importedSpotShape)
+  .object({
+    ...importedSpotShape,
+    thumbnail_url: z.preprocess((value) => (value === '' ? undefined : value), spotSchema.shape.thumbnail_url),
+  })
   .superRefine((value, ctx) => {
     if (value.bloom_start_at > value.bloom_end_at) {
       ctx.addIssue({
