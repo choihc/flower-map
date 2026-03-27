@@ -1,14 +1,20 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { getPublishedSpots } from '../../../shared/data/spotRepository';
+import { useQuery } from '@tanstack/react-query';
+
+import { getPublishedSpots, spotKeys } from '../../../shared/data/spotRepository';
+import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { colors } from '../../../shared/theme/colors';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 
 export function SpotListScreen() {
   const router = useRouter();
-  const featuredSpots = getPublishedSpots();
+  const { data: featuredSpots = [], isLoading } = useQuery({
+    queryKey: spotKeys.all,
+    queryFn: getPublishedSpots,
+  });
   const { flower } = useLocalSearchParams<{ flower?: string }>();
   const activeFlower = flower && typeof flower === 'string' ? flower : null;
   const visibleSpots = activeFlower ? featuredSpots.filter((spot) => spot.flower === activeFlower) : featuredSpots;
@@ -17,6 +23,17 @@ export function SpotListScreen() {
     ? `${activeFlower} 명소만 모아서 빠르게 비교해보세요.`
     : '지도에서 보던 조건을 리스트로 더 빠르게 비교할 수 있어요.';
   const sectionTitle = activeFlower ? `${activeFlower} 명소 추천` : '봄꽃 명소 추천';
+
+  if (isLoading) {
+    return (
+      <ScreenShell title={title} subtitle={subtitle}>
+        <SkeletonBox height={72} borderRadius={16} />
+        <SkeletonBox height={72} borderRadius={16} />
+        <SkeletonBox height={72} borderRadius={16} />
+        <SkeletonBox height={72} borderRadius={16} />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell title={title} subtitle={subtitle}>
