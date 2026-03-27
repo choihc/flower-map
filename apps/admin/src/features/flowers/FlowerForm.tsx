@@ -9,6 +9,7 @@ import { FormSection } from '@/components/ui/form-section';
 import type { FlowerInsert } from '@/lib/types';
 
 import { flowerSchema } from './flowerSchema';
+import { ImageUploader } from '@/features/spots/ImageUploader';
 
 type FlowerFormProps = {
   defaultValue?: Partial<FlowerInsert>;
@@ -32,6 +33,7 @@ export function FlowerForm({ defaultValue, submitAction }: FlowerFormProps) {
       season_end_month: Number(formData.get('season_end_month')),
       sort_order: Number(formData.get('sort_order') ?? 0),
       is_active: formData.get('is_active') === 'on',
+      thumbnail_url: normalizeOptionalText(formData.get('thumbnail_url')),
     });
 
     if (!parsed.success) {
@@ -148,6 +150,15 @@ export function FlowerForm({ defaultValue, submitAction }: FlowerFormProps) {
             활성화
           </label>
         </div>
+      </FormSection>
+
+      <Separator />
+
+      <FormSection
+        title="대표 썸네일"
+        description="명소 썸네일이 없을 때 표시될 꽃 대표 이미지입니다."
+      >
+        <ImageUploader defaultUrl={defaultValue?.thumbnail_url} />
       </FormSection>
 
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}
