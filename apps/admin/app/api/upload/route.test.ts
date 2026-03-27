@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapUploadResultStatus } from './route';
+import { mapUploadResultStatus } from '@/lib/blob/uploadStatus';
 
 describe('mapUploadResultStatus', () => {
   it('maps invalid_request failures to HTTP 400', () => {

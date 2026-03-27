@@ -1,14 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { invalidUploadRequest, uploadImage, type UploadImageResult } from '@/lib/blob/uploadImage';
-
-export function mapUploadResultStatus(result: UploadImageResult) {
-  if (result.success) {
-    return 200;
-  }
-
-  return result.error.code === 'invalid_request' ? 400 : 503;
-}
+import { invalidUploadRequest, uploadImage } from '@/lib/blob/uploadImage';
+import { mapUploadResultStatus } from '@/lib/blob/uploadStatus';
 
 export async function POST(request: Request) {
   const formData = await request.formData();
