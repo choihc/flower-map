@@ -6,7 +6,7 @@ export default function RootLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="list" />
       <Stack.Screen name="filters" />
-      <Stack.Screen name="spot/[id]" />
+      <Stack.Screen name="spot/[slug]" />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

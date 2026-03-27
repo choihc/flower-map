@@ -15,13 +15,13 @@ import { SectionCard } from '../../../shared/ui/SectionCard';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 
 type SpotDetailScreenProps = {
-  spotId: string;
+  slug: string;
 };
 
-export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
+export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
   const router = useRouter();
   const featuredSpots = getPublishedSpots();
-  const spot = getPublishedSpotBySlug(spotId) ?? featuredSpots[0];
+  const spot = getPublishedSpotBySlug(slug) ?? featuredSpots[0];
 
   return (
     <ScreenShell title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
