@@ -1,18 +1,20 @@
 import type { ReactNode } from 'react';
 import { useRouter } from 'expo-router';
-import type { ImageSourcePropType } from 'react-native';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { useQuery } from '@tanstack/react-query';
 
 import {
   getPublishedSpotBySlug,
   getPublishedSpots,
+  spotKeys,
 } from '../../../shared/data/spotRepository';
 import { openNaverNavigation } from '../../../shared/lib/naverMap';
 import { colors } from '../../../shared/theme/colors';
-import { spotImages } from '../../../shared/mocks/spotAssets';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
+import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 
 type SpotDetailScreenProps = {
   slug: string;
@@ -20,12 +22,38 @@ type SpotDetailScreenProps = {
 
 export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
   const router = useRouter();
-  const featuredSpots = getPublishedSpots();
-  const spot = getPublishedSpotBySlug(slug) ?? featuredSpots[0];
+  const { data: spot, isLoading } = useQuery({
+    queryKey: spotKeys.detail(slug),
+    queryFn: () => getPublishedSpotBySlug(slug),
+  });
+
+  const { data: allSpots = [] } = useQuery({
+    queryKey: spotKeys.all,
+    queryFn: getPublishedSpots,
+  });
+
+  if (isLoading) {
+    return (
+      <ScreenShell title="..." subtitle="...">
+        <SkeletonBox height={280} borderRadius={28} />
+        <SkeletonBox height={100} borderRadius={20} />
+        <SkeletonBox height={80} borderRadius={20} />
+        <SkeletonBox height={60} borderRadius={20} />
+      </ScreenShell>
+    );
+  }
+
+  if (!spot) {
+    return (
+      <ScreenShell title="명소를 찾을 수 없어요" subtitle="다른 명소를 탐색해 보세요.">
+        {null}
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
-      <ImageHero fallbackTone={spot.tone} imageSource={spotImages[spot.slug]}>
+      <ImageHero fallbackTone={spot.tone} imageSource={spot.thumbnailUrl ? { uri: spot.thumbnailUrl } : undefined}>
         <View style={styles.heroGlowTop} />
         <View style={styles.heroGlowBottom} />
         <View style={styles.heroBadge}>
@@ -57,7 +85,7 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
             </View>
           </View>
           <View style={styles.heroArt}>
-            {!spotImages[spot.slug] ? <BloomArt size="lg" tone={spot.tone} /> : null}
+            {!spot.thumbnailUrl ? <BloomArt size="lg" tone={spot.tone} /> : null}
           </View>
         </View>
       </ImageHero>
@@ -85,7 +113,7 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
       </SectionCard>
 
       <SectionCard title="비슷한 꽃 명소">
-        {featuredSpots
+        {allSpots
           .filter((item) => item.id !== spot.id)
           .map((item) => (
             <Pressable key={item.id} onPress={() => router.push(`/spot/${item.slug}`)} style={styles.relatedItem}>
@@ -110,7 +138,7 @@ function ImageHero({
 }: {
   children: ReactNode;
   fallbackTone: 'green' | 'pink' | 'yellow';
-  imageSource?: ImageSourcePropType;
+  imageSource?: { uri: string } | undefined;
 }) {
   if (imageSource) {
     return (
