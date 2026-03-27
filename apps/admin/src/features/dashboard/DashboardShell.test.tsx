@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { DashboardShell } from './DashboardShell';
+import { DashboardShell } from '@/features/dashboard/DashboardShell';
 
 describe('DashboardShell', () => {
   it('renders the shared admin navigation links', () => {
