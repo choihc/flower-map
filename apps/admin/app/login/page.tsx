@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm } from '@/features/auth/LoginForm';
+import { getAdminAccessState } from '@/lib/auth/admin';
 import { sanitizeRedirectTarget } from '@/lib/auth/redirect';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
@@ -12,9 +13,7 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { isAdmin, user } = await getAdminAccessState(supabase as never);
 
   const resolvedSearchParams = searchParams == null ? {} : await searchParams;
   const redirectToParam = Array.isArray(resolvedSearchParams.redirectTo)
@@ -22,7 +21,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     : resolvedSearchParams.redirectTo;
   const redirectTo = sanitizeRedirectTarget(redirectToParam);
 
-  if (user != null) {
+  if (user != null && isAdmin) {
     redirect(redirectTo);
   }
 

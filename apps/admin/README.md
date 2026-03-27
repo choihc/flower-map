@@ -37,6 +37,7 @@ SUPABASE_SECRET_KEY=sb_secret_xxxxxxxxxxxxxxxxxxxx
 ## Key Workspaces
 
 - Supabase Auth 기반 관리자 로그인
+- `public.admin_users` 기반 uid 단위 관리자 권한 제어
 - Toss-inspired dashboard shell and sidebar navigation
 - KPI-first dashboard home with recent status summary
 - Structured flower and spot management panels
@@ -47,3 +48,10 @@ SUPABASE_SECRET_KEY=sb_secret_xxxxxxxxxxxxxxxxxxxx
 - JSON import keeps validation and save behavior wired through the current server action contract.
 - Flower and spot saves remain server-action driven and revalidate the dashboard summaries.
 - 이미지 업로드 API 계약은 유지됩니다.
+- 관리자 권한 부여는 가입 후 아래 SQL로 진행합니다.
+
+```sql
+insert into public.admin_users (user_id, note)
+values ('YOUR_AUTH_USER_ID', 'initial admin')
+on conflict (user_id) do nothing;
+```

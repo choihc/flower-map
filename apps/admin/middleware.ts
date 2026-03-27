@@ -14,9 +14,9 @@ function isProtectedPath(pathname: string) {
 }
 
 export async function middleware(request: NextRequest) {
-  const { response, user } = await updateSession(request);
+  const { isAdmin, response, user } = await updateSession(request);
 
-  if (!isProtectedPath(request.nextUrl.pathname) || user != null) {
+  if (!isProtectedPath(request.nextUrl.pathname) || (user != null && isAdmin)) {
     return response;
   }
 

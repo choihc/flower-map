@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { isAdminUser } from '@/lib/auth/admin';
 import type { Database } from '@/lib/types';
 
 import { getPublicEnv } from '../env';
@@ -18,9 +19,9 @@ type CookieToSet = {
 
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
-  const { supabaseUrl, supabaseAnonKey } = getPublicEnv();
+  const { supabaseUrl, supabasePublishableKey } = getPublicEnv();
 
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createServerClient<Database>(supabaseUrl, supabasePublishableKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll().map(({ name, value }) => ({ name, value }));
@@ -39,12 +40,12 @@ export async function createServerSupabaseClient() {
 }
 
 export async function updateSession(request: NextRequest) {
-  const { supabaseUrl, supabaseAnonKey } = getPublicEnv();
+  const { supabaseUrl, supabasePublishableKey } = getPublicEnv();
   let response = NextResponse.next({
     request,
   });
 
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient<Database>(supabaseUrl, supabasePublishableKey, {
     cookies: {
       getAll() {
         return getRequestCookies(request);
@@ -66,5 +67,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { response, user };
+  const isAdmin = user == null ? false : await isAdminUser(supabase as never, user.id);
+
+  return { isAdmin, response, user };
 }

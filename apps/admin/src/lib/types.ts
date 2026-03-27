@@ -12,6 +12,12 @@ export type FlowerRow = {
   updated_at: string;
 };
 
+export type AdminUserRow = {
+  user_id: string;
+  granted_at: string;
+  note: string | null;
+};
+
 export type SpotStatus = 'draft' | 'published';
 export type SpotSourceType = 'manual_json';
 
@@ -94,6 +100,18 @@ export type SpotUpdate = Partial<Omit<SpotInsert, 'id' | 'created_at' | 'updated
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: AdminUserRow;
+        Insert: {
+          user_id: string;
+          granted_at?: string;
+          note?: string | null;
+        };
+        Update: {
+          granted_at?: string;
+          note?: string | null;
+        };
+      };
       flowers: {
         Row: FlowerRow;
         Insert: FlowerInsert;
