@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useRouter } from 'expo-router';
-import { ImageBackground, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native';
 
 import { spotImages } from '../../../shared/mocks/spotAssets';
 import { featuredSpots, flowerLabels, type FlowerSpot } from '../../../shared/mocks/spots';
@@ -10,18 +11,17 @@ import { ScreenShell } from '../../../shared/ui/ScreenShell';
 
 const flowerFilters = ['전체', ...flowerLabels];
 
-const spotCoordinates: Record<FlowerSpot['id'], { latitude: number; longitude: number }> = {
-  'everland-tulip-garden': { latitude: 37.2944, longitude: 127.2023 },
-  'jeju-noksan-ro': { latitude: 33.4342, longitude: 126.6735 },
-  'namsan-azalea-trail': { latitude: 37.5512, longitude: 126.9882 },
-  'yeouido-yunjung-ro': { latitude: 37.5288, longitude: 126.9291 },
-};
-
 const defaultCamera = {
   latitude: 37.534,
   longitude: 126.978,
   zoom: 9.6,
 };
+
+const nativeNaverMapViewName = 'RNCNaverMapView';
+const isExpoGo = Constants.appOwnership === 'expo';
+const isStoreClient = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+const isNativeNaverMapAvailable =
+  Platform.OS !== 'web' && UIManager.hasViewManagerConfig(nativeNaverMapViewName);
 
 type NativeMapCanvasProps = {
   spots: FlowerSpot[];
@@ -30,12 +30,16 @@ type NativeMapCanvasProps = {
 };
 
 function NativeMapCanvas({ spots, selectedSpotId, onSelectSpot }: NativeMapCanvasProps) {
-  const { NaverMapMarkerOverlay, NaverMapPathOverlay, NaverMapView } =
+  const { NaverMapMarkerOverlay, NaverMapView } =
     require('@mj-studio/react-native-naver-map') as typeof import('@mj-studio/react-native-naver-map');
 
   const selectedSpot = spots.find((spot) => spot.id === selectedSpotId) ?? spots[0];
-  const selectedCoordinate = selectedSpot ? spotCoordinates[selectedSpot.id] : undefined;
-  const routeCoords = spots.map((spot) => spotCoordinates[spot.id]);
+  const selectedCoordinate = selectedSpot
+    ? {
+        latitude: selectedSpot.latitude,
+        longitude: selectedSpot.longitude,
+      }
+    : undefined;
 
   return (
     <NaverMapView
@@ -60,11 +64,7 @@ function NativeMapCanvas({ spots, selectedSpotId, onSelectSpot }: NativeMapCanva
       mapPadding={{ bottom: 24, left: 24, right: 24, top: 112 }}
       style={StyleSheet.absoluteFill}
     >
-      {routeCoords.length > 1 ? (
-        <NaverMapPathOverlay color="#F58FA9" coords={routeCoords} outlineColor="#FFFFFF" outlineWidth={2} width={6} />
-      ) : null}
       {spots.map((spot) => {
-        const coordinate = spotCoordinates[spot.id];
         const isSelected = spot.id === selectedSpotId;
 
         return (
@@ -74,8 +74,8 @@ function NativeMapCanvas({ spots, selectedSpotId, onSelectSpot }: NativeMapCanva
             height={isSelected ? 40 : 34}
             image={{ symbol: isSelected ? 'pink' : 'green' }}
             isForceShowIcon={isSelected}
-            latitude={coordinate.latitude}
-            longitude={coordinate.longitude}
+            latitude={spot.latitude}
+            longitude={spot.longitude}
             onTap={() => onSelectSpot(spot.id)}
             width={isSelected ? 32 : 28}
           />
@@ -90,11 +90,29 @@ function WebMapFallback() {
     <>
       <View style={styles.mapGlowPink} />
       <View style={styles.mapGlowYellow} />
-      <View style={styles.mapPathHorizontal} />
-      <View style={styles.mapPathVertical} />
       <View style={[styles.marker, styles.markerPink, { left: '20%', top: '28%' }]} />
       <View style={[styles.marker, styles.markerYellow, { left: '68%', top: '30%' }]} />
       <View style={[styles.marker, styles.markerGreen, { left: '44%', top: '58%' }]} />
+    </>
+  );
+}
+
+function NativeMapUnavailableFallback() {
+  const title = isExpoGo ? '개발 빌드에서 지도 확인이 필요해요' : '지도를 아직 연결하지 못했어요';
+  const description = isExpoGo
+    ? 'Expo Go에서는 네이버 지도 네이티브 모듈을 불러올 수 없어요. iPhone에서는 개발 빌드 앱으로 다시 열어주세요.'
+    : isStoreClient
+      ? '개발 빌드 앱이지만 네이버 지도 뷰가 연결되지 않았어요. 네이티브 앱을 다시 빌드한 뒤 확인해주세요.'
+      : '네이버 지도 네이티브 뷰를 찾지 못했어요. iOS 앱을 다시 빌드한 뒤 확인해주세요.';
+
+  return (
+    <>
+      <WebMapFallback />
+      <View style={styles.mapStatusCard}>
+        <Text style={styles.mapStatusEyebrow}>MAP STATUS</Text>
+        <Text style={styles.mapStatusTitle}>{title}</Text>
+        <Text style={styles.mapStatusCopy}>{description}</Text>
+      </View>
     </>
   );
 }
@@ -132,6 +150,8 @@ export function MapScreen() {
       <View style={styles.mapFrame}>
         {Platform.OS === 'web' ? (
           <WebMapFallback />
+        ) : !isNativeNaverMapAvailable ? (
+          <NativeMapUnavailableFallback />
         ) : (
           <NativeMapCanvas onSelectSpot={setSelectedSpotId} selectedSpotId={selectedSpot.id} spots={visibleSpots} />
         )}
@@ -186,8 +206,16 @@ export function MapScreen() {
             <Pressable onPress={() => router.push(`/spot/${selectedSpot.id}`)} style={styles.summaryGhostButton}>
               <Text style={styles.summaryGhostButtonText}>상세 보기</Text>
             </Pressable>
-            <Pressable onPress={() => router.push('/list')} style={styles.summarySolidButton}>
-              <Text style={styles.summarySolidButtonText}>이 주변 더 보기</Text>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/list',
+                  params: { flower: selectedSpot.flower },
+                })
+              }
+              style={styles.summarySolidButton}
+            >
+              <Text style={styles.summarySolidButtonText}>{selectedSpot.flower} 명소 더 보기</Text>
             </Pressable>
           </View>
         </View>
@@ -298,23 +326,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  mapPathHorizontal: {
-    backgroundColor: 'rgba(255,255,255,0.55)',
-    borderRadius: 999,
-    height: 10,
-    left: 30,
+  mapStatusCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 24,
+    left: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     position: 'absolute',
-    top: 160,
-    width: 240,
+    right: 16,
+    top: 118,
   },
-  mapPathVertical: {
-    backgroundColor: 'rgba(255,255,255,0.45)',
-    borderRadius: 999,
-    height: 210,
-    left: 164,
-    position: 'absolute',
-    top: 60,
-    width: 10,
+  mapStatusCopy: {
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 8,
+  },
+  mapStatusEyebrow: {
+    color: colors.secondaryDeep,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  mapStatusTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 6,
   },
   marker: {
     borderColor: '#FFFFFF',

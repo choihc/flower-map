@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import type { ImageSourcePropType } from 'react-native';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { openNaverNavigation } from '../../../shared/lib/naverMap';
 import { colors } from '../../../shared/theme/colors';
 import { spotImages } from '../../../shared/mocks/spotAssets';
 import { featuredSpots } from '../../../shared/mocks/spots';
@@ -34,7 +35,16 @@ export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
             </Text>
             <Text style={styles.heroDescription}>{spot.description}</Text>
             <View style={styles.heroActions}>
-              <Pressable onPress={() => router.push('/map')} style={styles.heroPrimaryButton}>
+              <Pressable
+                onPress={() =>
+                  openNaverNavigation({
+                    latitude: spot.latitude,
+                    longitude: spot.longitude,
+                    name: spot.place,
+                  })
+                }
+                style={styles.heroPrimaryButton}
+              >
                 <Text style={styles.heroPrimaryButtonText}>길찾기</Text>
               </Pressable>
               <Pressable onPress={() => router.push('/map')} style={styles.heroSecondaryButton}>

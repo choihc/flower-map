@@ -10,7 +10,12 @@
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.kkoteodi.mobile"
+      "bundleIdentifier": "com.kkoteodi.mobile",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "nmap"
+        ]
+      }
     },
     "android": {
       "package": "com.kkoteodi.mobile",

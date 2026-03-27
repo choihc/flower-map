@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../../shared/theme/colors';
@@ -8,9 +8,17 @@ import { SectionCard } from '../../../shared/ui/SectionCard';
 
 export function SpotListScreen() {
   const router = useRouter();
+  const { flower } = useLocalSearchParams<{ flower?: string }>();
+  const activeFlower = flower && typeof flower === 'string' ? flower : null;
+  const visibleSpots = activeFlower ? featuredSpots.filter((spot) => spot.flower === activeFlower) : featuredSpots;
+  const title = activeFlower ? `${activeFlower} 명소 리스트` : '명소 리스트';
+  const subtitle = activeFlower
+    ? `${activeFlower} 명소만 모아서 빠르게 비교해보세요.`
+    : '지도에서 보던 조건을 리스트로 더 빠르게 비교할 수 있어요.';
+  const sectionTitle = activeFlower ? `${activeFlower} 명소 추천` : '봄꽃 명소 추천';
 
   return (
-    <ScreenShell title="명소 리스트" subtitle="지도에서 보던 조건을 리스트로 더 빠르게 비교할 수 있어요.">
+    <ScreenShell title={title} subtitle={subtitle}>
       <View style={styles.sortRow}>
         {['거리순', '인기순', '종료 임박순'].map((label, index) => (
           <Pressable key={label} style={[styles.sortChip, index === 0 ? styles.sortChipActive : null]}>
@@ -19,8 +27,8 @@ export function SpotListScreen() {
         ))}
       </View>
 
-      <SectionCard title="서울 벚꽃 추천">
-        {featuredSpots.map((spot) => (
+      <SectionCard title={sectionTitle}>
+        {visibleSpots.map((spot) => (
           <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.id}`)} style={styles.spotRow}>
             <View style={[styles.spotAccent, spot.tone === 'pink' ? styles.accentPink : spot.tone === 'yellow' ? styles.accentYellow : styles.accentGreen]} />
             <View style={styles.spotContent}>

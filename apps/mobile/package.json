@@ -2,7 +2,7 @@
   "name": "kkot-eodi-mobile",
   "version": "1.0.0",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "./index.js",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
     "start": "expo start",

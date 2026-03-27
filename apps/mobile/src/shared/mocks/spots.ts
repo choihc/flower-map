@@ -8,6 +8,8 @@ export type FlowerSpot = {
   festivalDate: string;
   flower: string;
   helper: string;
+  latitude: number;
+  longitude: number;
   location: string;
   parking: string;
   place: string;
@@ -25,6 +27,8 @@ export const featuredSpots: FlowerSpot[] = [
     festivalDate: '2026.04.01 - 2026.04.07',
     flower: '벚꽃',
     helper: '산책 동선이 좋고, 축제 분위기가 살아 있는 대표 스팟',
+    latitude: 37.5288,
+    longitude: 126.9291,
     location: '서울 영등포구',
     parking: '인근 공영주차장 이용 권장',
     place: '여의도 윤중로',
@@ -40,6 +44,8 @@ export const featuredSpots: FlowerSpot[] = [
     festivalDate: '2026.03.20 - 2026.04.15',
     flower: '유채꽃',
     helper: '넓게 펼쳐진 노란 들판과 드라이브 감성이 좋은 코스',
+    latitude: 33.4342,
+    longitude: 126.6735,
     location: '제주 서귀포시',
     parking: '도로변 지정 주차 구역 확인 필요',
     place: '제주 녹산로',
@@ -55,6 +61,8 @@ export const featuredSpots: FlowerSpot[] = [
     festivalDate: '2026.04.05 - 2026.04.28',
     flower: '튤립',
     helper: '사진 촬영 포인트가 많고 이동 동선이 편한 편이에요',
+    latitude: 37.2944,
+    longitude: 127.2023,
     location: '경기 용인시',
     parking: '전용 주차장 이용 가능',
     place: '에버랜드 튤립가든',
@@ -70,6 +78,8 @@ export const featuredSpots: FlowerSpot[] = [
     festivalDate: '2026.04.03 - 2026.04.18',
     flower: '진달래',
     helper: '화려한 벚꽃보다 차분한 봄 무드를 좋아하면 잘 맞는 코스예요',
+    latitude: 37.5512,
+    longitude: 126.9882,
     location: '서울 용산구',
     parking: '대중교통 접근 권장',
     place: '남산 진달래길',
