@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-import type { SpotInsert } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { FormSection } from '@/components/ui/form-section';
+import type { FlowerRow, SpotInsert } from '@/lib/types';
 
 import { buildSpotWriteInput } from '@/lib/data/spots';
 
@@ -10,10 +16,11 @@ import { spotSchema } from './spotSchema';
 
 type SpotFormProps = {
   defaultValue?: Partial<SpotInsert>;
-  onSubmit?: (value: SpotInsert) => Promise<void> | void;
+  flowers: Array<Pick<FlowerRow, 'id' | 'name_ko' | 'slug'>>;
+  submitAction?: (value: SpotInsert) => Promise<void> | void;
 };
 
-export function SpotForm({ defaultValue, onSubmit }: SpotFormProps) {
+export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -51,120 +58,257 @@ export function SpotForm({ defaultValue, onSubmit }: SpotFormProps) {
       return;
     }
 
-    await onSubmit?.(parsed.data);
-    setSuccessMessage('명소 정보를 준비했습니다.');
+    try {
+      await submitAction?.(parsed.data);
+      setSuccessMessage('명소 정보를 저장했습니다.');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : '명소 저장 중 오류가 발생했습니다.');
+    }
   }
 
   return (
-    <form action={handleSubmit}>
-      <div>
-        <label htmlFor="spot-flower-id">꽃 ID</label>
-        <input id="spot-flower-id" name="flower_id" defaultValue={defaultValue?.flower_id ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-slug">슬러그</label>
-        <input id="spot-slug" name="slug" defaultValue={defaultValue?.slug ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-name">명소 이름</label>
-        <input id="spot-name" name="name" defaultValue={defaultValue?.name ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-region-primary">1차 지역</label>
-        <input id="spot-region-primary" name="region_primary" defaultValue={defaultValue?.region_primary ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-region-secondary">2차 지역</label>
-        <input
-          id="spot-region-secondary"
-          name="region_secondary"
-          defaultValue={defaultValue?.region_secondary ?? ''}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="spot-address">주소</label>
-        <input id="spot-address" name="address" defaultValue={defaultValue?.address ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-latitude">위도</label>
-        <input id="spot-latitude" name="latitude" type="number" step="any" defaultValue={defaultValue?.latitude ?? 37.5665} required />
-      </div>
-      <div>
-        <label htmlFor="spot-longitude">경도</label>
-        <input
-          id="spot-longitude"
-          name="longitude"
-          type="number"
-          step="any"
-          defaultValue={defaultValue?.longitude ?? 126.978}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="spot-description">설명</label>
-        <textarea id="spot-description" name="description" defaultValue={defaultValue?.description ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-short-tip">짧은 팁</label>
-        <textarea id="spot-short-tip" name="short_tip" defaultValue={defaultValue?.short_tip ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-parking-info">주차 정보</label>
-        <input id="spot-parking-info" name="parking_info" defaultValue={defaultValue?.parking_info ?? ''} />
-      </div>
-      <div>
-        <label htmlFor="spot-admission-fee">입장료</label>
-        <input id="spot-admission-fee" name="admission_fee" defaultValue={defaultValue?.admission_fee ?? ''} />
-      </div>
-      <div>
-        <label htmlFor="spot-festival-name">축제명</label>
-        <input id="spot-festival-name" name="festival_name" defaultValue={defaultValue?.festival_name ?? ''} />
-      </div>
-      <div>
-        <label htmlFor="spot-festival-start">축제 시작일</label>
-        <input
-          id="spot-festival-start"
-          name="festival_start_at"
-          type="date"
-          defaultValue={defaultValue?.festival_start_at ?? ''}
-        />
-      </div>
-      <div>
-        <label htmlFor="spot-festival-end">축제 종료일</label>
-        <input
-          id="spot-festival-end"
-          name="festival_end_at"
-          type="date"
-          defaultValue={defaultValue?.festival_end_at ?? ''}
-        />
-      </div>
-      <div>
-        <label htmlFor="spot-bloom-start">개화 시작일</label>
-        <input id="spot-bloom-start" name="bloom_start_at" type="date" defaultValue={defaultValue?.bloom_start_at ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-bloom-end">개화 종료일</label>
-        <input id="spot-bloom-end" name="bloom_end_at" type="date" defaultValue={defaultValue?.bloom_end_at ?? ''} required />
-      </div>
-      <div>
-        <label htmlFor="spot-thumbnail-url">썸네일 URL</label>
-        <input id="spot-thumbnail-url" name="thumbnail_url" type="url" defaultValue={defaultValue?.thumbnail_url ?? ''} />
-      </div>
-      <div>
-        <label htmlFor="spot-source-note">비고</label>
-        <input id="spot-source-note" name="source_note" defaultValue={defaultValue?.source_note ?? ''} />
-      </div>
-      <div>
-        <label htmlFor="spot-status">상태</label>
-        <select id="spot-status" name="status" defaultValue={defaultValue?.status ?? 'draft'}>
-          <option value="draft">draft</option>
-          <option value="published">published</option>
-        </select>
-      </div>
+    <form action={handleSubmit} className="space-y-6">
+      <FormSection
+        title="기본 정보"
+        description="명소를 식별하는 기본 항목과 연결할 꽃 종류를 입력합니다."
+      >
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <label htmlFor="spot-flower-id" className="text-sm font-medium text-foreground">
+              꽃 종류
+            </label>
+            <Select id="spot-flower-id" name="flower_id" defaultValue={defaultValue?.flower_id ?? ''} required>
+              <option value="" disabled>
+                꽃을 선택해 주세요
+              </option>
+              {flowers.map((flower) => (
+                <option key={flower.id} value={flower.id}>
+                  {flower.name_ko} ({flower.slug})
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="spot-slug" className="text-sm font-medium text-foreground">
+                슬러그
+              </label>
+              <Input id="spot-slug" name="slug" defaultValue={defaultValue?.slug ?? ''} required />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="spot-name" className="text-sm font-medium text-foreground">
+                명소 이름
+              </label>
+              <Input id="spot-name" name="name" defaultValue={defaultValue?.name ?? ''} required />
+            </div>
+          </div>
+        </div>
+      </FormSection>
+
+      <Separator />
+
+      <FormSection
+        title="위치 정보"
+        description="지역과 좌표를 입력해 지도와 목록 정렬에 활용합니다."
+      >
+        <div className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="spot-region-primary" className="text-sm font-medium text-foreground">
+                1차 지역
+              </label>
+              <Input id="spot-region-primary" name="region_primary" defaultValue={defaultValue?.region_primary ?? ''} required />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="spot-region-secondary" className="text-sm font-medium text-foreground">
+                2차 지역
+              </label>
+              <Input
+                id="spot-region-secondary"
+                name="region_secondary"
+                defaultValue={defaultValue?.region_secondary ?? ''}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="spot-address" className="text-sm font-medium text-foreground">
+              주소
+            </label>
+            <Input id="spot-address" name="address" defaultValue={defaultValue?.address ?? ''} required />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="spot-latitude" className="text-sm font-medium text-foreground">
+                위도
+              </label>
+              <Input
+                id="spot-latitude"
+                name="latitude"
+                type="number"
+                step="any"
+                defaultValue={defaultValue?.latitude ?? 37.5665}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="spot-longitude" className="text-sm font-medium text-foreground">
+                경도
+              </label>
+              <Input
+                id="spot-longitude"
+                name="longitude"
+                type="number"
+                step="any"
+                defaultValue={defaultValue?.longitude ?? 126.978}
+                required
+              />
+            </div>
+          </div>
+        </div>
+      </FormSection>
+
+      <Separator />
+
+      <FormSection
+        title="개화/축제 일정"
+        description="개화 기간과 축제 일정을 함께 관리합니다."
+      >
+        <div className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="spot-bloom-start" className="text-sm font-medium text-foreground">
+                개화 시작일
+              </label>
+              <Input
+                id="spot-bloom-start"
+                name="bloom_start_at"
+                type="date"
+                defaultValue={defaultValue?.bloom_start_at ?? ''}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="spot-bloom-end" className="text-sm font-medium text-foreground">
+                개화 종료일
+              </label>
+              <Input
+                id="spot-bloom-end"
+                name="bloom_end_at"
+                type="date"
+                defaultValue={defaultValue?.bloom_end_at ?? ''}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="spot-festival-name" className="text-sm font-medium text-foreground">
+              축제명
+            </label>
+            <Input id="spot-festival-name" name="festival_name" defaultValue={defaultValue?.festival_name ?? ''} />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="spot-festival-start" className="text-sm font-medium text-foreground">
+                축제 시작일
+              </label>
+              <Input
+                id="spot-festival-start"
+                name="festival_start_at"
+                type="date"
+                defaultValue={defaultValue?.festival_start_at ?? ''}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="spot-festival-end" className="text-sm font-medium text-foreground">
+                축제 종료일
+              </label>
+              <Input
+                id="spot-festival-end"
+                name="festival_end_at"
+                type="date"
+                defaultValue={defaultValue?.festival_end_at ?? ''}
+              />
+            </div>
+          </div>
+        </div>
+      </FormSection>
+
+      <Separator />
+
+      <FormSection
+        title="이미지와 메모"
+        description="운영 참고용 정보와 소개 문구를 기록합니다."
+      >
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <label htmlFor="spot-thumbnail-url" className="text-sm font-medium text-foreground">
+              썸네일 URL
+            </label>
+            <Input id="spot-thumbnail-url" name="thumbnail_url" type="url" defaultValue={defaultValue?.thumbnail_url ?? ''} />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="spot-description" className="text-sm font-medium text-foreground">
+              설명
+            </label>
+            <Textarea id="spot-description" name="description" defaultValue={defaultValue?.description ?? ''} required />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="spot-short-tip" className="text-sm font-medium text-foreground">
+              짧은 팁
+            </label>
+            <Textarea id="spot-short-tip" name="short_tip" defaultValue={defaultValue?.short_tip ?? ''} required />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="spot-parking-info" className="text-sm font-medium text-foreground">
+                주차 정보
+              </label>
+              <Input id="spot-parking-info" name="parking_info" defaultValue={defaultValue?.parking_info ?? ''} />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="spot-admission-fee" className="text-sm font-medium text-foreground">
+                입장료
+              </label>
+              <Input id="spot-admission-fee" name="admission_fee" defaultValue={defaultValue?.admission_fee ?? ''} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="spot-source-note" className="text-sm font-medium text-foreground">
+              비고
+            </label>
+            <Input id="spot-source-note" name="source_note" defaultValue={defaultValue?.source_note ?? ''} />
+          </div>
+        </div>
+      </FormSection>
+
+      <Separator />
+
+      <FormSection
+        title="공개 상태"
+        description="초안과 게시 상태를 전환합니다."
+      >
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
+          <div className="space-y-2">
+            <label htmlFor="spot-status" className="text-sm font-medium text-foreground">
+              상태
+            </label>
+            <Select id="spot-status" name="status" defaultValue={defaultValue?.status ?? 'draft'}>
+              <option value="draft">검토 중</option>
+              <option value="published">게시됨</option>
+            </Select>
+          </div>
+          <div className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+            검토 중인 명소는 draft로 저장되고, 게시되면 운영 화면에 노출됩니다.
+          </div>
+        </div>
+      </FormSection>
+
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}
-      {successMessage ? <p>{successMessage}</p> : null}
-      <button type="submit">명소 저장 준비</button>
+      {successMessage ? <p className="text-sm text-foreground">{successMessage}</p> : null}
+      <div className="flex justify-end">
+        <Button type="submit">명소 저장</Button>
+      </div>
     </form>
   );
 }
