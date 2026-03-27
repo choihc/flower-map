@@ -12,8 +12,8 @@ type AdminTopbarProps = {
 
 export function AdminTopbar({ title, description, actions }: AdminTopbarProps) {
   return (
-    <Card className="bg-background/80 px-7 py-6 backdrop-blur">
-      <header className="flex flex-col gap-4">
+    <Card className="bg-card/90 px-7 py-5 backdrop-blur">
+      <header className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-6">
           <div>
             <p className="text-sm font-medium text-muted-foreground">운영 대시보드</p>

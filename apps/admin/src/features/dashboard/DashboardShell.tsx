@@ -16,9 +16,9 @@ export function DashboardShell({ title, description, actions, children }: Dashbo
     <div className="min-h-screen bg-background">
       <div className="mx-auto grid min-h-screen max-w-[1600px] gap-6 px-5 py-5 lg:grid-cols-[280px_minmax(0,1fr)]">
         <AdminSidebar />
-        <main className="min-w-0">
+        <main className="min-w-0 flex flex-col gap-6">
           <AdminTopbar title={title} description={description} actions={actions} />
-          <section className="mt-6">{children}</section>
+          <section>{children}</section>
         </main>
       </div>
     </div>
