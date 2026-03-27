@@ -115,7 +115,7 @@ Expo는 `EXPO_PUBLIC_` 접두사 필수 (빌드 타임에 번들에 인라인됨
 `apps/mobile/.env.local` (로컬 개발용):
 ```
 EXPO_PUBLIC_SUPABASE_URL=https://ktmykdcmknaqsomzeank.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable key>
 ```
 
 > EAS Build 등 CI 환경에서는 EAS 환경변수를 별도 설정해야 한다.
@@ -130,7 +130,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export const supabase = createClient(
   process.env.EXPO_PUBLIC_SUPABASE_URL!,
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
   { auth: { persistSession: false, autoRefreshToken: false } },
 );
 ```
