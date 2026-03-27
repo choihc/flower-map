@@ -3,15 +3,18 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { ImageBackground, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native';
 
+import { useQuery } from '@tanstack/react-query';
+
 import {
-  getPublishedFlowerLabels,
+  deriveFlowerLabels,
   getPublishedSpots,
+  spotKeys,
 } from '../../../shared/data/spotRepository';
 import type { FlowerSpot } from '../../../shared/data/types';
-import { spotImages } from '../../../shared/mocks/spotAssets';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
+import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 
 const defaultCamera = {
   latitude: 37.534,
@@ -121,19 +124,33 @@ function NativeMapUnavailableFallback() {
 
 export function MapScreen() {
   const router = useRouter();
-  const featuredSpots = getPublishedSpots();
-  const flowerFilters = ['전체', ...getPublishedFlowerLabels()];
+  const { data: spots = [], isLoading } = useQuery({
+    queryKey: spotKeys.all,
+    queryFn: getPublishedSpots,
+  });
+  const flowerLabels = deriveFlowerLabels(spots);
+  const flowerFilters = ['전체', ...flowerLabels];
   const [selectedFlower, setSelectedFlower] = useState('전체');
-  const [selectedSpotSlug, setSelectedSpotSlug] = useState(featuredSpots[0]?.slug ?? '');
+  const [selectedSpotSlug, setSelectedSpotSlug] = useState(spots[0]?.slug ?? '');
 
-  const visibleSpots = selectedFlower === '전체' ? featuredSpots : featuredSpots.filter((spot) => spot.flower === selectedFlower);
-  const selectedSpot = visibleSpots.find((spot) => spot.slug === selectedSpotSlug) ?? visibleSpots[0] ?? featuredSpots[0];
+  const visibleSpots = selectedFlower === '전체' ? spots : spots.filter((spot) => spot.flower === selectedFlower);
+  const selectedSpot = visibleSpots.find((spot) => spot.slug === selectedSpotSlug) ?? visibleSpots[0] ?? spots[0];
 
   useEffect(() => {
     if (!visibleSpots.some((spot) => spot.slug === selectedSpotSlug) && visibleSpots[0]) {
       setSelectedSpotSlug(visibleSpots[0].slug);
     }
   }, [selectedSpotSlug, visibleSpots]);
+
+  if (isLoading) {
+    return (
+      <ScreenShell title="지도" subtitle="명소를 불러오는 중...">
+        <SkeletonBox height={400} borderRadius={24} />
+        <SkeletonBox height={80} borderRadius={20} />
+        <SkeletonBox height={80} borderRadius={20} />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell title="지도 탐색" subtitle="지금 갈 만한 꽃 명소를 지도와 리스트 흐름으로 바로 비교해보세요.">
@@ -188,8 +205,8 @@ export function MapScreen() {
       </View>
 
       <View style={styles.summaryPanel}>
-        {spotImages[selectedSpot.slug] ? (
-          <ImageBackground imageStyle={styles.summaryImageInner} source={spotImages[selectedSpot.slug]} style={styles.summaryImage}>
+        {selectedSpot.thumbnailUrl ? (
+          <ImageBackground imageStyle={styles.summaryImageInner} source={{ uri: selectedSpot.thumbnailUrl }} style={styles.summaryImage}>
             <View style={styles.summaryImageShade} />
           </ImageBackground>
         ) : (
