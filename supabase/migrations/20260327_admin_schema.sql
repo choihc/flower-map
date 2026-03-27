@@ -1,5 +1,15 @@
 create extension if not exists pgcrypto;
 
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
 create table if not exists public.flowers (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
@@ -15,6 +25,22 @@ create table if not exists public.flowers (
   check (slug ~ '^[a-z0-9-]+$'),
   check (color_hex ~ '^#([A-Fa-f0-9]{6})$')
 );
+
+alter table public.flowers enable row level security;
+
+drop trigger if exists flowers_set_updated_at on public.flowers;
+create trigger flowers_set_updated_at
+before update on public.flowers
+for each row
+execute function public.set_updated_at();
+
+drop policy if exists flowers_authenticated_all on public.flowers;
+create policy flowers_authenticated_all
+on public.flowers
+for all
+to authenticated
+using (true)
+with check (true);
 
 create table if not exists public.spots (
   id uuid primary key default gen_random_uuid(),
@@ -51,3 +77,19 @@ create table if not exists public.spots (
     or festival_start_at <= festival_end_at
   )
 );
+
+alter table public.spots enable row level security;
+
+drop trigger if exists spots_set_updated_at on public.spots;
+create trigger spots_set_updated_at
+before update on public.spots
+for each row
+execute function public.set_updated_at();
+
+drop policy if exists spots_authenticated_all on public.spots;
+create policy spots_authenticated_all
+on public.spots
+for all
+to authenticated
+using (true)
+with check (true);
