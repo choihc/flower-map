@@ -1,13 +1,14 @@
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { getPublishedSpots } from '../../../shared/data/spotRepository';
 import { colors } from '../../../shared/theme/colors';
-import { featuredSpots } from '../../../shared/mocks/spots';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 
 export function SavedScreen() {
   const router = useRouter();
+  const featuredSpots = getPublishedSpots();
 
   return (
     <ScreenShell
@@ -24,7 +25,7 @@ export function SavedScreen() {
 
       <SectionCard title="저장 목록">
         {featuredSpots.slice(0, 2).map((spot) => (
-          <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.id}`)} style={styles.savedRow}>
+          <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.slug}`)} style={styles.savedRow}>
             <View style={styles.savedRowHeader}>
               <Text style={styles.savedTitle}>{spot.place}</Text>
               <View style={styles.savedBadge}>

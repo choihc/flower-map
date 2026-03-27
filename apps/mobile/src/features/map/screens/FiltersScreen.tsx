@@ -1,11 +1,17 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  getPublishedFlowerLabels,
+  getPublishedRegionSummaries,
+} from '../../../shared/data/spotRepository';
 import { colors } from '../../../shared/theme/colors';
-import { flowerLabels, regionSummaries } from '../../../shared/mocks/spots';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 
 export function FiltersScreen() {
+  const flowerLabels = getPublishedFlowerLabels();
+  const regionSummaries = getPublishedRegionSummaries();
+
   return (
     <ScreenShell title="필터" subtitle="꽃 종류와 지역 조건을 조합해서 지금 가기 좋은 명소만 추려보세요.">
       <SectionCard title="꽃 종류">

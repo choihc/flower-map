@@ -1,4 +1,3 @@
-import { toFlowerSpot } from '../data/spotMappers';
 import type { PublishedSpotRow } from '../data/types';
 
 export const publishedSpotRows: PublishedSpotRow[] = [
@@ -75,22 +74,3 @@ export const publishedSpotRows: PublishedSpotRow[] = [
     longitude: 126.9882,
   },
 ];
-
-export const featuredSpots = publishedSpotRows.map((row) => {
-  const spot = toFlowerSpot(row);
-
-  return {
-    ...spot,
-    id: spot.slug,
-    recordId: spot.id,
-  };
-});
-
-export const regionSummaries = [
-  '서울/경기',
-  '부산/경남',
-  '전주/남도',
-  '제주',
-];
-
-export const flowerLabels = ['벚꽃', '진달래', '튤립', '유채꽃'];
