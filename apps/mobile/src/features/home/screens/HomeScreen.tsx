@@ -1,24 +1,40 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import type { ImageSourcePropType } from 'react-native';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 
 import {
-  getPublishedFlowerLabels,
-  getPublishedRegionSummaries,
+  deriveFlowerLabels,
+  deriveRegionSummaries,
   getPublishedSpots,
+  spotKeys,
 } from '../../../shared/data/spotRepository';
-import { spotImages } from '../../../shared/mocks/spotAssets';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
+import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 
 export function HomeScreen() {
   const router = useRouter();
-  const featuredSpots = getPublishedSpots();
-  const flowerLabels = getPublishedFlowerLabels();
-  const regionSummaries = getPublishedRegionSummaries();
-  const [selectedFlower, setSelectedFlower] = useState(flowerLabels[0]);
+  const { data: featuredSpots = [], isLoading } = useQuery({
+    queryKey: spotKeys.all,
+    queryFn: getPublishedSpots,
+  });
+  const flowerLabels = deriveFlowerLabels(featuredSpots);
+  const regionSummaries = deriveRegionSummaries(featuredSpots);
+  const [selectedFlower, setSelectedFlower] = useState<string | undefined>(flowerLabels[0]);
+
+  if (isLoading) {
+    return (
+      <ScreenShell title="꽃 어디" subtitle="불러오는 중...">
+        <SkeletonBox height={390} borderRadius={34} />
+        <SkeletonBox height={60} borderRadius={28} />
+        <SkeletonBox height={60} borderRadius={28} />
+        <SkeletonBox height={220} borderRadius={28} />
+        <SkeletonBox height={220} borderRadius={28} />
+      </ScreenShell>
+    );
+  }
 
   const selectedSpot =
     featuredSpots.find((spot) => spot.flower === selectedFlower) ?? featuredSpots[0];
@@ -36,7 +52,7 @@ export function HomeScreen() {
     <ScreenShell title="꽃 어디" subtitle="오늘 피어 있는 곳부터 감성 있게, 빠르게 보여드릴게요.">
       <ImageBackground
         imageStyle={styles.heroImageInner}
-        source={spotImages[selectedSpot.slug]}
+        source={selectedSpot.thumbnailUrl ? { uri: selectedSpot.thumbnailUrl } : undefined}
         style={styles.hero}
       >
         <View style={styles.heroShade} />
@@ -112,7 +128,7 @@ export function HomeScreen() {
             badge={pick.badge}
             flower={pick.flower}
             helper={pick.helper}
-            imageSource={spotImages[pick.slug]}
+            imageSource={pick.thumbnailUrl ? { uri: pick.thumbnailUrl } : undefined}
             isFeatured={pick.id === selectedSpot.id}
             place={pick.place}
             tone={pick.tone}
@@ -127,7 +143,7 @@ export function HomeScreen() {
       <View style={styles.eventCard}>
         <ImageBackground
           imageStyle={styles.eventImageInner}
-          source={spotImages[endingSoonSpot.slug]}
+          source={endingSoonSpot.thumbnailUrl ? { uri: endingSoonSpot.thumbnailUrl } : undefined}
           style={styles.eventImage}
         >
           <View style={styles.eventImageShade} />
@@ -200,7 +216,7 @@ function SpotPreview({
   badge: string;
   flower: string;
   helper: string;
-  imageSource?: ImageSourcePropType;
+  imageSource?: { uri: string } | number;
   isFeatured: boolean;
   onDirectionsPress: () => void;
   onPress: () => void;
