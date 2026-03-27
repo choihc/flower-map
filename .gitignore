@@ -5,6 +5,9 @@ node_modules/
 # package manager
 .pnpm-store/
 
+# local worktrees
+.worktrees/
+
 # Expo
 .expo/
 **/.expo/
