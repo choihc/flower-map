@@ -12,6 +12,16 @@ export default async function HomePage() {
   const supabase = (await createServerSupabaseClient()) as unknown as SupabaseClient<Database>;
   const [flowers, spots]: [FlowerRow[], SpotRow[]] = await Promise.all([listFlowers(supabase), listSpots(supabase)]);
   const flowerNameById = new Map(flowers.map((flower) => [flower.id, flower.name_ko]));
+  const recentSpots = [...spots]
+    .sort((left, right) => {
+      const updatedDiff = new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime();
+      if (updatedDiff !== 0) {
+        return updatedDiff;
+      }
+
+      return new Date(right.created_at).getTime() - new Date(left.created_at).getTime();
+    })
+    .slice(0, 5);
 
   return (
     <DashboardShell
@@ -25,7 +35,7 @@ export default async function HomePage() {
           draftSpots: spots.filter((spot) => spot.status === 'draft').length,
           publishedSpots: spots.filter((spot) => spot.status === 'published').length,
         }}
-        recentSpots={spots.slice(0, 5).map((spot) => ({
+        recentSpots={recentSpots.map((spot) => ({
           id: spot.id,
           name: spot.name,
           flowerName: flowerNameById.get(spot.flower_id) ?? '알 수 없는 꽃',
