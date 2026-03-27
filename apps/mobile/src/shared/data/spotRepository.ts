@@ -20,7 +20,7 @@ function toRegionSummary(regionSecondary: string) {
 export async function getPublishedSpots(): Promise<FlowerSpot[]> {
   const { data, error } = await supabase
     .from('spots')
-    .select('*, flower:flowers(name_ko)')
+    .select('*, flower:flowers(name_ko, thumbnail_url)')
     .eq('status', 'published')
     .order('display_order', { ascending: true });
 
@@ -32,7 +32,7 @@ export async function getPublishedSpots(): Promise<FlowerSpot[]> {
 export async function getPublishedSpotBySlug(slug: string): Promise<FlowerSpot | undefined> {
   const { data, error } = await supabase
     .from('spots')
-    .select('*, flower:flowers(name_ko)')
+    .select('*, flower:flowers(name_ko, thumbnail_url)')
     .eq('status', 'published')
     .eq('slug', slug)
     .maybeSingle();

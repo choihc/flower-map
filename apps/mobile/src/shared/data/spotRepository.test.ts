@@ -4,7 +4,7 @@ const mockRow = {
   id: 'spot-1',
   slug: 'yeouido-yunjung-ro',
   name: '여의도 윤중로',
-  flower: { name_ko: '벚꽃' },
+  flower: { name_ko: '벚꽃', thumbnail_url: 'https://blob.example.com/flower-cherry.jpg' },
   region_secondary: '서울 영등포구',
   description: '설명',
   short_tip: '팁',
@@ -46,6 +46,7 @@ describe('spotRepository', () => {
     expect(spots[0]?.slug).toBe('yeouido-yunjung-ro');
     expect(spots[0]?.place).toBe('여의도 윤중로');
     expect(spots[0]?.thumbnailUrl).toBe('https://blob.example.com/cherry.jpg');
+    expect(spots[0]?.flowerThumbnailUrl).toBe('https://blob.example.com/flower-cherry.jpg');
   });
 
   it('returns a single spot by slug', async () => {
