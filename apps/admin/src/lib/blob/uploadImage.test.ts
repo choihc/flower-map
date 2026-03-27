@@ -26,4 +26,15 @@ describe('uploadImage', () => {
 
     expect(result.data.contentType).toBeNull();
   });
+
+  it('returns upload_unavailable error when put throws', async () => {
+    const { put } = await import('@vercel/blob');
+    vi.mocked(put).mockRejectedValueOnce(new Error('network error'));
+
+    const file = new File(['demo'], 'flower.jpg', { type: 'image/jpeg' });
+    const result = await uploadImage(file);
+
+    expect(result.success).toBe(false);
+    expect(result.error?.code).toBe('upload_unavailable');
+  });
 });

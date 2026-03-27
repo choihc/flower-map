@@ -39,14 +39,29 @@ export function invalidUploadRequest(message: string): UploadImageResult {
 }
 
 export async function uploadImage(file: File): Promise<UploadImageResult> {
-  const blob = await put(file.name, file, { access: 'public' });
-  return {
-    success: true,
-    data: {
-      filename: file.name,
-      contentType: file.type || null,
-      url: blob.url,
-    },
-    error: null,
-  };
+  try {
+    const blob = await put(file.name, file, { access: 'public' });
+    return {
+      success: true,
+      data: {
+        filename: file.name,
+        contentType: file.type || null,
+        url: blob.url,
+      },
+      error: null,
+    };
+  } catch {
+    return {
+      success: false,
+      data: {
+        filename: file.name,
+        contentType: file.type || null,
+        url: null,
+      },
+      error: {
+        code: 'upload_unavailable',
+        message: 'Blob 업로드에 실패했습니다.',
+      },
+    };
+  }
 }
