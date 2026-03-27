@@ -13,15 +13,16 @@ export type ValidationSummary = {
 };
 
 type ImportConsoleProps = {
+  existingSpotSlugs?: string[];
   onValidate?: (payload: string) => Promise<ValidationSummary>;
 };
 
-export function ImportConsole({ onValidate = validateImportPayload }: ImportConsoleProps) {
+export function ImportConsole({ existingSpotSlugs = [], onValidate }: ImportConsoleProps) {
   const [value, setValue] = useState('');
   const [summary, setSummary] = useState<ValidationSummary | null>(null);
 
   async function handleValidate() {
-    const next = await onValidate(value);
+    const next = await (onValidate?.(value) ?? validateImportPayload(value, existingSpotSlugs));
     setSummary(next);
   }
 
@@ -45,7 +46,7 @@ export function ImportConsole({ onValidate = validateImportPayload }: ImportCons
   );
 }
 
-async function validateImportPayload(payload: string): Promise<ValidationSummary> {
+async function validateImportPayload(payload: string, existingSpotSlugs: string[]): Promise<ValidationSummary> {
   let parsedJson: unknown;
 
   try {
@@ -68,15 +69,19 @@ async function validateImportPayload(payload: string): Promise<ValidationSummary
     };
   }
 
+  const existingRows = existingSpotSlugs.map((slug) => ({ slug }));
+
   if ('spot' in parsed.data) {
+    const classified = classifyImport([parsed.data.spot], existingRows);
+
     return {
-      created: 1,
-      updated: 0,
-      errors: [],
+      created: classified.toCreate.length,
+      updated: classified.toUpdate.length,
+      errors: classified.duplicates.map((duplicate) => `${duplicate.slug} slug is duplicated in the import payload`),
     };
   }
 
-  const classified = classifyImport(parsed.data.spots, []);
+  const classified = classifyImport(parsed.data.spots, existingRows);
 
   return {
     created: classified.toCreate.length,
