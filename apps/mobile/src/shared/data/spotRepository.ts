@@ -1,10 +1,11 @@
-import { publishedSpotRows } from '../mocks/spots';
+import { supabase } from '../lib/supabase';
 import type { FlowerSpot } from './types';
 import { toFlowerSpot } from './spotMappers';
 
-function unique<T>(values: T[]) {
-  return [...new Set(values)];
-}
+export const spotKeys = {
+  all: ['spots'] as const,
+  detail: (slug: string) => ['spots', slug] as const,
+};
 
 function toRegionSummary(regionSecondary: string) {
   const primaryRegion = regionSecondary.split(' ')[0];
@@ -13,23 +14,38 @@ function toRegionSummary(regionSecondary: string) {
     return '서울/경기';
   }
 
-  return primaryRegion;
+  return primaryRegion ?? regionSecondary;
 }
 
-export function getPublishedSpots(now = new Date()): FlowerSpot[] {
-  return publishedSpotRows.map((row) => toFlowerSpot(row, now));
+export async function getPublishedSpots(): Promise<FlowerSpot[]> {
+  const { data, error } = await supabase
+    .from('spots')
+    .select('*, flower:flowers(name_ko)')
+    .eq('status', 'published')
+    .order('display_order', { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => toFlowerSpot(row as any));
 }
 
-export function getPublishedSpotBySlug(slug: string, now = new Date()): FlowerSpot | undefined {
-  const row = publishedSpotRows.find((item) => item.slug === slug);
+export async function getPublishedSpotBySlug(slug: string): Promise<FlowerSpot | undefined> {
+  const { data, error } = await supabase
+    .from('spots')
+    .select('*, flower:flowers(name_ko)')
+    .eq('status', 'published')
+    .eq('slug', slug)
+    .maybeSingle();
 
-  return row ? toFlowerSpot(row, now) : undefined;
+  if (error) throw error;
+
+  return data ? toFlowerSpot(data as any) : undefined;
 }
 
-export function getPublishedFlowerLabels(): string[] {
-  return unique(publishedSpotRows.map((row) => row.flower.name_ko));
+export function deriveFlowerLabels(spots: FlowerSpot[]): string[] {
+  return [...new Set(spots.map((s) => s.flower))];
 }
 
-export function getPublishedRegionSummaries(): string[] {
-  return unique(publishedSpotRows.map((row) => toRegionSummary(row.region_secondary)));
+export function deriveRegionSummaries(spots: FlowerSpot[]): string[] {
+  return [...new Set(spots.map((s) => toRegionSummary(s.location)))];
 }
