@@ -13,6 +13,7 @@ import type { FlowerRow, SpotInsert } from '@/lib/types';
 import { buildSpotWriteInput } from '@/lib/data/spots';
 
 import { spotSchema } from './spotSchema';
+import { ImageUploader } from './ImageUploader';
 
 type SpotFormProps = {
   defaultValue?: Partial<SpotInsert>;
@@ -244,10 +245,10 @@ export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps)
       >
         <div className="grid gap-4">
           <div className="space-y-2">
-            <label htmlFor="spot-thumbnail-url" className="text-sm font-medium text-foreground">
-              썸네일 URL
+            <label className="text-sm font-medium text-foreground">
+              썸네일 이미지
             </label>
-            <Input id="spot-thumbnail-url" name="thumbnail_url" type="url" defaultValue={defaultValue?.thumbnail_url ?? ''} />
+            <ImageUploader defaultUrl={defaultValue?.thumbnail_url} />
           </div>
           <div className="space-y-2">
             <label htmlFor="spot-description" className="text-sm font-medium text-foreground">
