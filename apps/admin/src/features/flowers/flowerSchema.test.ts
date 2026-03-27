@@ -58,4 +58,17 @@ describe('flowerSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('rejects a thumbnail_url that is not a valid URL', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      thumbnail_url: 'not-a-url',
+    });
+
+    expect(result.success).toBe(false);
+  });
 });
