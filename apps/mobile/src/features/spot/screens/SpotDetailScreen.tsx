@@ -3,25 +3,29 @@ import { useRouter } from 'expo-router';
 import type { ImageSourcePropType } from 'react-native';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  getPublishedSpotBySlug,
+  getPublishedSpots,
+} from '../../../shared/data/spotRepository';
 import { openNaverNavigation } from '../../../shared/lib/naverMap';
 import { colors } from '../../../shared/theme/colors';
 import { spotImages } from '../../../shared/mocks/spotAssets';
-import { featuredSpots } from '../../../shared/mocks/spots';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 
 type SpotDetailScreenProps = {
-  spotId: string;
+  slug: string;
 };
 
-export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
+export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
   const router = useRouter();
-  const spot = featuredSpots.find((item) => item.id === spotId) ?? featuredSpots[0];
+  const featuredSpots = getPublishedSpots();
+  const spot = getPublishedSpotBySlug(slug) ?? featuredSpots[0];
 
   return (
     <ScreenShell title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
-      <ImageHero fallbackTone={spot.tone} imageSource={spotImages[spot.id]}>
+      <ImageHero fallbackTone={spot.tone} imageSource={spotImages[spot.slug]}>
         <View style={styles.heroGlowTop} />
         <View style={styles.heroGlowBottom} />
         <View style={styles.heroBadge}>
@@ -53,7 +57,7 @@ export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
             </View>
           </View>
           <View style={styles.heroArt}>
-            {!spotImages[spot.id] ? <BloomArt size="lg" tone={spot.tone} /> : null}
+            {!spotImages[spot.slug] ? <BloomArt size="lg" tone={spot.tone} /> : null}
           </View>
         </View>
       </ImageHero>
@@ -84,7 +88,7 @@ export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
         {featuredSpots
           .filter((item) => item.id !== spot.id)
           .map((item) => (
-            <Pressable key={item.id} onPress={() => router.push(`/spot/${item.id}`)} style={styles.relatedItem}>
+            <Pressable key={item.id} onPress={() => router.push(`/spot/${item.slug}`)} style={styles.relatedItem}>
               <View>
                 <Text style={styles.relatedTitle}>{item.place}</Text>
                 <Text style={styles.relatedMeta}>

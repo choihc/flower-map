@@ -1,0 +1,109 @@
+export type FlowerRow = {
+  id: string;
+  slug: string;
+  name_ko: string;
+  name_en: string | null;
+  color_hex: string;
+  season_start_month: number;
+  season_end_month: number;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SpotStatus = 'draft' | 'published';
+export type SpotSourceType = 'manual_json';
+
+export type SpotRow = {
+  id: string;
+  flower_id: string;
+  slug: string;
+  name: string;
+  region_primary: string;
+  region_secondary: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  description: string;
+  short_tip: string;
+  parking_info: string | null;
+  admission_fee: string | null;
+  festival_name: string | null;
+  festival_start_at: string | null;
+  festival_end_at: string | null;
+  bloom_start_at: string;
+  bloom_end_at: string;
+  thumbnail_url: string | null;
+  status: SpotStatus;
+  source_type: SpotSourceType;
+  source_note: string | null;
+  is_featured: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FlowerInsert = {
+  slug: string;
+  name_ko: string;
+  name_en?: string | null;
+  color_hex: string;
+  season_start_month: number;
+  season_end_month: number;
+  sort_order?: number;
+  is_active?: boolean;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type FlowerUpdate = Partial<Omit<FlowerInsert, 'id' | 'created_at' | 'updated_at'>>;
+
+export type SpotInsert = {
+  flower_id: string;
+  slug: string;
+  name: string;
+  region_primary: string;
+  region_secondary: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  description: string;
+  short_tip: string;
+  parking_info?: string | null;
+  admission_fee?: string | null;
+  festival_name?: string | null;
+  festival_start_at?: string | null;
+  festival_end_at?: string | null;
+  bloom_start_at: string;
+  bloom_end_at: string;
+  thumbnail_url?: string | null;
+  status?: SpotStatus;
+  source_type?: SpotSourceType;
+  source_note?: string | null;
+  is_featured?: boolean;
+  display_order?: number;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type SpotUpdate = Partial<Omit<SpotInsert, 'id' | 'created_at' | 'updated_at'>>;
+
+export type Database = {
+  public: {
+    Tables: {
+      flowers: {
+        Row: FlowerRow;
+        Insert: FlowerInsert;
+        Update: FlowerUpdate;
+      };
+      spots: {
+        Row: SpotRow;
+        Insert: SpotInsert;
+        Update: SpotUpdate;
+      };
+    };
+  };
+};

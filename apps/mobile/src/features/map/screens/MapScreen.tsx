@@ -3,13 +3,15 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { ImageBackground, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native';
 
+import {
+  getPublishedFlowerLabels,
+  getPublishedSpots,
+} from '../../../shared/data/spotRepository';
+import type { FlowerSpot } from '../../../shared/data/types';
 import { spotImages } from '../../../shared/mocks/spotAssets';
-import { featuredSpots, flowerLabels, type FlowerSpot } from '../../../shared/mocks/spots';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
-
-const flowerFilters = ['전체', ...flowerLabels];
 
 const defaultCamera = {
   latitude: 37.534,
@@ -25,15 +27,15 @@ const isNativeNaverMapAvailable =
 
 type NativeMapCanvasProps = {
   spots: FlowerSpot[];
-  selectedSpotId: string;
-  onSelectSpot: (spotId: string) => void;
+  selectedSpotSlug: string;
+  onSelectSpot: (spotSlug: string) => void;
 };
 
-function NativeMapCanvas({ spots, selectedSpotId, onSelectSpot }: NativeMapCanvasProps) {
+function NativeMapCanvas({ spots, selectedSpotSlug, onSelectSpot }: NativeMapCanvasProps) {
   const { NaverMapMarkerOverlay, NaverMapView } =
     require('@mj-studio/react-native-naver-map') as typeof import('@mj-studio/react-native-naver-map');
 
-  const selectedSpot = spots.find((spot) => spot.id === selectedSpotId) ?? spots[0];
+  const selectedSpot = spots.find((spot) => spot.slug === selectedSpotSlug) ?? spots[0];
   const selectedCoordinate = selectedSpot
     ? {
         latitude: selectedSpot.latitude,
@@ -65,7 +67,7 @@ function NativeMapCanvas({ spots, selectedSpotId, onSelectSpot }: NativeMapCanva
       style={StyleSheet.absoluteFill}
     >
       {spots.map((spot) => {
-        const isSelected = spot.id === selectedSpotId;
+        const isSelected = spot.slug === selectedSpotSlug;
 
         return (
           <NaverMapMarkerOverlay
@@ -76,7 +78,7 @@ function NativeMapCanvas({ spots, selectedSpotId, onSelectSpot }: NativeMapCanva
             isForceShowIcon={isSelected}
             latitude={spot.latitude}
             longitude={spot.longitude}
-            onTap={() => onSelectSpot(spot.id)}
+            onTap={() => onSelectSpot(spot.slug)}
             width={isSelected ? 32 : 28}
           />
         );
@@ -119,17 +121,19 @@ function NativeMapUnavailableFallback() {
 
 export function MapScreen() {
   const router = useRouter();
+  const featuredSpots = getPublishedSpots();
+  const flowerFilters = ['전체', ...getPublishedFlowerLabels()];
   const [selectedFlower, setSelectedFlower] = useState('전체');
-  const [selectedSpotId, setSelectedSpotId] = useState(featuredSpots[0]?.id ?? '');
+  const [selectedSpotSlug, setSelectedSpotSlug] = useState(featuredSpots[0]?.slug ?? '');
 
   const visibleSpots = selectedFlower === '전체' ? featuredSpots : featuredSpots.filter((spot) => spot.flower === selectedFlower);
-  const selectedSpot = visibleSpots.find((spot) => spot.id === selectedSpotId) ?? visibleSpots[0] ?? featuredSpots[0];
+  const selectedSpot = visibleSpots.find((spot) => spot.slug === selectedSpotSlug) ?? visibleSpots[0] ?? featuredSpots[0];
 
   useEffect(() => {
-    if (!visibleSpots.some((spot) => spot.id === selectedSpotId) && visibleSpots[0]) {
-      setSelectedSpotId(visibleSpots[0].id);
+    if (!visibleSpots.some((spot) => spot.slug === selectedSpotSlug) && visibleSpots[0]) {
+      setSelectedSpotSlug(visibleSpots[0].slug);
     }
-  }, [selectedSpotId, visibleSpots]);
+  }, [selectedSpotSlug, visibleSpots]);
 
   return (
     <ScreenShell title="지도 탐색" subtitle="지금 갈 만한 꽃 명소를 지도와 리스트 흐름으로 바로 비교해보세요.">
@@ -153,7 +157,7 @@ export function MapScreen() {
         ) : !isNativeNaverMapAvailable ? (
           <NativeMapUnavailableFallback />
         ) : (
-          <NativeMapCanvas onSelectSpot={setSelectedSpotId} selectedSpotId={selectedSpot.id} spots={visibleSpots} />
+          <NativeMapCanvas onSelectSpot={setSelectedSpotSlug} selectedSpotSlug={selectedSpot.slug} spots={visibleSpots} />
         )}
 
         <View pointerEvents="box-none" style={styles.mapFloatingLayer}>
@@ -161,7 +165,7 @@ export function MapScreen() {
             <Text style={styles.mapOverlayTitle}>{selectedSpot.place}</Text>
             <Text style={styles.mapOverlayCopy}>{selectedSpot.helper}</Text>
           </View>
-          <Pressable onPress={() => router.push(`/spot/${selectedSpot.id}`)} style={styles.floatingAction}>
+          <Pressable onPress={() => router.push(`/spot/${selectedSpot.slug}`)} style={styles.floatingAction}>
             <Text style={styles.floatingActionText}>상세</Text>
           </Pressable>
         </View>
@@ -184,8 +188,8 @@ export function MapScreen() {
       </View>
 
       <View style={styles.summaryPanel}>
-        {spotImages[selectedSpot.id] ? (
-          <ImageBackground imageStyle={styles.summaryImageInner} source={spotImages[selectedSpot.id]} style={styles.summaryImage}>
+        {spotImages[selectedSpot.slug] ? (
+          <ImageBackground imageStyle={styles.summaryImageInner} source={spotImages[selectedSpot.slug]} style={styles.summaryImage}>
             <View style={styles.summaryImageShade} />
           </ImageBackground>
         ) : (
@@ -203,7 +207,7 @@ export function MapScreen() {
           </Text>
           <Text style={styles.summaryCopy}>{selectedSpot.description}</Text>
           <View style={styles.summaryActions}>
-            <Pressable onPress={() => router.push(`/spot/${selectedSpot.id}`)} style={styles.summaryGhostButton}>
+            <Pressable onPress={() => router.push(`/spot/${selectedSpot.slug}`)} style={styles.summaryGhostButton}>
               <Text style={styles.summaryGhostButtonText}>상세 보기</Text>
             </Pressable>
             <Pressable
