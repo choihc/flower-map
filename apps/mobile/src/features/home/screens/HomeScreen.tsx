@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, type AppStateStatus, ImageBackground, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -9,30 +9,75 @@ import {
   getPublishedSpots,
   spotKeys,
 } from '../../../shared/data/spotRepository';
+import {
+  type Coords,
+  formatDistance,
+  getNearbySpots,
+  requestAndGetLocation,
+} from '../../../shared/lib/location';
 import { resolveSpotImage } from '../../../shared/lib/resolveSpotImage';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
+import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 
 export function HomeScreen() {
   const router = useRouter();
-  const { data: featuredSpots = [], isLoading } = useQuery({
+  const { data: featuredSpots = [], isLoading, error } = useQuery({
     queryKey: spotKeys.all,
     queryFn: getPublishedSpots,
   });
+  if (error) console.error('[HomeScreen] spots query error:', error);
   const flowerLabels = deriveFlowerLabels(featuredSpots);
   const regionSummaries = deriveRegionSummaries(featuredSpots);
-  const [selectedFlower, setSelectedFlower] = useState<string | undefined>(flowerLabels[0]);
+  const [selectedFlower, setSelectedFlower] = useState<string | undefined>(undefined);
+
+  type LocationState = 'idle' | 'loading' | 'granted' | 'denied';
+  const [locationState, setLocationState] = useState<LocationState>('idle');
+  const [userCoords, setUserCoords] = useState<Coords | null>(null);
+
+  const locationStateRef = useRef<LocationState>('idle');
+  useEffect(() => {
+    locationStateRef.current = locationState;
+  }, [locationState]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active' && locationStateRef.current === 'denied') {
+        setLocationState('idle');
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (flowerLabels.length > 0 && selectedFlower === undefined) {
+      setSelectedFlower(flowerLabels[Math.floor(Math.random() * flowerLabels.length)]);
+    }
+  }, [flowerLabels, selectedFlower]);
 
   if (isLoading) {
     return (
-      <ScreenShell title="꽃 어디" subtitle="불러오는 중...">
+      <ScreenShell title="꽃 어디">
         <SkeletonBox height={390} borderRadius={34} />
         <SkeletonBox height={60} borderRadius={28} />
         <SkeletonBox height={60} borderRadius={28} />
         <SkeletonBox height={220} borderRadius={28} />
         <SkeletonBox height={220} borderRadius={28} />
+      </ScreenShell>
+    );
+  }
+
+  if (featuredSpots.length === 0) {
+    return (
+      <ScreenShell title="꽃 어디" subtitle="현재 등록된 명소가 없습니다.">
+        <View style={{ alignItems: 'center', paddingTop: 60 }}>
+          <BloomArt size="md" tone="pink" />
+          <Text style={{ color: colors.textMuted, fontSize: 16, marginTop: 20 }}>
+            곧 새로운 명소가 등록될 예정이에요
+          </Text>
+        </View>
       </ScreenShell>
     );
   }
@@ -43,6 +88,22 @@ export function HomeScreen() {
     selectedSpot,
     ...featuredSpots.filter((spot) => spot.id !== selectedSpot.id),
   ];
+
+  const nearbySpots = userCoords ? getNearbySpots(featuredSpots, userCoords) : [];
+
+  const handleLocationPress = async () => {
+    setLocationState('loading');
+    const result = await requestAndGetLocation();
+    if (result === 'denied') {
+      setLocationState('denied');
+    } else if (result === null) {
+      setLocationState('idle');
+    } else {
+      setUserCoords(result);
+      setLocationState('granted');
+    }
+  };
+
   const endingSoonSpot =
     [...featuredSpots]
       .filter((spot) => spot.eventEndsIn)
@@ -50,51 +111,71 @@ export function HomeScreen() {
     featuredSpots[0];
 
   return (
-    <ScreenShell title="꽃 어디" subtitle="오늘 피어 있는 곳부터 감성 있게, 빠르게 보여드릴게요.">
-      <ImageBackground
-        imageStyle={styles.heroImageInner}
-        source={resolveSpotImage(selectedSpot) ?? undefined}
-        style={styles.hero}
-      >
-        <View style={styles.heroShade} />
-        <View style={styles.heroGlowA} />
-        <View style={styles.heroGlowB} />
+    <ScreenShell title="꽃 어디" titleColor="#C4778A">
+      <SpotHeroCard
+        badge={selectedSpot.badge}
+        description={selectedSpot.description}
+        imageSource={resolveSpotImage(selectedSpot) ?? undefined}
+        infoPills={[selectedSpot.bloomStatus, selectedSpot.eventEndsIn ?? '상시 운영']}
+        metaRight={`${selectedSpot.flower} · ${selectedSpot.location}`}
+        title={selectedSpot.place}
+        tone={selectedSpot.tone}
+        primaryButton={{ label: '상세 보기', onPress: () => router.push(`/spot/${selectedSpot.slug}`) }}
+        secondaryButton={{ label: '지도에서 보기', onPress: () => router.push('/map') }}
+      />
 
-        <View style={styles.heroTopRow}>
-          <View style={styles.heroPill}>
-            <Text style={styles.heroPillText}>{selectedSpot.badge}</Text>
+      {locationState === 'granted' && nearbySpots.length > 0 ? (
+        <>
+          <SectionHeading meta="현재 위치 기준" title="내 주변 명소" />
+          <View style={styles.nearbyList}>
+            {nearbySpots.map(({ spot: nearby, distanceKm }) => (
+              <Pressable
+                key={nearby.id}
+                onPress={() => router.push(`/spot/${nearby.slug}`)}
+                style={styles.nearbyRow}
+              >
+                <View style={styles.nearbyInfo}>
+                  <Text style={styles.nearbyTitle}>{nearby.place}</Text>
+                  <Text style={styles.nearbyMeta}>
+                    {nearby.flower} · {nearby.location}
+                  </Text>
+                </View>
+                <Text style={styles.nearbyDistance}>{formatDistance(distanceKm)}</Text>
+              </Pressable>
+            ))}
           </View>
-          <Text style={styles.heroMeta}>
-            {selectedSpot.flower} · {selectedSpot.location}
+        </>
+      ) : locationState === 'denied' ? (
+        <View style={styles.locationDenied}>
+          <Text style={styles.locationDeniedText}>
+            위치 권한을 허용하면 주변 명소를 볼 수 있어요.
           </Text>
+          <Pressable onPress={() => Linking.openSettings()} style={styles.locationSettingsButton}>
+            <Text style={styles.locationSettingsButtonText}>설정에서 허용하기</Text>
+          </Pressable>
         </View>
-
-        <View style={styles.heroBody}>
-          <Text style={styles.heroTitle}>{selectedSpot.place}</Text>
-          <Text style={styles.heroDescription}>{selectedSpot.description}</Text>
-
-          <View style={styles.heroInfoRow}>
-            <View style={styles.heroInfoPill}>
-              <Text style={styles.heroInfoText}>{selectedSpot.bloomStatus}</Text>
-            </View>
-            <View style={styles.heroInfoPill}>
-              <Text style={styles.heroInfoText}>{selectedSpot.eventEndsIn ?? '상시 운영'}</Text>
-            </View>
-          </View>
-
-          <View style={styles.heroActionRow}>
-            <Pressable onPress={() => router.push(`/spot/${selectedSpot.slug}`)} style={styles.heroPrimaryButton}>
-              <Text style={styles.heroPrimaryButtonText}>상세 보기</Text>
-            </Pressable>
-            <Pressable onPress={() => router.push('/map')} style={styles.heroSecondaryButton}>
-              <Text style={styles.heroSecondaryButtonText}>지도에서 보기</Text>
-            </Pressable>
-          </View>
-        </View>
-      </ImageBackground>
+      ) : (
+        <Pressable
+          disabled={locationState === 'loading'}
+          onPress={handleLocationPress}
+          style={[
+            styles.locationButton,
+            locationState === 'loading' ? styles.locationButtonDisabled : null,
+          ]}
+        >
+          <Text style={styles.locationButtonText}>
+            {locationState === 'loading' ? '위치 확인 중...' : '📍 내 주변 명소 보기'}
+          </Text>
+        </Pressable>
+      )}
 
       <SectionHeading meta="선택한 꽃에 맞춰 상단 추천이 바뀌어요" title="꽃 종류 선택" />
-      <View style={styles.flowerGrid}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.flowerCarousel}
+        style={styles.flowerCarouselWrapper}
+      >
         {flowerLabels.map((item, index) => {
           const isActive = item === selectedFlower;
 
@@ -114,16 +195,15 @@ export function HomeScreen() {
                 isActive ? styles.flowerTileActive : null,
               ]}
             >
-              <BloomArt size="sm" tone={index === 0 ? 'pink' : index === 3 ? 'yellow' : 'green'} />
               <Text style={styles.flowerTileText}>{item}</Text>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       <SectionHeading meta="선택한 꽃이 먼저 보여요" title="지금 보기 좋은 명소" />
       <View style={styles.spotStack}>
-        {orderedSpots.map((pick) => (
+        {orderedSpots.slice(0, 5).map((pick) => (
           <SpotPreview
             key={pick.id}
             badge={pick.badge}
@@ -134,11 +214,16 @@ export function HomeScreen() {
             place={pick.place}
             tone={pick.tone}
             onDirectionsPress={() => router.push('/map')}
-            onPress={() => setSelectedFlower(pick.flower)}
+            onPress={() => router.push(`/spot/${pick.slug}`)}
             onViewMapPress={() => router.push(`/spot/${pick.slug}`)}
           />
         ))}
       </View>
+      {orderedSpots.length > 5 && (
+        <Pressable onPress={() => router.push('/list')} style={styles.viewAllButton}>
+          <Text style={styles.viewAllButtonText}>전체 명소 보기 ({orderedSpots.length}곳)</Text>
+        </Pressable>
+      )}
 
       <SectionHeading meta="종료된 일정은 제외해 보여드려요" title="곧 끝나는 축제" />
       <View style={styles.eventCard}>
@@ -169,7 +254,7 @@ export function HomeScreen() {
         {regionSummaries.map((item, index) => (
           <Pressable
             key={item}
-            onPress={() => router.push('/map')}
+            onPress={() => router.push({ pathname: '/list', params: { region: item } })}
             style={[styles.regionTile, index % 2 === 0 ? styles.regionTileTall : null]}
           >
             <View style={styles.regionArt}>
@@ -362,22 +447,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.4,
   },
-  flowerGrid: {
+  flowerCarousel: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 4,
+  },
+  flowerCarouselWrapper: {
     marginBottom: 24,
+    marginHorizontal: -20,
   },
   flowerTile: {
     alignItems: 'center',
     borderColor: 'transparent',
-    borderRadius: 28,
+    borderRadius: 20,
     borderWidth: 1.5,
     flexDirection: 'row',
-    marginBottom: 12,
-    minWidth: '48%',
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   flowerTileActive: {
     borderColor: colors.primaryDeep,
@@ -403,135 +491,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     fontWeight: '700',
-    marginLeft: 10,
   },
   flowerTileYellow: {
     backgroundColor: colors.cardSun,
   },
-  hero: {
-    borderRadius: 34,
-    marginBottom: 22,
-    minHeight: 390,
-    overflow: 'hidden',
-    padding: 22,
-    position: 'relative',
-  },
-  heroActionRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 18,
-  },
-  heroBody: {
-    justifyContent: 'flex-end',
-    minHeight: 300,
-    width: '100%',
-  },
-  heroDescription: {
-    color: '#FFF9F3',
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 10,
-    maxWidth: 300,
-  },
-  heroGlowA: {
-    backgroundColor: 'rgba(247, 214, 216, 0.28)',
-    borderRadius: 999,
-    height: 160,
-    position: 'absolute',
-    right: -30,
-    top: -14,
-    width: 160,
-  },
-  heroGlowB: {
-    backgroundColor: 'rgba(248, 234, 193, 0.18)',
-    borderRadius: 999,
-    bottom: -46,
-    height: 124,
-    position: 'absolute',
-    right: 74,
-    width: 124,
-  },
-  heroImageInner: {
-    borderRadius: 34,
-  },
-  heroInfoPill: {
-    backgroundColor: 'rgba(255,255,255,0.82)',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  heroInfoRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 14,
-  },
-  heroInfoText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroMeta: {
-    color: '#FFF4F6',
-    flexShrink: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    marginLeft: 12,
-    textAlign: 'right',
-  },
-  heroPill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  heroPillText: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroPrimaryButton: {
-    backgroundColor: colors.primaryDeep,
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  heroPrimaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  heroSecondaryButton: {
-    backgroundColor: 'rgba(255,255,255,0.88)',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  heroSecondaryButtonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  heroShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(28, 22, 20, 0.32)',
-  },
-  heroTitle: {
-    color: '#FFFFFF',
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: -0.6,
-    lineHeight: 40,
-    marginTop: 16,
-    maxWidth: 280,
-  },
-  heroTopRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   primaryButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDeep,
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -573,6 +538,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryButton: {
+    backgroundColor: '#FFFFFF',
     borderColor: colors.border,
     borderRadius: 999,
     borderWidth: 1,
@@ -663,12 +629,95 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   spotStack: {
-    marginBottom: 18,
+    marginBottom: 14,
+  },
+  viewAllButton: {
+    alignItems: 'center',
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginBottom: 28,
+    paddingVertical: 14,
+  },
+  viewAllButtonText: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '600',
   },
   spotTitle: {
     color: colors.text,
     fontSize: 24,
     fontWeight: '700',
     letterSpacing: -0.3,
+  },
+  locationButton: {
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginBottom: 20,
+    paddingVertical: 14,
+  },
+  locationButtonDisabled: {
+    opacity: 0.5,
+  },
+  locationButtonText: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  locationDenied: {
+    backgroundColor: colors.cardAlt,
+    borderRadius: 20,
+    marginBottom: 20,
+    padding: 16,
+  },
+  locationDeniedText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  locationSettingsButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  locationSettingsButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  nearbyDistance: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  nearbyInfo: {
+    flex: 1,
+  },
+  nearbyList: {
+    marginBottom: 20,
+  },
+  nearbyMeta: {
+    color: colors.textMuted,
+    fontSize: 13,
+    marginTop: 3,
+  },
+  nearbyRow: {
+    alignItems: 'center',
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  nearbyTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
