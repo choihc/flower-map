@@ -42,6 +42,17 @@ export async function createFlower(client: SupabaseClient<Database>, input: Flow
   return data satisfies FlowerRow;
 }
 
+export async function getFlower(client: SupabaseClient<Database>, id: string): Promise<FlowerRow | null> {
+  const flowersTable = client.from('flowers') as any;
+  const { data, error } = await flowersTable.select('*').eq('id', id).maybeSingle();
+
+  if (error != null) {
+    throw error;
+  }
+
+  return data satisfies FlowerRow | null;
+}
+
 export async function updateFlower(client: SupabaseClient<Database>, id: string, input: FlowerUpdate) {
   const flowersTable = client.from('flowers') as any;
   const { data, error } = await flowersTable.update(input).eq('id', id).select().single();

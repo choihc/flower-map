@@ -1,5 +1,6 @@
 import React from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 
 import { Badge } from '@/components/ui/badge';
@@ -74,6 +75,14 @@ export default async function FlowersPage() {
                   <dd className="font-medium text-foreground">{flower.sort_order}</dd>
                 </div>
               </dl>
+              <div className="mt-3 flex justify-end">
+                <Link
+                  href={`/flowers/${flower.id}`}
+                  className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  편집
+                </Link>
+              </div>
             </article>
           ))}
         </DataListPanel>
