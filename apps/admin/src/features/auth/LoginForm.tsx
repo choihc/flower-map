@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { sanitizeRedirectTarget } from '@/lib/auth/redirect';
 import { createBrowserSupabaseClient } from '@/lib/supabase/browser';
 
 type LoginFormProps = {
@@ -13,6 +14,7 @@ export function LoginForm({ redirectTo = '/spots' }: LoginFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const safeRedirectTo = sanitizeRedirectTarget(redirectTo);
 
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true);
@@ -31,7 +33,7 @@ export function LoginForm({ redirectTo = '/spots' }: LoginFormProps) {
       return;
     }
 
-    router.replace(redirectTo);
+    router.replace(safeRedirectTo);
     router.refresh();
   }
 

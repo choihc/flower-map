@@ -1,32 +1,23 @@
-const PUBLIC_ENV_KEYS = {
-  supabaseUrl: 'NEXT_PUBLIC_SUPABASE_URL',
-  supabaseAnonKey: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-} as const;
+function requireEnv(name: string, value: string | undefined) {
+  const resolvedValue = value;
 
-const SERVER_ENV_KEYS = {
-  supabaseServiceRoleKey: 'SUPABASE_SERVICE_ROLE_KEY',
-} as const;
-
-function requireEnv(name: string) {
-  const value = process.env[name];
-
-  if (typeof value !== 'string' || value.length === 0) {
+  if (typeof resolvedValue !== 'string' || resolvedValue.length === 0) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
 
-  return value;
+  return resolvedValue;
 }
 
 export function getPublicEnv() {
   return {
-    supabaseUrl: requireEnv(PUBLIC_ENV_KEYS.supabaseUrl),
-    supabaseAnonKey: requireEnv(PUBLIC_ENV_KEYS.supabaseAnonKey),
+    supabaseUrl: requireEnv('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL),
+    supabaseAnonKey: requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
   };
 }
 
 export function getServerEnv() {
   return {
     ...getPublicEnv(),
-    supabaseServiceRoleKey: requireEnv(SERVER_ENV_KEYS.supabaseServiceRoleKey),
+    supabaseServiceRoleKey: requireEnv('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY),
   };
 }
