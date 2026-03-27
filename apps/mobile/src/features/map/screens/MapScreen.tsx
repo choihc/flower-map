@@ -12,6 +12,7 @@ import {
 } from '../../../shared/data/spotRepository';
 import type { FlowerSpot } from '../../../shared/data/types';
 import { colors } from '../../../shared/theme/colors';
+import { resolveSpotImage } from '../../../shared/lib/resolveSpotImage';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
@@ -135,6 +136,7 @@ export function MapScreen() {
 
   const visibleSpots = selectedFlower === '전체' ? spots : spots.filter((spot) => spot.flower === selectedFlower);
   const selectedSpot = visibleSpots.find((spot) => spot.slug === selectedSpotSlug) ?? visibleSpots[0] ?? spots[0];
+  const spotImage = resolveSpotImage(selectedSpot);
 
   useEffect(() => {
     if (!visibleSpots.some((spot) => spot.slug === selectedSpotSlug) && visibleSpots[0]) {
@@ -205,8 +207,8 @@ export function MapScreen() {
       </View>
 
       <View style={styles.summaryPanel}>
-        {selectedSpot.thumbnailUrl ? (
-          <ImageBackground imageStyle={styles.summaryImageInner} source={{ uri: selectedSpot.thumbnailUrl }} style={styles.summaryImage}>
+        {spotImage ? (
+          <ImageBackground imageStyle={styles.summaryImageInner} source={spotImage} style={styles.summaryImage}>
             <View style={styles.summaryImageShade} />
           </ImageBackground>
         ) : (
