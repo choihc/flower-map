@@ -9,6 +9,7 @@ import {
   getPublishedSpots,
   spotKeys,
 } from '../../../shared/data/spotRepository';
+import { resolveSpotImage } from '../../../shared/lib/resolveSpotImage';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
@@ -52,7 +53,7 @@ export function HomeScreen() {
     <ScreenShell title="꽃 어디" subtitle="오늘 피어 있는 곳부터 감성 있게, 빠르게 보여드릴게요.">
       <ImageBackground
         imageStyle={styles.heroImageInner}
-        source={selectedSpot.thumbnailUrl ? { uri: selectedSpot.thumbnailUrl } : undefined}
+        source={resolveSpotImage(selectedSpot) ?? undefined}
         style={styles.hero}
       >
         <View style={styles.heroShade} />
@@ -128,7 +129,7 @@ export function HomeScreen() {
             badge={pick.badge}
             flower={pick.flower}
             helper={pick.helper}
-            imageSource={pick.thumbnailUrl ? { uri: pick.thumbnailUrl } : undefined}
+            imageSource={resolveSpotImage(pick) ?? undefined}
             isFeatured={pick.id === selectedSpot.id}
             place={pick.place}
             tone={pick.tone}
@@ -143,7 +144,7 @@ export function HomeScreen() {
       <View style={styles.eventCard}>
         <ImageBackground
           imageStyle={styles.eventImageInner}
-          source={endingSoonSpot.thumbnailUrl ? { uri: endingSoonSpot.thumbnailUrl } : undefined}
+          source={resolveSpotImage(endingSoonSpot) ?? undefined}
           style={styles.eventImage}
         >
           <View style={styles.eventImageShade} />
