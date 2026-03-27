@@ -3,14 +3,21 @@ import { useRouter } from 'expo-router';
 import type { ImageSourcePropType } from 'react-native';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  getPublishedFlowerLabels,
+  getPublishedRegionSummaries,
+  getPublishedSpots,
+} from '../../../shared/data/spotRepository';
 import { spotImages } from '../../../shared/mocks/spotAssets';
-import { featuredSpots, flowerLabels, regionSummaries } from '../../../shared/mocks/spots';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 
 export function HomeScreen() {
   const router = useRouter();
+  const featuredSpots = getPublishedSpots();
+  const flowerLabels = getPublishedFlowerLabels();
+  const regionSummaries = getPublishedRegionSummaries();
   const [selectedFlower, setSelectedFlower] = useState(flowerLabels[0]);
 
   const selectedSpot =

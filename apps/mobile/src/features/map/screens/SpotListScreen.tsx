@@ -1,13 +1,14 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { getPublishedSpots } from '../../../shared/data/spotRepository';
 import { colors } from '../../../shared/theme/colors';
-import { featuredSpots } from '../../../shared/mocks/spots';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 
 export function SpotListScreen() {
   const router = useRouter();
+  const featuredSpots = getPublishedSpots();
   const { flower } = useLocalSearchParams<{ flower?: string }>();
   const activeFlower = flower && typeof flower === 'string' ? flower : null;
   const visibleSpots = activeFlower ? featuredSpots.filter((spot) => spot.flower === activeFlower) : featuredSpots;

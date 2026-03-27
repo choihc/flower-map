@@ -3,13 +3,15 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { ImageBackground, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native';
 
+import {
+  getPublishedFlowerLabels,
+  getPublishedSpots,
+} from '../../../shared/data/spotRepository';
+import type { FlowerSpot } from '../../../shared/data/types';
 import { spotImages } from '../../../shared/mocks/spotAssets';
-import { featuredSpots, flowerLabels, type FlowerSpot } from '../../../shared/mocks/spots';
 import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
-
-const flowerFilters = ['전체', ...flowerLabels];
 
 const defaultCamera = {
   latitude: 37.534,
@@ -119,6 +121,8 @@ function NativeMapUnavailableFallback() {
 
 export function MapScreen() {
   const router = useRouter();
+  const featuredSpots = getPublishedSpots();
+  const flowerFilters = ['전체', ...getPublishedFlowerLabels()];
   const [selectedFlower, setSelectedFlower] = useState('전체');
   const [selectedSpotId, setSelectedSpotId] = useState(featuredSpots[0]?.id ?? '');
 

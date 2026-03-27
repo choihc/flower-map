@@ -1,91 +1,94 @@
-export type FlowerSpot = {
-  id: string;
-  badge: string;
-  bloomStatus: string;
-  description: string;
-  eventEndsIn?: string;
-  fee: string;
-  festivalDate: string;
-  flower: string;
-  helper: string;
-  latitude: number;
-  longitude: number;
-  location: string;
-  parking: string;
-  place: string;
-  tone: 'green' | 'pink' | 'yellow';
-};
+import { toFlowerSpot } from '../data/spotMappers';
+import type { FlowerSpot, PublishedSpotRow } from '../data/types';
 
-export const featuredSpots: FlowerSpot[] = [
+export const publishedSpotRows: PublishedSpotRow[] = [
   {
-    id: 'yeouido-yunjung-ro',
-    badge: '이번 주 절정',
-    bloomStatus: '지금 보기 좋아요',
+    id: 'spot-1',
+    slug: 'yeouido-yunjung-ro',
+    name: '여의도 윤중로',
+    flower: { name_ko: '벚꽃' },
+    region_secondary: '서울 영등포구',
     description: '한강 바람을 따라 걷기 좋은 서울 대표 벚꽃 산책 코스',
-    eventEndsIn: 'D-12',
-    fee: '무료',
-    festivalDate: '2026.04.01 - 2026.04.07',
-    flower: '벚꽃',
-    helper: '산책 동선이 좋고, 축제 분위기가 살아 있는 대표 스팟',
+    short_tip: '산책 동선이 좋고, 축제 분위기가 살아 있는 대표 스팟',
+    admission_fee: '무료',
+    parking_info: '인근 공영주차장 이용 권장',
+    festival_start_at: '2026-04-01',
+    festival_end_at: '2026-04-07',
+    bloom_start_at: '2026-03-28',
+    bloom_end_at: '2026-04-10',
+    is_featured: true,
     latitude: 37.5288,
     longitude: 126.9291,
-    location: '서울 영등포구',
-    parking: '인근 공영주차장 이용 권장',
-    place: '여의도 윤중로',
-    tone: 'pink',
+    badge_label: '이번 주 절정',
+    bloom_status_label: '지금 보기 좋아요',
+    event_ends_in_label: 'D-12',
   },
   {
-    id: 'jeju-noksan-ro',
-    badge: '지금 방문 추천',
-    bloomStatus: '포토 스팟',
+    id: 'spot-2',
+    slug: 'jeju-noksan-ro',
+    name: '제주 녹산로',
+    flower: { name_ko: '유채꽃' },
+    region_secondary: '제주 서귀포시',
     description: '도로를 따라 길게 펼쳐지는 유채꽃 풍경이 인상적인 드라이브 코스',
-    eventEndsIn: 'D-18',
-    fee: '무료',
-    festivalDate: '2026.03.20 - 2026.04.15',
-    flower: '유채꽃',
-    helper: '넓게 펼쳐진 노란 들판과 드라이브 감성이 좋은 코스',
+    short_tip: '넓게 펼쳐진 노란 들판과 드라이브 감성이 좋은 코스',
+    admission_fee: '무료',
+    parking_info: '도로변 지정 주차 구역 확인 필요',
+    festival_start_at: '2026-03-20',
+    festival_end_at: '2026-04-15',
+    bloom_start_at: '2026-03-20',
+    bloom_end_at: '2026-04-20',
+    is_featured: false,
     latitude: 33.4342,
     longitude: 126.6735,
-    location: '제주 서귀포시',
-    parking: '도로변 지정 주차 구역 확인 필요',
-    place: '제주 녹산로',
-    tone: 'yellow',
+    badge_label: '지금 방문 추천',
+    bloom_status_label: '포토 스팟',
+    event_ends_in_label: 'D-18',
   },
   {
-    id: 'everland-tulip-garden',
-    badge: '가족 나들이 추천',
-    bloomStatus: '이번 주 추천',
+    id: 'spot-3',
+    slug: 'everland-tulip-garden',
+    name: '에버랜드 튤립가든',
+    flower: { name_ko: '튤립' },
+    region_secondary: '경기 용인시',
     description: '알록달록한 튤립 군락과 봄 축제 동선을 한 번에 즐길 수 있는 장소',
-    eventEndsIn: 'D-22',
-    fee: '유료',
-    festivalDate: '2026.04.05 - 2026.04.28',
-    flower: '튤립',
-    helper: '사진 촬영 포인트가 많고 이동 동선이 편한 편이에요',
+    short_tip: '사진 촬영 포인트가 많고 이동 동선이 편한 편이에요',
+    admission_fee: '유료',
+    parking_info: '전용 주차장 이용 가능',
+    festival_start_at: '2026-04-05',
+    festival_end_at: '2026-04-28',
+    bloom_start_at: '2026-04-01',
+    bloom_end_at: '2026-04-30',
+    is_featured: false,
     latitude: 37.2944,
     longitude: 127.2023,
-    location: '경기 용인시',
-    parking: '전용 주차장 이용 가능',
-    place: '에버랜드 튤립가든',
-    tone: 'green',
+    badge_label: '가족 나들이 추천',
+    bloom_status_label: '이번 주 추천',
+    event_ends_in_label: 'D-22',
   },
   {
-    id: 'namsan-azalea-trail',
-    badge: '산책 코스 추천',
-    bloomStatus: '이번 주 추천',
+    id: 'spot-4',
+    slug: 'namsan-azalea-trail',
+    name: '남산 진달래길',
+    flower: { name_ko: '진달래' },
+    region_secondary: '서울 용산구',
     description: '언덕을 따라 진달래 색감이 이어지는 봄 산책 코스로 잔잔한 분위기가 좋아요',
-    eventEndsIn: 'D-10',
-    fee: '무료',
-    festivalDate: '2026.04.03 - 2026.04.18',
-    flower: '진달래',
-    helper: '화려한 벚꽃보다 차분한 봄 무드를 좋아하면 잘 맞는 코스예요',
+    short_tip: '화려한 벚꽃보다 차분한 봄 무드를 좋아하면 잘 맞는 코스예요',
+    admission_fee: '무료',
+    parking_info: '대중교통 접근 권장',
+    festival_start_at: '2026-04-03',
+    festival_end_at: '2026-04-18',
+    bloom_start_at: '2026-04-01',
+    bloom_end_at: '2026-04-20',
+    is_featured: false,
     latitude: 37.5512,
     longitude: 126.9882,
-    location: '서울 용산구',
-    parking: '대중교통 접근 권장',
-    place: '남산 진달래길',
-    tone: 'pink',
+    badge_label: '산책 코스 추천',
+    bloom_status_label: '이번 주 추천',
+    event_ends_in_label: 'D-10',
   },
 ];
+
+export const featuredSpots: FlowerSpot[] = publishedSpotRows.map(toFlowerSpot);
 
 export const regionSummaries = [
   '서울/경기',

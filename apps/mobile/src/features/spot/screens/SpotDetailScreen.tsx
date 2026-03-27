@@ -3,10 +3,13 @@ import { useRouter } from 'expo-router';
 import type { ImageSourcePropType } from 'react-native';
 import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  getPublishedSpotById,
+  getPublishedSpots,
+} from '../../../shared/data/spotRepository';
 import { openNaverNavigation } from '../../../shared/lib/naverMap';
 import { colors } from '../../../shared/theme/colors';
 import { spotImages } from '../../../shared/mocks/spotAssets';
-import { featuredSpots } from '../../../shared/mocks/spots';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
@@ -17,7 +20,8 @@ type SpotDetailScreenProps = {
 
 export function SpotDetailScreen({ spotId }: SpotDetailScreenProps) {
   const router = useRouter();
-  const spot = featuredSpots.find((item) => item.id === spotId) ?? featuredSpots[0];
+  const featuredSpots = getPublishedSpots();
+  const spot = getPublishedSpotById(spotId) ?? featuredSpots[0];
 
   return (
     <ScreenShell title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
