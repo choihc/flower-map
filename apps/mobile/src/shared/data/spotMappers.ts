@@ -85,6 +85,7 @@ export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpo
     parking: row.parking_info ?? '정보 없음',
     place: row.name,
     thumbnailUrl: row.thumbnail_url ?? null,
+    flowerThumbnailUrl: row.flower.thumbnail_url ?? null,
     tone: toFlowerTone(row.flower.name_ko),
   };
 }

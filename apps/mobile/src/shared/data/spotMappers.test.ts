@@ -6,7 +6,7 @@ const baseRow = {
   id: 'spot-1',
   slug: 'yeouido-yunjung-ro',
   name: '여의도 윤중로',
-  flower: { name_ko: '벚꽃' },
+  flower: { name_ko: '벚꽃', thumbnail_url: null },
   region_secondary: '서울 영등포구',
   description: '한강 바람을 따라 걷기 좋은 서울 대표 벚꽃 산책 코스',
   short_tip: '산책 동선이 좋고 축제 분위기가 살아 있는 대표 스팟',
@@ -45,6 +45,17 @@ describe('toFlowerSpot', () => {
     expect(withUrl.thumbnailUrl).toBe('https://blob.example.com/cherry.jpg');
   });
 
+  it('maps flower.thumbnail_url to flowerThumbnailUrl', () => {
+    const withNull = toFlowerSpot({ ...baseRow, flower: { name_ko: '벚꽃', thumbnail_url: null } });
+    expect(withNull.flowerThumbnailUrl).toBeNull();
+
+    const withUrl = toFlowerSpot({
+      ...baseRow,
+      flower: { name_ko: '벚꽃', thumbnail_url: 'https://blob.example.com/flower-cherry.jpg' },
+    });
+    expect(withUrl.flowerThumbnailUrl).toBe('https://blob.example.com/flower-cherry.jpg');
+  });
+
   it('derives fallback presentation labels from raw row data', () => {
     const result = toFlowerSpot(
       {
@@ -52,7 +63,7 @@ describe('toFlowerSpot', () => {
         id: 'spot-2',
         slug: 'jeju-noksan-ro',
         name: '제주 녹산로',
-        flower: { name_ko: '유채꽃' },
+        flower: { name_ko: '유채꽃', thumbnail_url: null },
         region_secondary: '제주 서귀포시',
         description: '도로를 따라 길게 펼쳐지는 유채꽃 풍경이 인상적인 드라이브 코스',
         short_tip: '넓게 펼쳐진 노란 들판과 드라이브 감성이 좋은 코스',
