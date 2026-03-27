@@ -1,6 +1,5 @@
-import type { ReactNode } from 'react';
 import { useRouter } from 'expo-router';
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -12,10 +11,12 @@ import {
 import { openNaverNavigation } from '../../../shared/lib/naverMap';
 import { resolveSpotImage } from '../../../shared/lib/resolveSpotImage';
 import { colors } from '../../../shared/theme/colors';
-import { BloomArt } from '../../../shared/ui/BloomArt';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
+import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
+import { LikeButton } from '../components/LikeButton';
+import { ReviewSection } from '../components/ReviewSection';
 
 type SpotDetailScreenProps = {
   slug: string;
@@ -35,7 +36,7 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
 
   if (isLoading) {
     return (
-      <ScreenShell title="..." subtitle="...">
+      <ScreenShell showBack title="">
         <SkeletonBox height={280} borderRadius={28} />
         <SkeletonBox height={100} borderRadius={20} />
         <SkeletonBox height={80} borderRadius={20} />
@@ -46,50 +47,29 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
 
   if (!spot) {
     return (
-      <ScreenShell title="명소를 찾을 수 없어요" subtitle="다른 명소를 탐색해 보세요.">
+      <ScreenShell showBack title="명소를 찾을 수 없어요" subtitle="다른 명소를 탐색해 보세요.">
         {null}
       </ScreenShell>
     );
   }
 
   return (
-    <ScreenShell title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
-      <ImageHero fallbackTone={spot.tone} imageSource={resolveSpotImage(spot) ?? undefined}>
-        <View style={styles.heroGlowTop} />
-        <View style={styles.heroGlowBottom} />
-        <View style={styles.heroBadge}>
-          <Text style={styles.heroBadgeText}>{spot.badge}</Text>
-        </View>
-        <View style={styles.heroBody}>
-          <View style={styles.heroCopy}>
-            <Text style={styles.heroTitle}>{spot.place}</Text>
-            <Text style={styles.heroMeta}>
-              {spot.flower} · {spot.bloomStatus}
-            </Text>
-            <Text style={styles.heroDescription}>{spot.description}</Text>
-            <View style={styles.heroActions}>
-              <Pressable
-                onPress={() =>
-                  openNaverNavigation({
-                    latitude: spot.latitude,
-                    longitude: spot.longitude,
-                    name: spot.place,
-                  })
-                }
-                style={styles.heroPrimaryButton}
-              >
-                <Text style={styles.heroPrimaryButtonText}>길찾기</Text>
-              </Pressable>
-              <Pressable onPress={() => router.push('/map')} style={styles.heroSecondaryButton}>
-                <Text style={styles.heroSecondaryButtonText}>지도에서 보기</Text>
-              </Pressable>
-            </View>
-          </View>
-          <View style={styles.heroArt}>
-            {!resolveSpotImage(spot) ? <BloomArt size="lg" tone={spot.tone} /> : null}
-          </View>
-        </View>
-      </ImageHero>
+    <ScreenShell showBack title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
+      <SpotHeroCard
+        badge={spot.badge}
+        description={spot.description}
+        imageSource={resolveSpotImage(spot) ?? undefined}
+        infoPills={[spot.flower + ' · ' + spot.bloomStatus, spot.eventEndsIn ?? '상시 운영']}
+        title={spot.place}
+        tone={spot.tone}
+        primaryButton={{
+          label: '길찾기',
+          onPress: () => openNaverNavigation({ latitude: spot.latitude, longitude: spot.longitude, name: spot.place }),
+        }}
+        secondaryButton={{ label: '지도에서 보기', onPress: () => router.push('/map') }}
+      />
+
+      <LikeButton spotId={spot.id} />
 
       <View style={styles.metaRow}>
         <MetaPill label="축제 일정" value={spot.festivalDate} />
@@ -113,10 +93,15 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
         <DetailTip text="축제 기간에는 도보 이동 중심으로 동선을 잡는 편이 편합니다." />
       </SectionCard>
 
+      <ReviewSection spotId={spot.id} />
+
       <SectionCard title="비슷한 꽃 명소">
-        {allSpots
-          .filter((item) => item.id !== spot.id)
-          .map((item) => (
+        {(() => {
+          const related = allSpots.filter((item) => item.id !== spot.id && item.flower === spot.flower);
+          if (related.length === 0) {
+            return <Text style={styles.emptyText}>등록된 {spot.flower} 명소가 없어요.</Text>;
+          }
+          return related.map((item) => (
             <Pressable key={item.id} onPress={() => router.push(`/spot/${item.slug}`)} style={styles.relatedItem}>
               <View>
                 <Text style={styles.relatedTitle}>{item.place}</Text>
@@ -126,45 +111,13 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
               </View>
               <Text style={styles.relatedAction}>보기</Text>
             </Pressable>
-          ))}
+          ));
+        })()}
       </SectionCard>
     </ScreenShell>
   );
 }
 
-function ImageHero({
-  children,
-  fallbackTone,
-  imageSource,
-}: {
-  children: ReactNode;
-  fallbackTone: 'green' | 'pink' | 'yellow';
-  imageSource?: { uri: string } | undefined;
-}) {
-  if (imageSource) {
-    return (
-      <ImageBackground imageStyle={styles.heroImageInner} source={imageSource} style={styles.heroImage}>
-        <View style={styles.heroImageShade} />
-        <View style={styles.heroImageContent}>{children}</View>
-      </ImageBackground>
-    );
-  }
-
-  return (
-    <View
-      style={[
-        styles.hero,
-        fallbackTone === 'pink'
-          ? styles.heroPink
-          : fallbackTone === 'yellow'
-            ? styles.heroYellow
-            : styles.heroGreen,
-      ]}
-    >
-      {children}
-    </View>
-  );
-}
 
 function MetaPill({ label, value }: { label: string; value: string }) {
   return (
@@ -201,6 +154,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
+  emptyText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    paddingVertical: 8,
+  },
   detailLabel: {
     color: colors.textMuted,
     fontSize: 13,
@@ -216,127 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     lineHeight: 22,
-  },
-  hero: {
-    borderRadius: 28,
-    marginBottom: 16,
-    overflow: 'hidden',
-    padding: 22,
-    position: 'relative',
-  },
-  heroArt: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 138,
-  },
-  heroActions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 18,
-  },
-  heroBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  heroBadgeText: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroBody: {
-    flexDirection: 'row',
-  },
-  heroCopy: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  heroDescription: {
-    color: '#FFF9F3',
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 10,
-  },
-  heroGreen: {
-    backgroundColor: colors.surfaceGreen,
-  },
-  heroGlowBottom: {
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    borderRadius: 999,
-    bottom: -36,
-    height: 130,
-    position: 'absolute',
-    right: 52,
-    width: 130,
-  },
-  heroGlowTop: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 999,
-    height: 170,
-    position: 'absolute',
-    right: -30,
-    top: -24,
-    width: 170,
-  },
-  heroImage: {
-    borderRadius: 28,
-    marginBottom: 16,
-    minHeight: 340,
-    overflow: 'hidden',
-  },
-  heroImageContent: {
-    padding: 22,
-  },
-  heroImageInner: {
-    borderRadius: 28,
-  },
-  heroImageShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(28, 24, 24, 0.28)',
-  },
-  heroMeta: {
-    color: '#FFF4F6',
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 10,
-  },
-  heroPink: {
-    backgroundColor: colors.softPink,
-  },
-  heroPrimaryButton: {
-    backgroundColor: colors.primaryDeep,
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  heroPrimaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  heroSecondaryButton: {
-    backgroundColor: 'rgba(255,255,255,0.88)',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  heroSecondaryButtonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  heroTitle: {
-    color: '#FFFFFF',
-    fontSize: 30,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    lineHeight: 36,
-    marginTop: 14,
-  },
-  heroYellow: {
-    backgroundColor: '#FFF2BF',
   },
   metaPill: {
     backgroundColor: colors.card,
