@@ -20,73 +20,82 @@
 [어드민 (Next.js)]
   SpotForm
     → ImageUploader 컴포넌트
-      → POST /api/upload-image (서버 라우트)
-        → @vercel/blob (BLOB_READ_WRITE_TOKEN)
-          → blob URL 반환
+      → POST /api/upload (기존 라우트)
+        → route.ts → uploadImage.ts → @vercel/blob put()
+          → result.data.url 반환
     → thumbnail_url 필드에 URL 자동 입력
     → Supabase DB 저장 (spots 테이블)
 
 [모바일 (React Native / Expo)]
-  Supabase Client (EXPO_PUBLIC_ 환경 변수)
-    → spotRepository.ts (async 쿼리)
+  Supabase Client (EXPO_PUBLIC_ 환경 변수, auth 없음)
+    → spotRepository.ts (async 쿼리 2개)
       → @tanstack/react-query (캐싱, 리패치)
         → 화면별 스켈레톤 → 데이터 렌더링
-          → thumbnail_url 있으면 URL 이미지, 없으면 BloomArt fallback
+          → thumbnailUrl 있으면 URL 이미지, 없으면 BloomArt fallback
 ```
 
 ---
 
 ## 파트 1: 어드민 — Vercel Blob 이미지 업로드
 
+### 기존 구조
+
+```
+app/api/upload/route.ts      ← POST 처리, uploadImage() 호출 (변경 없음)
+src/lib/blob/uploadImage.ts  ← 스텁 → 이번에 구현
+src/lib/blob/uploadStatus.ts ← HTTP 상태코드 매핑 (변경 없음)
+```
+
+`UploadImageResult` 타입 (변경 없음):
+```typescript
+// 성공
+{ success: true, data: { filename: string; contentType: string | null; url: string }, error: null }
+// 실패
+{ success: false, data: { filename: string; contentType: string | null; url: null }, error: { code, message } }
+```
+
 ### 변경 파일
 
 | 파일 | 종류 | 설명 |
 |------|------|------|
 | `apps/admin/package.json` | 수정 | `@vercel/blob` 추가 |
-| `apps/admin/.env.local` | 기존 | `BLOB_READ_WRITE_TOKEN` 이미 세팅됨 |
-| `apps/admin/app/api/upload-image/route.ts` | 신규 | 서버 사이드 Blob 업로드 API 라우트 |
-| `apps/admin/src/lib/blob/uploadImage.ts` | 수정 | 스텁 → 실제 구현 (API route 호출) |
-| `apps/admin/src/features/spots/SpotForm.tsx` | 수정 | 텍스트 인풋 → 파일 선택 + 업로드 UI |
+| `apps/admin/src/lib/blob/uploadImage.ts` | 수정 | 스텁 → `put()` 실제 구현 |
+| `apps/admin/src/lib/blob/uploadImage.test.ts` | 수정 | `vi.mock('@vercel/blob')`으로 재작성 |
+| `apps/admin/src/features/spots/SpotForm.tsx` | 수정 | `thumbnail_url` 텍스트 인풋 → `ImageUploader` 컴포넌트 교체 |
 
-### 업로드 흐름
+### uploadImage.ts 구현
 
-```
-사용자: 파일 선택
-  → ImageUploader: 파일 미리보기 표시
-  → "업로드" 버튼 클릭
-    → uploadImage(file) 호출
-      → POST /api/upload-image (FormData)
-        → put(filename, body, { access: 'public' }) via @vercel/blob
-          → { url } 반환
-    → thumbnail_url hidden input에 URL 저장
-    → 미리보기 이미지 URL로 교체
-```
+```typescript
+import { put } from '@vercel/blob';
 
-### API 라우트 설계
-
-```
-POST /api/upload-image
-  Content-Type: multipart/form-data
-  Body: { file: File }
-
-Response (성공):
-  { success: true, url: "https://..." }
-
-Response (실패):
-  { success: false, error: "..." }
+export async function uploadImage(file: File): Promise<UploadImageResult> {
+  const blob = await put(file.name, file, { access: 'public' });
+  return {
+    success: true,
+    data: { filename: file.name, contentType: file.type || null, url: blob.url },
+    error: null,
+  };
+}
 ```
 
-- `BLOB_READ_WRITE_TOKEN`은 서버에서만 사용 (클라이언트 노출 없음)
-- 파일 크기 제한: 5MB
-- 허용 타입: image/jpeg, image/png, image/webp
+### uploadImage.test.ts 테스트 전략
+
+```typescript
+vi.mock('@vercel/blob', () => ({
+  put: vi.fn().mockResolvedValue({ url: 'https://blob.example.com/test.jpg' }),
+}));
+
+// 성공 케이스: put() 호출 시 result.data.url 반환 확인
+// 실패 케이스: put() reject 시 에러 처리 확인 (선택)
+```
 
 ### SpotForm 이미지 UI
 
 - 기존 `thumbnail_url` 텍스트 인풋 → `ImageUploader` 컴포넌트로 교체
-- 업로드 전: 파일 선택 버튼 + 드래그 영역
+- 업로드 전: 파일 선택 버튼
 - 업로드 중: 로딩 스피너
 - 업로드 후: 미리보기 이미지 + "다시 선택" 버튼
-- 기존 URL이 있는 경우(수정 모드): 현재 이미지 미리보기로 초기 표시
+- 수정 모드(기존 URL 있는 경우): 현재 이미지 미리보기로 초기 표시
 
 ---
 
@@ -101,51 +110,81 @@ Response (실패):
 
 ### 환경 변수
 
-Expo는 `EXPO_PUBLIC_` 접두사 필수 (빌드 타임에 번들에 포함됨).
+Expo는 `EXPO_PUBLIC_` 접두사 필수 (빌드 타임에 번들에 인라인됨).
 
-`apps/mobile/.env.local`:
+`apps/mobile/.env.local` (로컬 개발용):
 ```
 EXPO_PUBLIC_SUPABASE_URL=https://ktmykdcmknaqsomzeank.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+```
+
+> EAS Build 등 CI 환경에서는 EAS 환경변수를 별도 설정해야 한다.
+
+### Supabase 클라이언트 설정
+
+모바일 앱은 **인증 없이 공개 데이터(published spots)만 읽는다.** 따라서 `AsyncStorage` 어댑터가 불필요하다. 세션 유지 옵션을 비활성화한 단순 클라이언트를 사용한다:
+
+```typescript
+// src/shared/lib/supabase.ts
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  process.env.EXPO_PUBLIC_SUPABASE_URL!,
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+  { auth: { persistSession: false, autoRefreshToken: false } },
+);
 ```
 
 ### 신규 파일
 
 | 파일 | 설명 |
 |------|------|
-| `apps/mobile/src/shared/lib/supabase.ts` | Supabase 클라이언트 싱글톤 |
-| `apps/mobile/src/shared/lib/queryClient.ts` | QueryClient 설정 (staleTime 등) |
+| `apps/mobile/src/shared/lib/supabase.ts` | Supabase 클라이언트 싱글톤 (auth 비활성화) |
+| `apps/mobile/src/shared/lib/queryClient.ts` | QueryClient 설정 (staleTime: 5분) |
 
 ### 수정 파일
 
 | 파일 | 변경 내용 |
 |------|----------|
-| `src/shared/data/types.ts` | `PublishedSpotRow`에 `thumbnail_url: string \| null` 추가 |
-| `src/shared/data/spotRepository.ts` | mock import 제거, Supabase async 쿼리로 전환 |
-| `src/shared/mocks/spots.ts` | 삭제 (더 이상 사용 안 함) |
-| `src/shared/mocks/spotAssets.ts` | 유지 (로컬 이미지 fallback용으로 한시적 활용 가능) |
+| `src/shared/data/types.ts` | `PublishedSpotRow`에 `thumbnail_url: string \| null` 추가. `FlowerSpot`에 `thumbnailUrl: string \| null` 추가 |
+| `src/shared/data/spotMappers.ts` | `toFlowerSpot()`에 `thumbnailUrl: row.thumbnail_url ?? null` 매핑 추가 |
+| `src/shared/data/spotMappers.test.ts` | 기존 fixture에 `thumbnail_url: null` 추가. `thumbnailUrl` 매핑 검증 케이스 추가 |
+| `src/shared/data/spotRepository.ts` | mock import 제거. `getPublishedSpots`, `getPublishedSpotBySlug` 2개만 유지하며 async 전환. `getPublishedFlowerLabels`, `getPublishedRegionSummaries` **삭제** |
+| `src/shared/data/spotRepository.test.ts` | 4개 함수 → 2개 함수 기준으로 재작성. Supabase client를 `vi.mock`으로 교체 |
+| `src/shared/mocks/spots.ts` | 삭제 |
+| `src/shared/mocks/spotAssets.ts` | 삭제 |
+| `src/features/spot/spotDetailRoute.ts` | `resolveSpotSlug()`가 `getPublishedSpotBySlug()`를 동기 호출 중 → slug 형식만 검증하는 순수 함수로 단순화 (존재 여부는 쿼리에서 처리) |
+| `src/features/spot/spotDetailRoute.test.ts` | 단순화된 동작 기준으로 재작성 |
+| `src/features/home/screens/HomeScreen.tsx` | `spotAssets` import 제거. `thumbnailUrl` 기반 이미지. `getPublishedFlowerLabels`/`getPublishedRegionSummaries` 호출 제거 → spots 결과에서 파생. 스켈레톤 추가 |
+| `src/features/map/screens/MapScreen.tsx` | `spotAssets` import 제거. `thumbnailUrl` 기반 이미지. 스켈레톤 추가 |
+| `src/features/map/screens/SpotListScreen.tsx` | 스켈레톤 추가 |
+| `src/features/spot/screens/SpotDetailScreen.tsx` | `spotAssets` import 제거. `thumbnailUrl` 기반 이미지. 스켈레톤 추가 |
 | `app/_layout.tsx` | `QueryClientProvider`로 앱 전체 래핑 |
 
-### spotRepository.ts 변경 방향
+### spotRepository.ts — 쿼리 설계
 
 ```typescript
-// Before (동기)
-export function getPublishedSpots(): FlowerSpot[]
+export async function getPublishedSpots(): Promise<FlowerSpot[]> {
+  const { data } = await supabase
+    .from('spots')
+    .select('*, flowers(name_ko)')
+    .eq('status', 'published')
+    .order('display_order', { ascending: true });
+  return (data ?? []).map((row) => toFlowerSpot(row));
+}
 
-// After (비동기, React Query와 함께 사용)
-export async function getPublishedSpots(): Promise<FlowerSpot[]>
+export async function getPublishedSpotBySlug(slug: string): Promise<FlowerSpot | undefined> {
+  const { data } = await supabase
+    .from('spots')
+    .select('*, flowers(name_ko)')
+    .eq('status', 'published')
+    .eq('slug', slug)
+    .maybeSingle();
+  return data ? toFlowerSpot(data) : undefined;
+}
 ```
 
-Supabase 쿼리:
-```sql
-SELECT spots.*, flowers.name_ko
-FROM spots
-JOIN flowers ON spots.flower_id = flowers.id
-WHERE spots.status = 'published'
-ORDER BY spots.display_order ASC
-```
-
-### React Query 사용 패턴
+### React Query 쿼리 키 및 화면 사용 패턴
 
 ```typescript
 // 쿼리 키 상수
@@ -154,27 +193,38 @@ export const spotKeys = {
   detail: (slug: string) => ['spots', slug] as const,
 }
 
-// 화면에서 사용
-const { data: spots, isLoading } = useQuery({
+// 전체 스팟 조회
+const { data: spots = [], isLoading } = useQuery({
   queryKey: spotKeys.all,
   queryFn: getPublishedSpots,
+})
+
+// 꽃/지역 목록은 spots에서 파생 (별도 쿼리 없음)
+const flowerLabels = [...new Set(spots.map((s) => s.flower))]
+const regionSummaries = [...new Set(spots.map((s) => toRegionSummary(s.location)))]
+
+// 단일 스팟 (SpotDetailScreen)
+const { data: spot, isLoading } = useQuery({
+  queryKey: spotKeys.detail(slug),
+  queryFn: () => getPublishedSpotBySlug(slug),
 })
 ```
 
 ### 이미지 처리 전략
 
 ```
-thumbnail_url 있음 → <Image source={{ uri: thumbnail_url }} />
-thumbnail_url 없음 → <BloomArt /> (기존 fallback 유지)
+FlowerSpot.thumbnailUrl 있음 → <Image source={{ uri: thumbnailUrl }} />
+                                또는 <ImageBackground source={{ uri: thumbnailUrl }} />
+FlowerSpot.thumbnailUrl 없음 → <BloomArt /> (fallback)
 ```
 
 ### 스켈레톤 UI 전략
 
-별도 스켈레톤 라이브러리 없이 React Native의 기본 View + 반투명 색상으로 플레이스홀더 구현.
+별도 라이브러리 없이 React Native 기본 View + 반투명 색상으로 구현.
 
 | 화면 | 스켈레톤 항목 |
 |------|-------------|
-| HomeScreen | 히어로 카드 (390px 높이), 꽃 타일 4개, 스팟 카드 4개 |
+| HomeScreen | 히어로 카드 (390px), 꽃 타일 4개, 스팟 카드 4개 |
 | MapScreen | 지도는 즉시 표시, 하단 리스트 스켈레톤 |
 | SpotListScreen | 리스트 아이템 4개 반복 |
 | SpotDetailScreen | 히어로 이미지, 텍스트 블록 3개 |
@@ -185,14 +235,14 @@ thumbnail_url 없음 → <BloomArt /> (기존 fallback 유지)
 
 ```
 어드민에서 스팟 등록
-  → 이미지 Vercel Blob 업로드 → thumbnail_url 획득
+  → 이미지 /api/upload → Vercel Blob → thumbnail_url 획득
   → Supabase spots 테이블에 status='published'로 저장
 
 모바일 앱 실행
   → React Query가 getPublishedSpots() 호출
     → Supabase에서 published 스팟 조회
       → 스켈레톤 표시 중 → 데이터 도착 → 렌더링
-        → thumbnail_url 있으면 Blob URL 이미지, 없으면 BloomArt
+        → thumbnailUrl 있으면 Blob URL 이미지, 없으면 BloomArt
 ```
 
 ---
@@ -203,3 +253,4 @@ thumbnail_url 없음 → <BloomArt /> (기존 fallback 유지)
 - 푸시 알림
 - 실시간 구독 (Supabase Realtime)
 - 이미지 리사이징/최적화 파이프라인
+- EAS Build 환경변수 설정
