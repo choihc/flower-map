@@ -50,7 +50,8 @@ export async function uploadImage(file: File): Promise<UploadImageResult> {
       },
       error: null,
     };
-  } catch {
+  } catch (err) {
+    console.error('[uploadImage] Blob 업로드 실패:', err);
     return {
       success: false,
       data: {
