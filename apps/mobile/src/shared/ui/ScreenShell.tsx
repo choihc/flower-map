@@ -1,15 +1,20 @@
 import { ReactNode } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { colors } from '../theme/colors';
 
 type ScreenShellProps = {
   title: string;
   subtitle?: string;
-  children: ReactNode;
+  titleColor?: string;
+  showBack?: boolean;
+  children?: ReactNode;
 };
 
-export function ScreenShell({ title, subtitle, children }: ScreenShellProps) {
+export function ScreenShell({ title, subtitle, titleColor, showBack, children }: ScreenShellProps) {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View pointerEvents="none" style={styles.backdrop}>
@@ -17,8 +22,13 @@ export function ScreenShell({ title, subtitle, children }: ScreenShellProps) {
         <View style={styles.blobSand} />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
+        {showBack && (
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← 뒤로</Text>
+          </Pressable>
+        )}
         <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={[styles.title, titleColor ? { color: titleColor } : null]}>{title}</Text>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
         {children}
@@ -53,7 +63,17 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 56,
+    paddingBottom: 100,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+    paddingVertical: 4,
+  },
+  backButtonText: {
+    color: colors.textMuted,
+    fontSize: 15,
+    fontWeight: '600',
   },
   header: {
     marginBottom: 28,
