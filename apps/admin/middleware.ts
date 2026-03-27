@@ -2,9 +2,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { updateSession } from '@/lib/supabase/server';
 
+const protectedPaths = ['/', '/settings'];
 const protectedPrefixes = ['/flowers', '/spots'];
 
 function isProtectedPath(pathname: string) {
+  if (protectedPaths.includes(pathname)) {
+    return true;
+  }
+
   return protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
