@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import type { UploadImageResult } from '@/lib/blob/uploadImage';
 
