@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,8 @@ import { Select } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { FormSection } from '@/components/ui/form-section';
-import type { FlowerRow, SpotInsert } from '@/lib/types';
+import type { FlowerRow, SpotInsert, SpotPhotoRow } from '@/lib/types';
+import { addSpotPhotoAction, deleteSpotPhotoAction, listSpotPhotosAction } from './photoActions';
 
 import { buildSpotWriteInput } from '@/lib/data/spots';
 
@@ -19,9 +20,11 @@ type SpotFormProps = {
   defaultValue?: Partial<SpotInsert>;
   flowers: Array<Pick<FlowerRow, 'id' | 'name_ko' | 'slug'>>;
   submitAction: (value: SpotInsert) => Promise<void> | void;
+  spotId?: string;
+  initialPhotos?: SpotPhotoRow[];
 };
 
-export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps) {
+export function SpotForm({ defaultValue, flowers, submitAction, spotId, initialPhotos }: SpotFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -70,6 +73,7 @@ export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps)
   }
 
   return (
+    <>
     <form action={handleSubmit} className="space-y-6">
       <FormSection
         title="기본 정보"
@@ -337,6 +341,14 @@ export function SpotForm({ defaultValue, flowers, submitAction }: SpotFormProps)
         <Button type="submit">명소 저장</Button>
       </div>
     </form>
+
+      {spotId != null && (
+        <SpotPhotoManager
+          spotId={spotId}
+          initialPhotos={initialPhotos ?? []}
+        />
+      )}
+    </>
   );
 }
 
@@ -347,4 +359,133 @@ function getOptionalText(value: FormDataEntryValue | null) {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function SpotPhotoManager({
+  spotId,
+  initialPhotos,
+}: {
+  spotId: string;
+  initialPhotos: SpotPhotoRow[];
+}) {
+  const [photos, setPhotos] = React.useState<SpotPhotoRow[]>(initialPhotos);
+  const [url, setUrl] = React.useState('');
+  const [sortOrder, setSortOrder] = React.useState(0);
+  const [caption, setCaption] = React.useState('');
+  const [isPending, startTransition] = useTransition();
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+
+  function handleAdd() {
+    if (!url.trim()) return;
+    setErrorMsg(null);
+    startTransition(async () => {
+      try {
+        await addSpotPhotoAction(spotId, {
+          url: url.trim(),
+          sort_order: sortOrder,
+          caption: caption.trim() || null,
+        });
+        setUrl('');
+        setCaption('');
+        setSortOrder(photos.length);
+        const updated = await listSpotPhotosAction(spotId);
+        setPhotos(updated);
+      } catch (e) {
+        setErrorMsg(e instanceof Error ? e.message : '사진 추가 중 오류가 발생했습니다.');
+      }
+    });
+  }
+
+  function handleDelete(photoId: string) {
+    startTransition(async () => {
+      await deleteSpotPhotoAction(spotId, photoId);
+      const updated = await listSpotPhotosAction(spotId);
+      setPhotos(updated);
+    });
+  }
+
+  return (
+    <div className="mt-6 space-y-4">
+      <Separator />
+      <FormSection
+        title="사진 관리"
+        description="명소 갤러리에 표시할 외부 URL 사진을 관리합니다."
+      >
+        {photos.length > 0 && (
+          <div className="space-y-2 mb-4">
+            {photos.map((photo) => (
+              <div
+                key={photo.id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-background p-3 text-sm"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo.url}
+                  alt={photo.caption ?? '사진'}
+                  className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-foreground font-medium">{photo.url}</p>
+                  <p className="text-muted-foreground text-xs">
+                    순서: {photo.sort_order}{photo.caption != null ? ` · ${photo.caption}` : ''}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => handleDelete(photo.id)}
+                  disabled={isPending}
+                >
+                  삭제
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="grid gap-3">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">URL</label>
+            <Input
+              placeholder="https://example.com/photo.jpg"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              disabled={isPending}
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">순서</label>
+              <Input
+                type="number"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(Number(e.target.value))}
+                disabled={isPending}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">캡션 (선택)</label>
+              <Input
+                placeholder="사진 설명"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+          </div>
+          {errorMsg != null && (
+            <p role="alert" className="text-sm text-destructive">{errorMsg}</p>
+          )}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={handleAdd}
+              disabled={isPending || !url.trim()}
+            >
+              {isPending ? '처리 중...' : '사진 추가'}
+            </Button>
+          </div>
+        </div>
+      </FormSection>
+    </div>
+  );
 }
