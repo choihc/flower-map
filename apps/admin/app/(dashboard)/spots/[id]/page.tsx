@@ -8,6 +8,7 @@ import { DashboardShell } from '@/features/dashboard/DashboardShell';
 import { SpotForm } from '@/features/spots/SpotForm';
 import { listFlowers } from '@/lib/data/flowers';
 import { getSpot, updateSpot } from '@/lib/data/spots';
+import { listSpotPhotos } from '@/lib/data/spotPhotos';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Database, SpotInsert } from '@/lib/types';
 
@@ -20,9 +21,10 @@ export default async function SpotDetailPage({ params }: Props) {
   const supabase = await createServerSupabaseClient();
   const dataClient = supabase as unknown as SupabaseClient<Database>;
 
-  const [spot, flowers] = await Promise.all([
+  const [spot, flowers, photos] = await Promise.all([
     getSpot(dataClient, id),
     listFlowers(dataClient),
+    listSpotPhotos(dataClient, id),
   ]);
 
   if (spot == null) {
@@ -46,7 +48,13 @@ export default async function SpotDetailPage({ params }: Props) {
           <CardDescription>정보를 수정하고 저장하면 즉시 반영됩니다.</CardDescription>
         </CardHeader>
         <CardContent className="px-5 pb-5">
-          <SpotForm flowers={flowers} defaultValue={spot} submitAction={updateAction} />
+          <SpotForm
+            flowers={flowers}
+            defaultValue={spot}
+            submitAction={updateAction}
+            spotId={id}
+            initialPhotos={photos}
+          />
         </CardContent>
       </Card>
     </DashboardShell>
