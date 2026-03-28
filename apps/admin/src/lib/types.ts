@@ -99,6 +99,24 @@ export type SpotInsert = {
 
 export type SpotUpdate = Partial<Omit<SpotInsert, 'id' | 'created_at' | 'updated_at'>>;
 
+export type SpotPhotoRow = {
+  id: string;
+  spot_id: string;
+  url: string;
+  sort_order: number;
+  caption: string | null;
+  created_at: string;
+};
+
+export type SpotPhotoInsert = {
+  spot_id: string;
+  url: string;
+  sort_order?: number;
+  caption?: string | null;
+  id?: string;
+  created_at?: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -123,6 +141,11 @@ export type Database = {
         Row: SpotRow;
         Insert: SpotInsert;
         Update: SpotUpdate;
+      };
+      spot_photos: {
+        Row: SpotPhotoRow;
+        Insert: SpotPhotoInsert;
+        Update: Partial<Omit<SpotPhotoInsert, 'id' | 'created_at'>>;
       };
     };
   };
