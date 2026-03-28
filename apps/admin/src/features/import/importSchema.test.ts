@@ -83,4 +83,55 @@ describe('importPayloadSchema', () => {
 
     expect(result.data.spot.thumbnail_url).toBeUndefined();
   });
+
+  it('accepts photos array in spot', () => {
+    const result = importPayloadSchema.safeParse({
+      flower_slug: 'cherry-blossom',
+      spot: {
+        slug: 'yeouido-yunjung-ro',
+        name: '여의도 윤중로',
+        region_primary: '서울/경기',
+        region_secondary: '서울 영등포구',
+        address: '서울특별시 영등포구 여의서로 일대',
+        latitude: 37.5259,
+        longitude: 126.9226,
+        description: '설명',
+        short_tip: '팁',
+        bloom_start_at: '2026-03-28',
+        bloom_end_at: '2026-04-10',
+        photos: [
+          { url: 'https://example.com/photo1.jpg', sort_order: 0, caption: '전경' },
+          { url: 'https://example.com/photo2.jpg', sort_order: 1 },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected parse success');
+    if (!('spot' in result.data)) throw new Error('Expected single-spot payload');
+    expect(result.data.spot.photos).toHaveLength(2);
+    expect(result.data.spot.photos[0].url).toBe('https://example.com/photo1.jpg');
+  });
+
+  it('defaults photos to empty array when omitted', () => {
+    const result = importPayloadSchema.safeParse({
+      flower_slug: 'cherry-blossom',
+      spot: {
+        slug: 'yeouido-yunjung-ro',
+        name: '여의도 윤중로',
+        region_primary: '서울/경기',
+        region_secondary: '서울 영등포구',
+        address: '서울특별시 영등포구 여의서로 일대',
+        latitude: 37.5259,
+        longitude: 126.9226,
+        description: '설명',
+        short_tip: '팁',
+        bloom_start_at: '2026-03-28',
+        bloom_end_at: '2026-04-10',
+      },
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected parse success');
+    if (!('spot' in result.data)) throw new Error('Expected single-spot payload');
+    expect(result.data.spot.photos).toEqual([]);
+  });
 });

@@ -5,10 +5,17 @@ import { spotSchema } from '../spots/spotSchema';
 
 const { flower_id: _flowerId, ...importedSpotShape } = spotSchema.shape;
 
+const importedPhotoSchema = z.object({
+  url: z.string().url(),
+  sort_order: z.number().int().optional().default(0),
+  caption: z.string().nullable().optional(),
+});
+
 const importedSpotSchema = z
   .object({
     ...importedSpotShape,
     thumbnail_url: z.preprocess((value) => (value === '' ? undefined : value), spotSchema.shape.thumbnail_url),
+    photos: z.array(importedPhotoSchema).optional().default([]),
   })
   .superRefine((value, ctx) => {
     if (value.bloom_start_at > value.bloom_end_at) {
