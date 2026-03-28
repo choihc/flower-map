@@ -13,6 +13,7 @@ type PlanImportWriteOptions = {
 
 type PlannedSpotUpdate = {
   id: string;
+  slug: string;
   input: SpotUpdate;
 };
 
@@ -21,6 +22,9 @@ type PlanImportWriteResult = {
   toUpdate: PlannedSpotUpdate[];
   errors: string[];
 };
+
+// photos 필드는 SpotInsert에 없으므로 unknown[]으로 허용 후 제거
+type ImportedSpotInput = Omit<SpotInsert, 'flower_id'> & { photos?: unknown[] };
 
 export function planImportWrite(payload: ImportPayload, options: PlanImportWriteOptions): PlanImportWriteResult {
   const incomingSpots = 'spot' in payload ? [payload.spot] : payload.spots;
@@ -35,18 +39,17 @@ export function planImportWrite(payload: ImportPayload, options: PlanImportWrite
   }
 
   return {
-    toCreate: classified.toCreate.map((spot) => buildImportedSpotInput(spot, options.flowerId)),
+    toCreate: classified.toCreate.map((spot) => buildImportedSpotInput(spot as ImportedSpotInput, options.flowerId)),
     toUpdate: classified.toUpdate.map(({ incoming, existing }) => ({
       id: existing.id,
-      input: buildImportedSpotInput(incoming, options.flowerId),
+      slug: incoming.slug,
+      input: buildImportedSpotInput(incoming as ImportedSpotInput, options.flowerId),
     })),
     errors: [],
   };
 }
 
-type ImportedSpotInput = Omit<SpotInsert, 'flower_id'>;
-
-function buildImportedSpotInput(spot: ImportedSpotInput, flowerId: string): SpotInsert {
+function buildImportedSpotInput({ photos: _photos, ...spot }: ImportedSpotInput, flowerId: string): SpotInsert {
   return buildSpotWriteInput({
     ...spot,
     flower_id: flowerId,

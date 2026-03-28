@@ -36,6 +36,7 @@ describe('planImportWrite', () => {
     expect(result.toUpdate).toEqual([
       {
         id: 'spot-1',
+        slug: 'yeouido-yunjung-ro',
         input: expect.objectContaining({
           flower_id: 'flower-1',
           slug: 'yeouido-yunjung-ro',
