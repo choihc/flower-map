@@ -341,9 +341,17 @@ export function MapScreen() {
           viewabilityConfig={viewabilityConfig}
         />
         {visibleSpots.length > 1 && (
-          <Text style={styles.carouselCounter}>
-            {activeIndex + 1} / {visibleSpots.length}
-          </Text>
+          <View style={styles.scrollbarTrack}>
+            <View
+              style={[
+                styles.scrollbarThumb,
+                {
+                  transform: [{ translateX: (CARD_WIDTH / visibleSpots.length) * activeIndex }],
+                  width: CARD_WIDTH / visibleSpots.length,
+                },
+              ]}
+            />
+          </View>
         )}
       </View>
     </ScreenShell>
@@ -351,12 +359,18 @@ export function MapScreen() {
 }
 
 const styles = StyleSheet.create({
-  carouselCounter: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 8,
-    textAlign: 'right',
+  scrollbarThumb: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 3,
+  },
+  scrollbarTrack: {
+    backgroundColor: colors.border,
+    borderRadius: 999,
+    height: 3,
+    marginTop: 10,
+    overflow: 'hidden',
+    width: CARD_WIDTH,
   },
   chipsCarousel: {
     alignItems: 'center',
