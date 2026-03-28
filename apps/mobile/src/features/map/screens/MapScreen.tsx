@@ -186,6 +186,7 @@ export function MapScreen() {
 
   const visibleSpots = selectedFlower === '전체' ? spots : spots.filter((spot) => spot.flower === selectedFlower);
   const selectedSpot = visibleSpots.find((spot) => spot.slug === selectedSpotSlug) ?? visibleSpots[0] ?? spots[0];
+  const activeIndex = Math.max(0, visibleSpots.findIndex((s) => s.slug === selectedSpotSlug));
 
   const handleLocationPress = async () => {
     if (locationLoading) return;
@@ -310,7 +311,7 @@ export function MapScreen() {
         style={styles.chipsCarouselWrapper}
       />
 
-      <View style={{ paddingHorizontal: 20 }}>
+      <View>
         <FlatList
           ref={flatListRef}
           data={visibleSpots}
@@ -339,12 +340,36 @@ export function MapScreen() {
           snapToInterval={CARD_WIDTH + CARD_GAP}
           viewabilityConfig={viewabilityConfig}
         />
+        {visibleSpots.length > 1 && (
+          <View style={styles.dotsContainer}>
+            {visibleSpots.map((spot, i) => (
+              <View key={spot.id} style={[styles.dot, i === activeIndex ? styles.dotActive : null]} />
+            ))}
+          </View>
+        )}
       </View>
     </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
+  dot: {
+    backgroundColor: colors.border,
+    borderRadius: 999,
+    height: 6,
+    width: 6,
+  },
+  dotActive: {
+    backgroundColor: colors.primary,
+    width: 18,
+  },
+  dotsContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    marginTop: 12,
+  },
   chipsCarousel: {
     alignItems: 'center',
     flexDirection: 'row',
