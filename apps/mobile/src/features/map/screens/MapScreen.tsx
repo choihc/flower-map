@@ -341,11 +341,9 @@ export function MapScreen() {
           viewabilityConfig={viewabilityConfig}
         />
         {visibleSpots.length > 1 && (
-          <View style={styles.dotsContainer}>
-            {visibleSpots.map((spot, i) => (
-              <View key={spot.id} style={[styles.dot, i === activeIndex ? styles.dotActive : null]} />
-            ))}
-          </View>
+          <Text style={styles.carouselCounter}>
+            {activeIndex + 1} / {visibleSpots.length}
+          </Text>
         )}
       </View>
     </ScreenShell>
@@ -353,22 +351,12 @@ export function MapScreen() {
 }
 
 const styles = StyleSheet.create({
-  dot: {
-    backgroundColor: colors.border,
-    borderRadius: 999,
-    height: 6,
-    width: 6,
-  },
-  dotActive: {
-    backgroundColor: colors.primary,
-    width: 18,
-  },
-  dotsContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-    justifyContent: 'center',
-    marginTop: 12,
+  carouselCounter: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'right',
   },
   chipsCarousel: {
     alignItems: 'center',
