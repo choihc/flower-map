@@ -53,8 +53,14 @@ export function MeScreen() {
     );
   }
 
+  const displayName =
+    (user.user_metadata?.name as string | undefined) ??
+    (user.user_metadata?.full_name as string | undefined) ??
+    user.email ??
+    '카카오 로그인됨';
+
   return (
-    <ScreenShell title="내 정보" subtitle={user.email ?? '카카오 로그인됨'}>
+    <ScreenShell title="내 정보" subtitle={displayName}>
       <AppInfoSection />
       <Pressable onPress={signOut} style={styles.signOutButton}>
         <Text style={styles.signOutText}>로그아웃</Text>
