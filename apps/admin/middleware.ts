@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { updateSession } from '@/lib/supabase/server';
+import { updateSession } from '@/lib/supabase/middleware-client';
 
 const protectedPaths = ['/', '/settings'];
 const protectedPrefixes = ['/flowers', '/spots'];
