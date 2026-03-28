@@ -1,16 +1,23 @@
+import { useQuery } from '@tanstack/react-query';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
-  getPublishedFlowerLabels,
-  getPublishedRegionSummaries,
+  deriveFlowerLabels,
+  deriveRegionSummaries,
+  getPublishedSpots,
+  spotKeys,
 } from '../../../shared/data/spotRepository';
 import { colors } from '../../../shared/theme/colors';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 
 export function FiltersScreen() {
-  const flowerLabels = getPublishedFlowerLabels();
-  const regionSummaries = getPublishedRegionSummaries();
+  const { data: spots = [] } = useQuery({
+    queryKey: spotKeys.all,
+    queryFn: getPublishedSpots,
+  });
+  const flowerLabels = deriveFlowerLabels(spots);
+  const regionSummaries = deriveRegionSummaries(spots);
 
   return (
     <ScreenShell title="필터" subtitle="꽃 종류와 지역 조건을 조합해서 지금 가기 좋은 명소만 추려보세요.">

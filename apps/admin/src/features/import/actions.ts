@@ -28,10 +28,11 @@ export async function saveImportPayloadAction(payload: string): Promise<Validati
   const parsed = importPayloadSchema.safeParse(parsedJson);
 
   if (!parsed.success) {
+    console.error('[import] Zod validation failed:', JSON.stringify(parsed.error.issues, null, 2));
     return {
       created: 0,
       updated: 0,
-      errors: parsed.error.issues.map((issue) => issue.message),
+      errors: parsed.error.issues.map((issue) => `[${issue.path.join('.')}] ${issue.message}`),
     };
   }
 
@@ -72,6 +73,7 @@ export async function saveImportPayloadAction(payload: string): Promise<Validati
       errors: [],
     };
   } catch (error) {
+    console.error('[import] Unexpected error during save:', error);
     return {
       created: 0,
       updated: 0,

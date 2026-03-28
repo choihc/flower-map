@@ -4,6 +4,8 @@ export type FlowerSpot = {
   id: string;
   slug: string;
   badge: string;
+  bloomEndAt: string;
+  bloomStartAt: string;
   bloomStatus: string;
   description: string;
   eventEndsIn?: string;

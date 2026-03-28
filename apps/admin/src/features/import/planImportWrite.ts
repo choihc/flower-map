@@ -50,7 +50,6 @@ function buildImportedSpotInput(spot: ImportedSpotInput, flowerId: string): Spot
   return buildSpotWriteInput({
     ...spot,
     flower_id: flowerId,
-    status: 'draft',
     source_type: 'manual_json',
   });
 }

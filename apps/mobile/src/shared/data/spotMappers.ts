@@ -20,8 +20,33 @@ function toFlowerTone(flowerName: string): FlowerSpotTone {
   return 'green';
 }
 
-function toBadgeLabel(row: PublishedSpotRow) {
-  if (row.is_featured) {
+function getBloomDaysRemaining(row: PublishedSpotRow, now: Date): number {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const end = new Date(`${row.bloom_end_at}T00:00:00`);
+  return Math.floor((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function getBloomDaysUntilStart(row: PublishedSpotRow, now: Date): number {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(`${row.bloom_start_at}T00:00:00`);
+  return Math.floor((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function toBadgeLabel(row: PublishedSpotRow, now: Date): string {
+  const daysRemaining = getBloomDaysRemaining(row, now);
+  const daysUntilStart = getBloomDaysUntilStart(row, now);
+
+  if (daysUntilStart > 0 && daysUntilStart <= 7) {
+    return '곧 개화';
+  }
+
+  if (daysRemaining < 0) {
+    return '개화 종료';
+  }
+
+  if (daysRemaining <= 7) {
     return '이번 주 절정';
   }
 
@@ -36,16 +61,23 @@ function toBadgeLabel(row: PublishedSpotRow) {
   return '지금 방문 추천';
 }
 
-function toBloomStatus(row: PublishedSpotRow) {
-  if (row.is_featured) {
+function toBloomStatus(row: PublishedSpotRow, now: Date): string {
+  const daysRemaining = getBloomDaysRemaining(row, now);
+  const daysUntilStart = getBloomDaysUntilStart(row, now);
+
+  if (daysUntilStart > 0) {
+    return '개화 예정';
+  }
+
+  if (daysRemaining < 0) {
+    return '개화 종료';
+  }
+
+  if (daysRemaining <= 7) {
     return '지금 보기 좋아요';
   }
 
-  if (row.flower.name_ko === '유채꽃') {
-    return '포토 스팟';
-  }
-
-  return '이번 주 추천';
+  return '개화 중';
 }
 
 function toEventEndsIn(row: PublishedSpotRow, now = new Date()) {
@@ -71,8 +103,10 @@ export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpo
   return {
     id: row.id,
     slug: row.slug,
-    badge: toBadgeLabel(row),
-    bloomStatus: toBloomStatus(row),
+    badge: toBadgeLabel(row, now),
+    bloomEndAt: row.bloom_end_at,
+    bloomStartAt: row.bloom_start_at,
+    bloomStatus: toBloomStatus(row, now),
     description: row.description,
     eventEndsIn: toEventEndsIn(row, now),
     fee: row.admission_fee ?? '정보 없음',

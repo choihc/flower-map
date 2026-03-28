@@ -5,7 +5,7 @@ import type { ImportPayload } from './importSchema';
 import { planImportWrite } from './planImportWrite';
 
 describe('planImportWrite', () => {
-  it('splits rows into creates and updates and forces imported spots back to draft', () => {
+  it('splits rows into creates and updates and preserves status from the import payload', () => {
     const payload: ImportPayload = {
       flower_slug: 'cherry-blossom',
       spot: {
@@ -21,6 +21,8 @@ describe('planImportWrite', () => {
         bloom_start_at: '2026-03-28',
         bloom_end_at: '2026-04-10',
         status: 'published',
+        is_featured: false,
+        display_order: 0,
       },
     };
 
@@ -37,7 +39,7 @@ describe('planImportWrite', () => {
         input: expect.objectContaining({
           flower_id: 'flower-1',
           slug: 'yeouido-yunjung-ro',
-          status: 'draft',
+          status: 'published',
           source_type: 'manual_json',
         }),
       },
@@ -69,6 +71,8 @@ describe('planImportWrite', () => {
           bloom_start_at: '2026-03-28',
           bloom_end_at: '2026-04-10',
           status: 'published',
+          is_featured: false,
+          display_order: 0,
         },
         {
           slug: 'yeouido-yunjung-ro',
@@ -83,6 +87,8 @@ describe('planImportWrite', () => {
           bloom_start_at: '2026-03-28',
           bloom_end_at: '2026-04-10',
           status: 'published',
+          is_featured: false,
+          display_order: 0,
         },
       ],
     };

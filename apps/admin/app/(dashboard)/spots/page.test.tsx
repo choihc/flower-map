@@ -4,15 +4,18 @@ import { describe, expect, it, vi } from 'vitest';
 
 import SpotsPage from './page';
 import { listFlowers } from '@/lib/data/flowers';
-import { listSpots, createSpot } from '@/lib/data/spots';
+import { listSpots } from '@/lib/data/spots';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 
 vi.mock('@/lib/data/flowers', () => ({
   listFlowers: vi.fn(),
 }));
 
 vi.mock('@/lib/data/spots', () => ({
-  createSpot: vi.fn(),
   listSpots: vi.fn(),
 }));
 
@@ -20,10 +23,13 @@ vi.mock('@/lib/supabase/server', () => ({
   createServerSupabaseClient: vi.fn(),
 }));
 
+vi.mock('@/features/spots/actions', () => ({
+  bulkUpdateSpotStatusAction: vi.fn(),
+}));
+
 describe('SpotsPage', () => {
-  it('renders the operational workspace with KPIs, toolbar, list table, and structured form sections', async () => {
+  it('renders KPIs, filter toolbar, and spot list table', async () => {
     vi.mocked(createServerSupabaseClient).mockResolvedValue({} as never);
-    vi.mocked(createSpot).mockResolvedValue({} as never);
     vi.mocked(listFlowers).mockResolvedValue([
       {
         id: 'flower-1',
@@ -58,7 +64,7 @@ describe('SpotsPage', () => {
         flower_id: 'flower-1',
         slug: 'cherry-road',
         name: '벚꽃길',
-        region_primary: '서울',
+        region_primary: '서울/경기',
         region_secondary: '서울 영등포구',
         address: '서울',
         latitude: 37.5,
@@ -86,7 +92,7 @@ describe('SpotsPage', () => {
         flower_id: 'flower-2',
         slug: 'forsythia-hill',
         name: '개나리 언덕',
-        region_primary: '부산',
+        region_primary: '경상',
         region_secondary: '부산 해운대구',
         address: '부산',
         latitude: 35.2,
@@ -141,27 +147,29 @@ describe('SpotsPage', () => {
 
     render(await SpotsPage());
 
+    // 페이지 제목
     expect(screen.getByRole('heading', { name: '명소 관리' })).toBeInTheDocument();
+
+    // KPI 카드
     expect(screen.getByText('전체', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText('검토 중', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText('게시됨', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText('대표', { selector: 'p' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: '검색' })).toBeInTheDocument();
-    expect(screen.getByLabelText('지역')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '등록된 명소' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '명소 정보 입력' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '기본 정보' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '위치 정보' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '개화/축제 일정' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '이미지와 메모' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '공개 상태' })).toBeInTheDocument();
-    expect(screen.getByLabelText('정렬 순서')).toBeInTheDocument();
-    expect(screen.getByLabelText('대표 명소')).toBeInTheDocument();
 
+    // 필터 바
+    expect(screen.getByRole('textbox', { name: '검색' })).toBeInTheDocument();
+    expect(screen.getByLabelText('상태')).toBeInTheDocument();
+    expect(screen.getByLabelText('꽃')).toBeInTheDocument();
+
+    // 테이블
+    expect(screen.getByRole('heading', { name: '등록된 명소' })).toBeInTheDocument();
     const table = screen.getByRole('table');
     expect(within(table).getByText('벚꽃길')).toBeInTheDocument();
     expect(within(table).getByText('개나리 언덕')).toBeInTheDocument();
     expect(within(table).getByText('개나리 능선')).toBeInTheDocument();
     expect(within(table).getAllByText('대표', { selector: 'span' })).toHaveLength(2);
+
+    // 새 명소 추가 버튼
+    expect(screen.getByRole('link', { name: '새 명소 추가' })).toBeInTheDocument();
   });
 });

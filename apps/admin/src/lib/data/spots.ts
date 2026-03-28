@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import type { Database, SpotInsert, SpotRow, SpotUpdate } from '@/lib/types';
+import type { Database, SpotInsert, SpotRow, SpotStatus, SpotUpdate } from '@/lib/types';
 
 type SpotWriteDraft = Omit<SpotInsert, 'id' | 'created_at' | 'updated_at'>;
 
@@ -48,6 +48,16 @@ export async function createSpot(client: SupabaseClient<Database>, input: SpotWr
   return data satisfies SpotRow;
 }
 
+export async function getSpot(client: SupabaseClient<Database>, id: string) {
+  const { data, error } = await (client.from('spots') as any).select('*').eq('id', id).maybeSingle();
+
+  if (error != null) {
+    throw error;
+  }
+
+  return data as SpotRow | null;
+}
+
 export async function updateSpot(client: SupabaseClient<Database>, id: string, input: SpotUpdate) {
   const { data, error } = await (client.from('spots') as any).update(input).eq('id', id).select().single();
 
@@ -56,4 +66,16 @@ export async function updateSpot(client: SupabaseClient<Database>, id: string, i
   }
 
   return data satisfies SpotRow;
+}
+
+export async function bulkUpdateSpotStatus(client: SupabaseClient<Database>, ids: string[], status: SpotStatus) {
+  if (ids.length === 0) return [];
+
+  const { data, error } = await (client.from('spots') as any).update({ status }).in('id', ids).select();
+
+  if (error != null) {
+    throw error;
+  }
+
+  return data as SpotRow[];
 }

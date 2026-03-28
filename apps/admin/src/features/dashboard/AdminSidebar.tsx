@@ -13,8 +13,8 @@ const primaryNavItems = [
 
 export function AdminSidebar() {
   return (
-    <aside className="min-w-0 lg:sticky lg:top-5">
-      <Card className="flex flex-col p-4 lg:min-h-[calc(100vh-40px)]">
+    <aside className="min-w-0 lg:h-full">
+      <Card className="flex flex-col p-4 lg:h-full">
         <div className="px-3 py-4">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Flower Map</p>
           <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-foreground">꽃 어디 Admin</h2>

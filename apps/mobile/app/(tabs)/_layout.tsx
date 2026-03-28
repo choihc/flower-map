@@ -11,7 +11,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.primaryDeep,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: styles.label,
+        tabBarShowLabel: false,
         tabBarStyle: styles.bar,
         tabBarItemStyle: styles.item,
       }}
@@ -84,9 +84,9 @@ const styles = StyleSheet.create({
   bar: {
     backgroundColor: 'rgba(255, 249, 243, 0.96)',
     borderTopColor: '#E7DDD1',
-    height: 86,
-    paddingBottom: 12,
-    paddingTop: 10,
+    height: 64,
+    paddingBottom: 8,
+    paddingTop: 8,
     position: 'absolute',
   },
   iconFrame: {
@@ -101,9 +101,5 @@ const styles = StyleSheet.create({
   },
   item: {
     paddingTop: 2,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
   },
 });

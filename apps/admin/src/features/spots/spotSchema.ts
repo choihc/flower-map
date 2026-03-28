@@ -24,6 +24,8 @@ export const spotSchema = z
     thumbnail_url: z.string().url().nullable().optional(),
     status: z.enum(['draft', 'published']).default('draft'),
     source_note: z.string().trim().min(1).nullable().optional(),
+    is_featured: z.boolean().default(false),
+    display_order: z.number().int().default(0),
   })
   .superRefine((value, ctx) => {
     if (value.bloom_start_at > value.bloom_end_at) {
