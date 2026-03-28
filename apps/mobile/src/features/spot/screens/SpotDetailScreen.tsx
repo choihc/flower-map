@@ -16,7 +16,8 @@ import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { LikeButton } from '../components/LikeButton';
-import { ReviewSection } from '../components/ReviewSection';
+import { SpotPhotoGallery } from '../components/SpotPhotoGallery';
+import { getPhotosBySpotId, photoKeys } from '../../../shared/data/photoRepository';
 
 type SpotDetailScreenProps = {
   slug: string;
@@ -32,6 +33,12 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
   const { data: allSpots = [] } = useQuery({
     queryKey: spotKeys.all,
     queryFn: getPublishedSpots,
+  });
+
+  const { data: photos = [] } = useQuery({
+    queryKey: photoKeys.bySpot(spot?.id ?? ''),
+    queryFn: () => getPhotosBySpotId(spot!.id),
+    enabled: spot !== undefined,
   });
 
   if (isLoading) {
@@ -66,8 +73,10 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
           label: '길찾기',
           onPress: () => openNaverNavigation({ latitude: spot.latitude, longitude: spot.longitude, name: spot.place }),
         }}
-        secondaryButton={{ label: '지도에서 보기', onPress: () => router.push('/map') }}
+        secondaryButton={{ label: '지도에서 보기', onPress: () => router.push({ pathname: '/map', params: { spotSlug: slug } }) }}
       />
+
+      <SpotPhotoGallery photos={photos} />
 
       <LikeButton spotId={spot.id} />
 
@@ -92,8 +101,6 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
         <DetailTip text="대표 포토 포인트는 입구보다 안쪽 산책로 구간에 몰려 있어요." />
         <DetailTip text="축제 기간에는 도보 이동 중심으로 동선을 잡는 편이 편합니다." />
       </SectionCard>
-
-      <ReviewSection spotId={spot.id} />
 
       <SectionCard title="비슷한 꽃 명소">
         {(() => {
