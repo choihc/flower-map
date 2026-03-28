@@ -23,6 +23,7 @@ describe('planImportWrite', () => {
         status: 'published',
         is_featured: false,
         display_order: 0,
+        photos: [],
       },
     };
 
@@ -74,6 +75,7 @@ describe('planImportWrite', () => {
           status: 'published',
           is_featured: false,
           display_order: 0,
+          photos: [],
         },
         {
           slug: 'yeouido-yunjung-ro',
@@ -90,6 +92,7 @@ describe('planImportWrite', () => {
           status: 'published',
           is_featured: false,
           display_order: 0,
+          photos: [],
         },
       ],
     };
