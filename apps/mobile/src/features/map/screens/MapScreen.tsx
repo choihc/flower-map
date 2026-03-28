@@ -1,8 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { useRouter } from 'expo-router';
-import { ImageBackground, Platform, Pressable, ScrollView, StyleSheet, Text, UIManager, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  UIManager,
+  View,
+} from 'react-native';
+import type { ViewToken } from 'react-native';
 
+import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -12,8 +24,6 @@ import {
 } from '../../../shared/data/spotRepository';
 import type { FlowerSpot } from '../../../shared/data/types';
 import { colors } from '../../../shared/theme/colors';
-import { resolveSpotImage } from '../../../shared/lib/resolveSpotImage';
-import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import {
@@ -21,12 +31,17 @@ import {
   getNearbySpots,
   requestAndGetLocation,
 } from '../../../shared/lib/location';
+import { SpotSummaryCard } from '../components/SpotSummaryCard';
 
 const defaultCamera = {
   latitude: 37.534,
   longitude: 126.978,
   zoom: 9.6,
 };
+
+const CARD_WIDTH = Dimensions.get('window').width - 40;
+const CARD_GAP = 10;
+const viewabilityConfig = { itemVisiblePercentThreshold: 50 };
 
 const nativeNaverMapViewName = 'RNCNaverMapView';
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -132,7 +147,7 @@ function NativeMapUnavailableFallback() {
 }
 
 export function MapScreen() {
-  const router = useRouter();
+  const { spotSlug: initialSpotSlug } = useLocalSearchParams<{ spotSlug?: string }>();
   const { data: spots = [], isLoading, error } = useQuery({
     queryKey: spotKeys.all,
     queryFn: getPublishedSpots,
@@ -141,13 +156,36 @@ export function MapScreen() {
   const flowerLabels = deriveFlowerLabels(spots);
   const flowerFilters = ['전체', ...flowerLabels];
   const [selectedFlower, setSelectedFlower] = useState('전체');
-  const [selectedSpotSlug, setSelectedSpotSlug] = useState('');
+  const [selectedSpotSlug, setSelectedSpotSlug] = useState(initialSpotSlug ?? '');
   const [userCameraCoords, setUserCameraCoords] = useState<Coords | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
+  const flatListRef = useRef<FlatList>(null);
+
+  const handleViewableChange = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0) {
+        setSelectedSpotSlug((viewableItems[0].item as FlowerSpot).slug);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (initialSpotSlug && spots.length > 0) {
+      setSelectedSpotSlug(initialSpotSlug);
+      setSelectedFlower('전체');
+      const index = spots.findIndex((s) => s.slug === initialSpotSlug);
+      if (index !== -1) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({ index, animated: false });
+        }, 0);
+      }
+    }
+  }, [initialSpotSlug, spots]);
+
   const visibleSpots = selectedFlower === '전체' ? spots : spots.filter((spot) => spot.flower === selectedFlower);
   const selectedSpot = visibleSpots.find((spot) => spot.slug === selectedSpotSlug) ?? visibleSpots[0] ?? spots[0];
-  const spotImage = selectedSpot ? resolveSpotImage(selectedSpot) : null;
 
   const handleLocationPress = async () => {
     if (locationLoading) return;
@@ -157,7 +195,13 @@ export function MapScreen() {
       setUserCameraCoords(result);
       const pool = visibleSpots.length > 0 ? visibleSpots : spots;
       const nearest = getNearbySpots(pool, result, 1)[0];
-      if (nearest) setSelectedSpotSlug(nearest.spot.slug);
+      if (nearest) {
+        setSelectedSpotSlug(nearest.spot.slug);
+        const index = pool.findIndex((s) => s.slug === nearest.spot.slug);
+        if (index !== -1) {
+          flatListRef.current?.scrollToIndex({ index, animated: true });
+        }
+      }
     } else {
       setUserCameraCoords(null);
     }
@@ -167,19 +211,20 @@ export function MapScreen() {
   const handleSelectSpot = (spotSlug: string) => {
     setUserCameraCoords(null);
     setSelectedSpotSlug(spotSlug);
+    const index = visibleSpots.findIndex((s) => s.slug === spotSlug);
+    if (index !== -1) {
+      flatListRef.current?.scrollToIndex({ index, animated: true });
+    }
   };
 
   const handleFlowerChange = (flower: string) => {
     setSelectedFlower(flower);
     setUserCameraCoords(null);
+    const newVisibleSpots = flower === '전체' ? spots : spots.filter((s) => s.flower === flower);
+    const firstSlug = newVisibleSpots[0]?.slug ?? '';
+    setSelectedSpotSlug(firstSlug);
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
   };
-
-  useEffect(() => {
-    if (!visibleSpots.some((spot) => spot.slug === selectedSpotSlug) && visibleSpots.length > 0) {
-      const randomSpot = visibleSpots[Math.floor(Math.random() * visibleSpots.length)];
-      setSelectedSpotSlug(randomSpot.slug);
-    }
-  }, [selectedSpotSlug, visibleSpots]);
 
   if (isLoading) {
     return (
@@ -195,7 +240,6 @@ export function MapScreen() {
     return (
       <ScreenShell title="지도 탐색" subtitle="등록된 명소가 없습니다.">
         <View style={{ alignItems: 'center', paddingTop: 60 }}>
-          <BloomArt size="md" tone="green" />
           <Text style={{ color: colors.textMuted, fontSize: 16, marginTop: 20 }}>
             {error ? '데이터를 불러오지 못했습니다' : '곧 새로운 명소가 등록될 예정이에요'}
           </Text>
@@ -234,74 +278,67 @@ export function MapScreen() {
                 locationLoading ? styles.floatingButtonDisabled : null,
               ]}
             >
-              <Text style={styles.floatingLocationButtonText}>
-                {locationLoading ? '...' : '📍'}
-              </Text>
+              {locationLoading ? (
+                <ActivityIndicator color={colors.textMuted} size="small" />
+              ) : (
+                <MaterialIcons color={colors.text} name="my-location" size={20} />
+              )}
             </Pressable>
           )}
-          <Pressable onPress={() => router.push(`/spot/${selectedSpot.slug}`)} style={styles.floatingAction}>
-            <Text style={styles.floatingActionText}>상세</Text>
-          </Pressable>
         </View>
       </View>
 
-      <ScrollView
+      <FlatList
+        data={flowerFilters}
         horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipsCarousel}
-        style={styles.chipsCarouselWrapper}
-      >
-        {flowerFilters.map((flower) => {
+        ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+        keyExtractor={(item) => item}
+        renderItem={({ item: flower }) => {
           const isActive = selectedFlower === flower;
 
           return (
             <Pressable
-              key={flower}
               onPress={() => handleFlowerChange(flower)}
               style={[styles.flowerChip, isActive ? styles.flowerChipActive : null]}
             >
               <Text style={[styles.flowerChipText, isActive ? styles.flowerChipTextActive : null]}>{flower}</Text>
             </Pressable>
           );
-        })}
-      </ScrollView>
+        }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chipsCarousel}
+        style={styles.chipsCarouselWrapper}
+      />
 
-      <View style={styles.summaryPanel}>
-        {spotImage ? (
-          <ImageBackground imageStyle={styles.summaryImageInner} source={spotImage} style={styles.summaryImage}>
-            <View style={styles.summaryImageShade} />
-          </ImageBackground>
-        ) : (
-          <View style={styles.summaryArt}>
-            <BloomArt size="md" tone="pink" />
-          </View>
-        )}
-        <View style={styles.summaryBody}>
-          <View style={styles.summaryBadge}>
-            <Text style={styles.summaryBadgeText}>{selectedSpot.badge}</Text>
-          </View>
-          <Text style={styles.summaryTitle}>{selectedSpot.place}</Text>
-          <Text style={styles.summaryMeta}>
-            {selectedSpot.flower} · {selectedSpot.location}
-          </Text>
-          <Text style={styles.summaryCopy}>{selectedSpot.description}</Text>
-          <View style={styles.summaryActions}>
-            <Pressable onPress={() => router.push(`/spot/${selectedSpot.slug}`)} style={styles.summaryGhostButton}>
-              <Text style={styles.summaryGhostButtonText}>상세 보기</Text>
-            </Pressable>
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: '/list',
-                  params: { flower: selectedSpot.flower },
-                })
-              }
-              style={styles.summarySolidButton}
-            >
-              <Text style={styles.summarySolidButtonText}>{selectedSpot.flower} 명소 더 보기</Text>
-            </Pressable>
-          </View>
-        </View>
+      <View style={{ paddingHorizontal: 20 }}>
+        <FlatList
+          ref={flatListRef}
+          data={visibleSpots}
+          decelerationRate="fast"
+          getItemLayout={(_data, index) => ({
+            index,
+            length: CARD_WIDTH + CARD_GAP,
+            offset: (CARD_WIDTH + CARD_GAP) * index,
+          })}
+          horizontal
+          ItemSeparatorComponent={() => <View style={{ width: CARD_GAP }} />}
+          keyExtractor={(item) => item.slug}
+          ListEmptyComponent={
+            <View style={{ alignItems: 'center', paddingVertical: 20, width: CARD_WIDTH }}>
+              <Text style={{ color: colors.textMuted }}>표시할 명소가 없습니다.</Text>
+            </View>
+          }
+          onScrollToIndexFailed={(info) => {
+            setTimeout(() => {
+              flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+            }, 100);
+          }}
+          onViewableItemsChanged={handleViewableChange}
+          renderItem={({ item }) => <SpotSummaryCard spot={item} />}
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={CARD_WIDTH + CARD_GAP}
+          viewabilityConfig={viewabilityConfig}
+        />
       </View>
     </ScreenShell>
   );
@@ -319,34 +356,19 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   floatingLocationButton: {
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 999,
     bottom: 60,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    height: 44,
+    justifyContent: 'center',
     position: 'absolute',
     right: 16,
-  },
-  floatingLocationButtonText: {
-    fontSize: 18,
+    width: 44,
   },
   chipsCarouselWrapper: {
     marginBottom: 16,
     marginHorizontal: -20,
-  },
-  floatingAction: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 999,
-    bottom: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    position: 'absolute',
-    right: 16,
-  },
-  floatingActionText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
   },
   flowerChip: {
     backgroundColor: colors.cardAlt,
@@ -369,7 +391,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   mapFrame: {
-    backgroundColor: '#E7EFE2',
+    backgroundColor: '#EEF6EC',
     borderRadius: 34,
     height: 340,
     marginBottom: 18,
@@ -377,7 +399,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   mapGlowPink: {
-    backgroundColor: '#FAD6DE',
+    backgroundColor: '#FCEAEE',
     borderRadius: 999,
     height: 150,
     opacity: 0.7,
@@ -387,7 +409,7 @@ const styles = StyleSheet.create({
     width: 150,
   },
   mapGlowYellow: {
-    backgroundColor: '#F8E8A9',
+    backgroundColor: '#FBF0C0',
     borderRadius: 999,
     bottom: -28,
     height: 120,
@@ -460,90 +482,5 @@ const styles = StyleSheet.create({
   },
   markerYellow: {
     backgroundColor: colors.warning,
-  },
-  summaryActions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 14,
-  },
-  summaryArt: {
-    alignItems: 'center',
-    backgroundColor: colors.cardRose,
-    justifyContent: 'center',
-    minHeight: 160,
-  },
-  summaryBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    borderRadius: 999,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  summaryBadgeText: {
-    color: colors.secondary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  summaryBody: {
-    padding: 18,
-  },
-  summaryCopy: {
-    color: colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 8,
-  },
-  summaryGhostButton: {
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  summaryGhostButtonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  summaryImage: {
-    height: 156,
-    width: '100%',
-  },
-  summaryImageInner: {
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-  },
-  summaryImageShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  summaryMeta: {
-    color: colors.textMuted,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  summaryPanel: {
-    backgroundColor: colors.cardRose,
-    borderColor: '#F2D4DA',
-    borderRadius: 30,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  summarySolidButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  summarySolidButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  summaryTitle: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '700',
   },
 });
