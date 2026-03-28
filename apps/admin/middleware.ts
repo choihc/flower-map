@@ -1,4 +1,3 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 const protectedPaths = ['/', '/settings'];
@@ -9,58 +8,21 @@ function isProtectedPath(pathname: string) {
   return protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
-async function isAdminUser(supabase: ReturnType<typeof createServerClient>, userId: string) {
-  try {
-    const { data } = await (supabase.from('admin_users') as any)
-      .select('user_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    return data != null;
-  } catch {
-    return false;
+export function middleware(request: NextRequest) {
+  if (!isProtectedPath(request.nextUrl.pathname)) {
+    return NextResponse.next();
   }
-}
 
-export async function middleware(request: NextRequest) {
-  try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey =
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Supabase 세션 쿠키 존재 여부만 확인 (실제 검증은 레이아웃에서 수행)
+  const hasSession = request.cookies.getAll().some(
+    (cookie) => cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token'),
+  );
 
-    if (!supabaseUrl || !supabaseKey) {
-      return redirectToLogin(request);
-    }
-
-    let response = NextResponse.next({ request });
-
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll().map(({ name, value }) => ({ name, value }));
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          response = NextResponse.next({ request });
-          for (const { name, value, options } of cookiesToSet) {
-            request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
-          }
-        },
-      },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser();
-    const isAdmin = user == null ? false : await isAdminUser(supabase, user.id);
-
-    if (!isProtectedPath(request.nextUrl.pathname) || (user != null && isAdmin)) {
-      return response;
-    }
-
-    return redirectToLogin(request);
-  } catch {
-    // 미들웨어 오류 시 로그인 페이지로 안전하게 리다이렉트
+  if (!hasSession) {
     return redirectToLogin(request);
   }
+
+  return NextResponse.next();
 }
 
 function redirectToLogin(request: NextRequest) {
