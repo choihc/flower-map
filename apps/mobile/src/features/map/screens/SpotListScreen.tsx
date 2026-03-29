@@ -9,6 +9,7 @@ import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { colors } from '../../../shared/theme/colors';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
+import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 
 function getCountdownValue(value?: string) {
   if (!value) return Number.MAX_SAFE_INTEGER;
@@ -80,14 +81,8 @@ export function SpotListScreen() {
       </View>
 
       <SectionCard title={sectionTitle}>
-        {visibleSpots.map((spot) => (
+        {visibleSpots.slice(0, 5).map((spot) => (
           <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.slug}`)} style={styles.spotRow}>
-            <View
-              style={[
-                styles.spotAccent,
-                spot.tone === 'pink' ? styles.accentPink : spot.tone === 'yellow' ? styles.accentYellow : styles.accentGreen,
-              ]}
-            />
             <View style={styles.spotContent}>
               <Text style={styles.spotTitle}>{spot.place}</Text>
               <Text style={styles.spotMeta}>
@@ -99,6 +94,25 @@ export function SpotListScreen() {
           </Pressable>
         ))}
       </SectionCard>
+
+      {visibleSpots.length >= 5 && <NativeSpotAd />}
+
+      {visibleSpots.length > 5 && (
+        <SectionCard>
+          {visibleSpots.slice(5).map((spot) => (
+            <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.slug}`)} style={styles.spotRow}>
+              <View style={styles.spotContent}>
+                <Text style={styles.spotTitle}>{spot.place}</Text>
+                <Text style={styles.spotMeta}>
+                  {spot.flower} · {spot.location}
+                </Text>
+                <Text style={styles.spotHelper}>{spot.helper}</Text>
+              </View>
+              <Text style={styles.spotAction}>보기</Text>
+            </Pressable>
+          ))}
+        </SectionCard>
+      )}
 
       <Modal animationType="slide" transparent visible={sheetOpen} onRequestClose={() => setSheetOpen(false)}>
         <Pressable style={styles.sheetBackdrop} onPress={() => setSheetOpen(false)} />
@@ -172,7 +186,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   sheetBackdrop: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
     flex: 1,
   },
   sheetHandle: {
