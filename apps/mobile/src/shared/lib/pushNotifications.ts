@@ -26,7 +26,10 @@ export async function registerPushToken(): Promise<void> {
   });
 
   const platform = Platform.OS as 'ios' | 'android';
-  await supabase
+  const { error } = await supabase
     .from('push_tokens')
     .upsert({ token, platform }, { onConflict: 'token', ignoreDuplicates: true });
+  if (error) {
+    console.error('[pushNotifications] token 저장 실패:', error.message);
+  }
 }

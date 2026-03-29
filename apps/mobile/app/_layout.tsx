@@ -8,7 +8,9 @@ import { registerPushToken } from '../src/shared/lib/pushNotifications';
 
 export default function RootLayout() {
   useEffect(() => {
-    registerPushToken();
+    registerPushToken().catch((err) => {
+      console.error('[pushNotifications] 등록 실패:', err);
+    });
   }, []);
 
   return (
