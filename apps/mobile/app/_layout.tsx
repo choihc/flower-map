@@ -1,10 +1,16 @@
+import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 
 import { AuthProvider } from '../src/shared/context/AuthContext';
 import { queryClient } from '../src/shared/lib/queryClient';
+import { registerPushToken } from '../src/shared/lib/pushNotifications';
 
 export default function RootLayout() {
+  useEffect(() => {
+    registerPushToken();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
