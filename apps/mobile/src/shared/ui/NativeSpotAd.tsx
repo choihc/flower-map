@@ -1,23 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import {
-  NativeAd,
-  NativeAdView,
-  NativeAsset,
-  NativeAssetType,
-  NativeMediaView,
-} from 'react-native-google-mobile-ads';
 
 import { getNativeAdUnitId } from '../lib/adConfig';
 import { colors } from '../theme/colors';
 import { SkeletonBox } from './SkeletonBox';
 
+// EAS Build 없이 실행 중(시뮬레이터/에뮬레이터)이면 네이티브 모듈이 없으므로 안전하게 로드
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _ads: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  _ads = require('react-native-google-mobile-ads');
+} catch {
+  // 네이티브 모듈 없음 — 광고 미표시로 폴백
+}
+
 type AdState = 'loading' | 'loaded' | 'failed';
 
 export function NativeSpotAd() {
-  const [adState, setAdState] = useState<AdState>('loading');
-  const [nativeAd, setNativeAd] = useState<InstanceType<typeof NativeAd> | null>(null);
-  const adRef = useRef<InstanceType<typeof NativeAd> | null>(null);
+  const [adState, setAdState] = useState<AdState>(() => (_ads ? 'loading' : 'failed'));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [nativeAd, setNativeAd] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adRef = useRef<any>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,7 +30,7 @@ export function NativeSpotAd() {
     async function loadAd() {
       try {
         const platform = Platform.OS as 'ios' | 'android';
-        const ad = await NativeAd.createForAdRequest(getNativeAdUnitId(platform));
+        const ad = await _ads.NativeAd.createForAdRequest(getNativeAdUnitId(platform));
         if (cancelled) {
           ad.destroy();
           return;
@@ -51,6 +56,8 @@ export function NativeSpotAd() {
   if (adState === 'loading' || !nativeAd) {
     return <SkeletonBox height={200} borderRadius={24} />;
   }
+
+  const { NativeAdView, NativeAsset, NativeAssetType, NativeMediaView } = _ads;
 
   return (
     <NativeAdView nativeAd={nativeAd} style={styles.card}>
