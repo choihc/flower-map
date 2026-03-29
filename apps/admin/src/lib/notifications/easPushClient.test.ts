@@ -95,4 +95,16 @@ describe('sendEasPushNotifications', () => {
     expect(result.successCount).toBe(1);
     expect(result.failureCount).toBe(1);
   });
+
+  it('EAS API가 HTTP 오류(5xx)를 반환하면 해당 청크를 failureCount에 반영한다', async () => {
+    const tokens = Array.from({ length: 3 }, (_, i) => `ExponentPushToken[token-${i}]`);
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(null, { status: 500 }),
+    );
+
+    const result = await sendEasPushNotifications(tokens, '제목', '내용');
+
+    expect(result.successCount).toBe(0);
+    expect(result.failureCount).toBe(3);
+  });
 });

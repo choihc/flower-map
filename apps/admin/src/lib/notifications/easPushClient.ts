@@ -45,6 +45,12 @@ export async function sendEasPushNotifications(
       body: JSON.stringify(messages),
     });
 
+    if (!res.ok) {
+      // EAS API HTTP 오류 시 해당 청크의 모든 토큰을 실패로 처리
+      failureCount += chunk.length;
+      continue;
+    }
+
     const json = (await res.json()) as { data: EasPushTicket[] };
     for (const ticket of json.data) {
       if (ticket.status === 'ok') {
