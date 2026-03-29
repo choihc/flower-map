@@ -15,6 +15,7 @@ import { SectionCard } from '../../../shared/ui/SectionCard';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
+import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { LikeButton } from '../components/LikeButton';
 import { SpotPhotoGallery } from '../components/SpotPhotoGallery';
 import { getPhotosBySpotId, photoKeys } from '../../../shared/data/photoRepository';
@@ -90,6 +91,8 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
         <DetailRow label="주차" value={spot.parking} />
         <DetailRow label="행사 상태" value={spot.eventEndsIn ? `${spot.eventEndsIn} · 종료 전 방문 추천` : '상시 방문 가능'} />
       </SectionCard>
+
+      <NativeSpotAd />
 
       <SectionCard title="소개">
         <Text style={styles.bodyText}>{spot.description}</Text>
