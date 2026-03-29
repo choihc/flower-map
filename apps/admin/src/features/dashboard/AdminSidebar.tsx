@@ -8,6 +8,7 @@ const primaryNavItems = [
   { href: '/flowers', label: '꽃 관리' },
   { href: '/spots', label: '명소 관리' },
   { href: '/spots/import', label: 'JSON 등록' },
+  { href: '/notifications', label: '알림 발송' },
   { href: '/settings', label: '설정' },
 ];
 
