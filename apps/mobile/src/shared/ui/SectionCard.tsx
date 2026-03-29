@@ -4,14 +4,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 
 type SectionCardProps = {
-  title: string;
+  title?: string;
   children?: ReactNode;
 };
 
 export function SectionCard({ title, children }: SectionCardProps) {
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>{title}</Text>
+      {title ? <Text style={styles.title}>{title}</Text> : null}
       {children}
     </View>
   );
