@@ -33,6 +33,10 @@
         "ascApiKeyPath": "./AuthKey_C3BC2HX934.p8",
         "ascApiKeyIssuerId": "ce933454-17b1-4c70-95ab-ab376c262670",
         "ascApiKeyId": "C3BC2HX934"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./nextvine-4acb4-5ef70b8794c6.json",
+        "track": "internal"
       }
     }
   }

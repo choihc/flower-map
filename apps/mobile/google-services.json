@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "785969995267",
+    "project_id": "kkoteodi",
+    "storage_bucket": "kkoteodi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:785969995267:android:60412c0852ac0023873836",
+        "android_client_info": {
+          "package_name": "com.kkoteodi.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwjw1XcAf6Iu9igHZC4sxS5ciLXg6VcGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

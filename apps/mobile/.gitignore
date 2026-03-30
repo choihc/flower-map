@@ -31,7 +31,10 @@ yarn-error.*
 .env*.local
 
 # Firebase
-google-services.json
+# google-services.json은 공개 클라이언트 설정값으로 git 추적 허용
+
+# Google Play 서비스 계정
+nextvine-4acb4-5ef70b8794c6.json
 
 # typescript
 *.tsbuildinfo
