@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const supabase = createAdminSupabaseClient();
   const { data: rows, error } = await supabase
     .from('push_tokens')
-    .select('token');
+    .select('token') as { data: { token: string }[] | null; error: unknown };
 
   if (error) {
     return NextResponse.json({ error: 'DB 조회 실패' }, { status: 500 });
