@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   Dimensions,
@@ -25,6 +25,7 @@ import {
 import type { FlowerSpot } from '../../../shared/data/types';
 import { colors } from '../../../shared/theme/colors';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
+import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import {
   type Coords,
@@ -147,6 +148,7 @@ function NativeMapUnavailableFallback() {
 }
 
 export function MapScreen() {
+  const router = useRouter();
   const { spotSlug: initialSpotSlug } = useLocalSearchParams<{ spotSlug?: string }>();
   const { data: spots = [], isLoading, error } = useQuery({
     queryKey: spotKeys.all,
@@ -286,6 +288,12 @@ export function MapScreen() {
               )}
             </Pressable>
           )}
+          <Pressable
+            onPress={() => router.push(`/spot/${selectedSpot.slug}`)}
+            style={styles.floatingDetailButton}
+          >
+            <Text style={styles.floatingDetailButtonText}>상세보기</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -354,6 +362,8 @@ export function MapScreen() {
           </View>
         )}
       </View>
+
+      <NativeSpotAd />
     </ScreenShell>
   );
 }
@@ -381,6 +391,22 @@ const styles = StyleSheet.create({
   },
   floatingButtonDisabled: {
     opacity: 0.5,
+  },
+  floatingDetailButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    bottom: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    position: 'absolute',
+    right: 16,
+  },
+  floatingDetailButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   floatingLocationButton: {
     alignItems: 'center',

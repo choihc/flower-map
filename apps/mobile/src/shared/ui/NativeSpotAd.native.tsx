@@ -51,40 +51,42 @@ export function NativeSpotAd() {
   if (adState === 'failed') return null;
 
   if (adState === 'loading' || !nativeAd) {
-    return <SkeletonBox height={200} borderRadius={24} />;
+    return <SkeletonBox height={140} borderRadius={18} />;
   }
 
   return (
     <NativeAdView nativeAd={nativeAd} style={styles.card}>
-      <View style={styles.adBadge}>
-        <Text style={styles.adBadgeText}>광고</Text>
-      </View>
-
       <NativeMediaView style={styles.media} />
 
-      <NativeAsset assetType={NativeAssetType.HEADLINE}>
-        <Text numberOfLines={2} style={styles.headline}>
-          {nativeAd.headline}
-        </Text>
-      </NativeAsset>
+      <View style={styles.content}>
+        <View style={styles.adBadge}>
+          <Text style={styles.adBadgeText}>광고</Text>
+        </View>
 
-      {nativeAd.body ? (
-        <NativeAsset assetType={NativeAssetType.BODY}>
-          <Text numberOfLines={2} style={styles.body}>
-            {nativeAd.body}
+        <NativeAsset assetType={NativeAssetType.HEADLINE}>
+          <Text numberOfLines={2} style={styles.headline}>
+            {nativeAd.headline}
           </Text>
         </NativeAsset>
-      ) : null}
 
-      <View style={styles.footer}>
-        <NativeAsset assetType={NativeAssetType.ADVERTISER}>
-          <Text style={styles.advertiser}>{nativeAd.advertiser}</Text>
-        </NativeAsset>
-        <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
-          <View style={styles.ctaButton}>
-            <Text style={styles.ctaText}>{nativeAd.callToAction}</Text>
-          </View>
-        </NativeAsset>
+        {nativeAd.body ? (
+          <NativeAsset assetType={NativeAssetType.BODY}>
+            <Text numberOfLines={2} style={styles.body}>
+              {nativeAd.body}
+            </Text>
+          </NativeAsset>
+        ) : null}
+
+        <View style={styles.footer}>
+          <NativeAsset assetType={NativeAssetType.ADVERTISER}>
+            <Text style={styles.advertiser}>{nativeAd.advertiser}</Text>
+          </NativeAsset>
+          <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
+            <View style={styles.ctaButton}>
+              <Text style={styles.ctaText}>{nativeAd.callToAction}</Text>
+            </View>
+          </NativeAsset>
+        </View>
       </View>
     </NativeAdView>
   );
@@ -119,14 +121,17 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderColor: colors.border,
-    borderRadius: 24,
+    borderRadius: 18,
     borderWidth: 1,
-    marginBottom: 22,
-    padding: 18,
+    marginBottom: 14,
+    overflow: 'hidden',
     shadowColor: '#BDAF9F',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
+  },
+  content: {
+    padding: 12,
   },
   ctaButton: {
     backgroundColor: colors.primary,
@@ -143,18 +148,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 8,
   },
   headline: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    lineHeight: 22,
-    marginTop: 10,
+    lineHeight: 20,
+    marginTop: 6,
   },
   media: {
-    borderRadius: 16,
-    height: 160,
+    height: 200,
     width: '100%',
   },
 });

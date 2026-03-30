@@ -23,13 +23,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setIsLoading(false);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    // getSession()을 별도로 호출하면 INITIAL_SESSION 이벤트와 중복되어 이중 렌더링 발생
+    // onAuthStateChange의 INITIAL_SESSION 이벤트로 초기 세션과 로딩 상태를 함께 처리
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
+      if (event === 'INITIAL_SESSION') {
+        setIsLoading(false);
+      }
     });
 
     return () => listener.subscription.unsubscribe();

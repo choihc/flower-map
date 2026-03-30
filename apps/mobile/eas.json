@@ -13,7 +13,10 @@
     },
     "development:device": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
     },
     "preview": {
       "distribution": "internal"
@@ -25,13 +28,11 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
-      },
-      "android": {
-        "serviceAccountKeyPath": "",
-        "track": "internal"
+        "appleId": "nextvine.flow@gmail.com",
+        "ascAppId": "6761335543",
+        "ascApiKeyPath": "./AuthKey_C3BC2HX934.p8",
+        "ascApiKeyIssuerId": "ce933454-17b1-4c70-95ab-ab376c262670",
+        "ascApiKeyId": "C3BC2HX934"
       }
     }
   }

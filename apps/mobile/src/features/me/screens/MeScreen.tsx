@@ -1,14 +1,17 @@
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants from 'expo-constants';
 
 import { useAuth } from '../../../shared/context/AuthContext';
-import { signInWithKakao } from '../../../shared/lib/auth';
+import { signInWithApple, signInWithKakao } from '../../../shared/lib/auth';
+import { supabase } from '../../../shared/lib/supabase';
 import { colors } from '../../../shared/theme/colors';
+import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 
 const CONTACT_EMAIL = 'nextvine.flow@gmail.com';
-const PRIVACY_POLICY_URL = 'https://kkoteodie.nextvine.app';
+const PRIVACY_POLICY_URL = 'https://kkoteodie.nextvine.app/privacy';
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
 function AppInfoSection() {
@@ -48,6 +51,16 @@ export function MeScreen() {
         <Pressable onPress={signInWithKakao} style={styles.kakaoButton}>
           <Text style={styles.kakaoButtonText}>카카오로 로그인</Text>
         </Pressable>
+        {Platform.OS === 'ios' && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={12}
+            onPress={signInWithApple}
+            style={styles.appleButton}
+          />
+        )}
+        <NativeSpotAd />
         <AppInfoSection />
       </ScreenShell>
     );
@@ -61,9 +74,36 @@ export function MeScreen() {
 
   return (
     <ScreenShell title="내 정보" subtitle={displayName}>
+      <NativeSpotAd />
       <AppInfoSection />
       <Pressable onPress={signOut} style={styles.signOutButton}>
         <Text style={styles.signOutText}>로그아웃</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => {
+          Alert.alert(
+            '계정 삭제',
+            '계정과 모든 관련 데이터가 영구적으로 삭제됩니다. 계속하시겠습니까?',
+            [
+              { text: '취소', style: 'cancel' },
+              {
+                text: '삭제',
+                style: 'destructive',
+                onPress: async () => {
+                  const { error } = await supabase.rpc('delete_user');
+                  if (error) {
+                    Alert.alert('오류', '계정 삭제 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                    return;
+                  }
+                  await signOut();
+                },
+              },
+            ],
+          );
+        }}
+        style={styles.deleteButton}
+      >
+        <Text style={styles.deleteText}>계정 삭제</Text>
       </Pressable>
     </ScreenShell>
   );
@@ -93,6 +133,10 @@ const styles = StyleSheet.create({
     color: '#191919',
     fontSize: 16,
     fontWeight: '700',
+  },
+  appleButton: {
+    height: 50,
+    marginBottom: 32,
   },
   row: {
     alignItems: 'center',
@@ -138,5 +182,15 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 15,
     fontWeight: '600',
+  },
+  deleteButton: {
+    alignItems: 'center',
+    marginTop: 12,
+    paddingVertical: 14,
+  },
+  deleteText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    textDecorationLine: 'underline',
   },
 });

@@ -28,8 +28,9 @@ export async function registerPushToken(): Promise<void> {
   const platform = Platform.OS as 'ios' | 'android';
   const { error } = await supabase
     .from('push_tokens')
-    .upsert({ token, platform }, { onConflict: 'token', ignoreDuplicates: true });
-  if (error) {
+    .insert({ token, platform });
+  // 23505: unique_violation (이미 등록된 토큰) → 정상 케이스로 무시
+  if (error && error.code !== '23505') {
     console.error('[pushNotifications] token 저장 실패:', error.message);
   }
 }

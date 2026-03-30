@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getPublishedSpots, spotKeys } from '../../../shared/data/spotRepository';
 import { getAllLikedIds } from '../../../shared/data/likeRepository';
-import { signInWithKakao } from '../../../shared/lib/auth';
+import * as AppleAuthentication from 'expo-apple-authentication';
+
+import { signInWithApple, signInWithKakao } from '../../../shared/lib/auth';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { colors } from '../../../shared/theme/colors';
+import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 
@@ -22,9 +25,11 @@ export function SavedScreen() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<'전체' | '지금 시즌' | '종료 임박'>('전체');
 
-  useEffect(() => {
-    getAllLikedIds().then((ids) => setLikedIds(new Set(ids)));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getAllLikedIds().then((ids) => setLikedIds(new Set(ids)));
+    }, []),
+  );
 
   const savedSpots = spots.filter((spot) => likedIds.has(spot.id));
 
@@ -86,8 +91,19 @@ export function SavedScreen() {
           <Pressable onPress={signInWithKakao} style={styles.loginButton}>
             <Text style={styles.loginButtonText}>카카오로 로그인하기</Text>
           </Pressable>
+          {Platform.OS === 'ios' && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={999}
+              onPress={signInWithApple}
+              style={styles.appleButton}
+            />
+          )}
         </SectionCard>
       )}
+
+      <NativeSpotAd />
     </ScreenShell>
   );
 }
@@ -135,6 +151,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
+  },
+  appleButton: {
+    alignSelf: 'flex-start',
+    height: 44,
+    marginTop: 8,
+    width: '100%',
   },
   loginCopy: {
     color: colors.textMuted,

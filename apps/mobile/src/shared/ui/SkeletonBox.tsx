@@ -19,7 +19,7 @@ export function SkeletonBox({ height, borderRadius = 16, width = '100%' }: Skele
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: '#EDE5DC',
+    backgroundColor: '#F2EDE6',
     marginBottom: 12,
   },
 });

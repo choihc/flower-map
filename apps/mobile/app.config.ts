@@ -1,7 +1,28 @@
 import type { ExpoConfig, ConfigContext } from 'expo/config';
+import { withDangerousMod } from '@expo/config-plugins';
+import type { ConfigPlugin, ExportedConfigWithProps } from '@expo/config-plugins';
+import fs from 'fs';
+import path from 'path';
 
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
+/** prebuild --clean 후에도 local.properties를 자동 생성 */
+const withLocalProperties: ConfigPlugin = (config) => {
+  return withDangerousMod(config, [
+    'android',
+    (cfg: ExportedConfigWithProps) => {
+      const androidDir = cfg.modRequest.platformProjectRoot;
+      const localPropsPath = path.join(androidDir, 'local.properties');
+      const sdkDir =
+        process.env.ANDROID_HOME ??
+        path.join(process.env.HOME ?? '', 'Library', 'Android', 'sdk');
+      if (!fs.existsSync(localPropsPath) && fs.existsSync(sdkDir)) {
+        fs.writeFileSync(localPropsPath, `sdk.dir=${sdkDir}\n`);
+      }
+      return cfg;
+    },
+  ]);
+};
+
+const config: ExpoConfig = {
   name: '꽃 어디',
   slug: 'kkoteodi',
   version: '1.0.0',
@@ -15,15 +36,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.kkoteodi.mobile',
     entitlements: {
       'com.apple.developer.applesignin': ['Default'],
+      'aps-environment': 'production',
     },
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap'],
       NSUserNotificationsUsageDescription: '주요 꽃 행사 소식을 알려드리기 위해 알림을 사용합니다.',
+      NSLocationWhenInUseUsageDescription: '내 주변 꽃 명소를 찾기 위해 위치 정보를 사용합니다.',
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
     package: 'com.kkoteodi.mobile',
-    googleServicesFile: './android/app/google-services.json',
+    googleServicesFile: './google-services.json',
     adaptiveIcon: {
       backgroundColor: '#FFF9F3',
       foregroundImage: './assets/images/kkoticon_foreground.png',
@@ -46,9 +70,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           deploymentTarget: '16.0',
         },
         android: {
-          compileSdkVersion: 35,
+          compileSdkVersion: 36,
           targetSdkVersion: 35,
           minSdkVersion: 24,
+          extraMavenRepos: ['https://repository.map.naver.com/archive/maven'],
         },
       },
     ],
@@ -68,10 +93,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'react-native-google-mobile-ads',
       {
-        android_app_id: process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ?? '',
-        ios_app_id: process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ?? '',
+        androidAppId: process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ?? '',
+        iosAppId: process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ?? '',
       },
     ],
+    withLocalProperties,
   ],
   privacyPolicyUrl: 'https://kkoteodie.nextvine.app/privacy',
   experiments: {
@@ -85,4 +111,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   owner: 'nextvines-organization',
+};
+
+export default ({ config: baseConfig }: ConfigContext): ExpoConfig => ({
+  ...baseConfig,
+  ...config,
 });

@@ -77,6 +77,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.30.0
         version: 2.30.0(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      react-native-google-mobile-ads:
+        specifier: ^16.3.1
+        version: 16.3.1(expo@55.0.8)(react@19.2.0)
       react-native-reanimated:
         specifier: 4.2.1
         version: 4.2.1(react-native-worklets@0.7.2(@babel/core@7.29.0)(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -93,6 +96,9 @@ importers:
         specifier: 0.7.2
         version: 0.7.2(@babel/core@7.29.0)(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
     devDependencies:
+      '@expo/config-plugins':
+        specifier: ~55.0.7
+        version: 55.0.7
       '@types/react':
         specifier: ~19.2.2
         version: 19.2.14
@@ -958,6 +964,9 @@ packages:
   '@expo/xcpretty@4.4.1':
     resolution: {integrity: sha512-KZNxZvnGCtiM2aYYZ6Wz0Ix5r47dAvpNLApFtZWnSoERzAdOMzVBOPysBoM0JlF6FKWZ8GPqgn6qt3dV/8Zlpg==}
     hasBin: true
+
+  '@iabtcf/core@1.5.6':
+    resolution: {integrity: sha512-u2q9thI9vLurYZdGtyJsDYOqoeLc4EgQsYGSc+UVibYII61B/ENJPZS6eFlML1F0hSoTR/goptpo5nGRDkKd2w==}
 
   '@isaacs/ttlcache@1.4.1':
     resolution: {integrity: sha512-RQgQ4uQ+pLbqXfOmieB91ejmLwvSgv9nLx6sT6sD83s7umBypgg+OIBOBbEUiJXrfpnp9j0mRhYYdzp9uqq3lA==}
@@ -2050,6 +2059,10 @@ packages:
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
     engines: {node: '>= 0.8'}
+
+  dequal@2.0.3:
+    resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
+    engines: {node: '>=6'}
 
   destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
@@ -3147,6 +3160,14 @@ packages:
       react: '*'
       react-native: '*'
 
+  react-native-google-mobile-ads@16.3.1:
+    resolution: {integrity: sha512-hFjxGYyVjCtaQHmwRMag3ZCSFgewzCDKsh7S/ppQlIUXvRlXQ7P9IAg7V4tx9L32mMSrO1SlDmL1Eken1gC/QA==}
+    peerDependencies:
+      expo: '>=47.0.0'
+    peerDependenciesMeta:
+      expo:
+        optional: true
+
   react-native-is-edge-to-edge@1.2.1:
     resolution: {integrity: sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==}
     peerDependencies:
@@ -3600,6 +3621,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  use-deep-compare-effect@1.8.1:
+    resolution: {integrity: sha512-kbeNVZ9Zkc0RFGpfMN3MNfaKNvcLNyxOAAd9O4CBZ+kCBXXscn9s/4I+8ytUER4RDpEYs5+O6Rs4PqiZ+rHr5Q==}
+    engines: {node: '>=10', npm: '>=6'}
+    peerDependencies:
+      react: '>=16.13'
 
   use-latest-callback@0.2.6:
     resolution: {integrity: sha512-FvRG9i1HSo0wagmX63Vrm8SnlUU3LMM3WyZkQ76RnslpBrX694AdG4A0zQBx2B3ZifFA0yv/BaEHGBnEax5rZg==}
@@ -4896,6 +4923,8 @@ snapshots:
       chalk: 4.1.2
       js-yaml: 4.1.1
 
+  '@iabtcf/core@1.5.6': {}
+
   '@isaacs/ttlcache@1.4.1': {}
 
   '@istanbuljs/load-nyc-config@1.1.0':
@@ -6128,6 +6157,8 @@ snapshots:
   define-lazy-prop@2.0.0: {}
 
   depd@2.0.0: {}
+
+  dequal@2.0.3: {}
 
   destroy@1.2.0: {}
 
@@ -7440,6 +7471,15 @@ snapshots:
       react: 19.2.0
       react-native: 0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0)
 
+  react-native-google-mobile-ads@16.3.1(expo@55.0.8)(react@19.2.0):
+    dependencies:
+      '@iabtcf/core': 1.5.6
+      use-deep-compare-effect: 1.8.1(react@19.2.0)
+    optionalDependencies:
+      expo: 55.0.8(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.6)(expo-router@55.0.7)(react-dom@19.2.0(react@19.2.0))(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+    transitivePeerDependencies:
+      - react
+
   react-native-is-edge-to-edge@1.2.1(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
     dependencies:
       react: 19.2.0
@@ -7905,6 +7945,12 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.14
+
+  use-deep-compare-effect@1.8.1(react@19.2.0):
+    dependencies:
+      '@babel/runtime': 7.29.2
+      dequal: 2.0.3
+      react: 19.2.0
 
   use-latest-callback@0.2.6(react@19.2.0):
     dependencies:

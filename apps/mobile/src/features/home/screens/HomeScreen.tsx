@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { AppState, type AppStateStatus, ImageBackground, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppState, type AppStateStatus, Dimensions, ImageBackground, Linking, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -20,6 +20,7 @@ import { colors } from '../../../shared/theme/colors';
 import { BloomArt } from '../../../shared/ui/BloomArt';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
+import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 
 export function HomeScreen() {
@@ -36,6 +37,23 @@ export function HomeScreen() {
   type LocationState = 'idle' | 'loading' | 'granted' | 'denied';
   const [locationState, setLocationState] = useState<LocationState>('idle');
   const [userCoords, setUserCoords] = useState<Coords | null>(null);
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+
+  // 데이터 로드 시 한 번만 셔플 (위치 없을 때 랜덤 노출용)
+  const shuffledSpots = useMemo(
+    () => [...featuredSpots].sort(() => Math.random() - 0.5),
+    [featuredSpots],
+  );
+
+  const screenWidth = Dimensions.get('window').width;
+
+  const onHeroScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+      setActiveHeroIndex(index);
+    },
+    [screenWidth],
+  );
 
   const locationStateRef = useRef<LocationState>('idle');
   useEffect(() => {
@@ -84,12 +102,31 @@ export function HomeScreen() {
 
   const selectedSpot =
     featuredSpots.find((spot) => spot.flower === selectedFlower) ?? featuredSpots[0];
-  const orderedSpots = [
-    selectedSpot,
-    ...featuredSpots.filter((spot) => spot.id !== selectedSpot.id),
-  ];
+  const orderedSpots = selectedFlower
+    ? [
+        ...featuredSpots.filter((spot) => spot.flower === selectedFlower),
+        ...featuredSpots.filter((spot) => spot.flower !== selectedFlower),
+      ]
+    : featuredSpots;
+
+  const heroSpots = orderedSpots.slice(0, 5);
 
   const nearbySpots = userCoords ? getNearbySpots(featuredSpots, userCoords) : [];
+
+  // 지금 보기 좋은 명소: 위치 있으면 거리순, 없으면 랜덤 (선택 꽃 우선)
+  const sectionSpots = (() => {
+    if (userCoords) {
+      const byDistance = getNearbySpots(featuredSpots, userCoords, featuredSpots.length).map(({ spot }) => spot);
+      return [
+        ...byDistance.filter((s) => s.flower === selectedFlower),
+        ...byDistance.filter((s) => s.flower !== selectedFlower),
+      ].slice(0, 5);
+    }
+    return [
+      ...shuffledSpots.filter((s) => s.flower === selectedFlower),
+      ...shuffledSpots.filter((s) => s.flower !== selectedFlower),
+    ].slice(0, 5);
+  })();
 
   const handleLocationPress = async () => {
     if (locationState === 'loading') return;
@@ -113,17 +150,42 @@ export function HomeScreen() {
 
   return (
     <ScreenShell title="꽃 어디" titleColor="#C4778A">
-      <SpotHeroCard
-        badge={selectedSpot.badge}
-        description={selectedSpot.description}
-        imageSource={resolveSpotImage(selectedSpot) ?? undefined}
-        infoPills={[selectedSpot.bloomStatus, selectedSpot.eventEndsIn ?? '상시 운영']}
-        metaRight={`${selectedSpot.flower} · ${selectedSpot.location}`}
-        title={selectedSpot.place}
-        tone={selectedSpot.tone}
-        primaryButton={{ label: '상세 보기', onPress: () => router.push(`/spot/${selectedSpot.slug}`) }}
-        secondaryButton={{ label: '지도에서 보기', onPress: () => router.push('/map') }}
-      />
+      <View style={styles.heroCarouselWrapper}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          onMomentumScrollEnd={onHeroScroll}
+          style={styles.heroCarousel}
+        >
+          {heroSpots.map((spot) => (
+            <View key={spot.id} style={{ width: screenWidth, paddingHorizontal: 20 }}>
+              <SpotHeroCard
+                badge={spot.badge}
+                description={spot.description}
+                imageSource={resolveSpotImage(spot) ?? undefined}
+                infoPills={[spot.bloomStatus, spot.eventEndsIn ?? '상시 운영']}
+                metaRight={`${spot.flower} · ${spot.location}`}
+                title={spot.place}
+                tone={spot.tone}
+                secondaryButton={{ label: '상세 보기', onPress: () => router.push(`/spot/${spot.slug}`) }}
+                primaryButton={{ label: '위치보기', onPress: () => router.push({ pathname: '/map', params: { spotSlug: spot.slug } }) }}
+              />
+            </View>
+          ))}
+        </ScrollView>
+        {heroSpots.length > 1 && (
+          <View style={styles.heroDots}>
+            {heroSpots.map((spot, i) => (
+              <View
+                key={spot.id}
+                style={[styles.heroDot, i === activeHeroIndex && styles.heroDotActive]}
+              />
+            ))}
+          </View>
+        )}
+      </View>
 
       {locationState === 'granted' && nearbySpots.length > 0 ? (
         <>
@@ -179,7 +241,7 @@ export function HomeScreen() {
         contentContainerStyle={styles.flowerCarousel}
         style={styles.flowerCarouselWrapper}
       >
-        {flowerLabels.map((item, index) => {
+        {flowerLabels.map((item) => {
           const isActive = item === selectedFlower;
 
           return (
@@ -188,38 +250,36 @@ export function HomeScreen() {
               onPress={() => setSelectedFlower(item)}
               style={[
                 styles.flowerTile,
-                index === 0
-                  ? styles.flowerTilePink
-                  : index === 1
-                    ? styles.flowerTileRose
-                    : index === 2
-                      ? styles.flowerTilePeach
-                      : styles.flowerTileYellow,
                 isActive ? styles.flowerTileActive : null,
               ]}
             >
-              <Text style={styles.flowerTileText}>{item}</Text>
+              <Text style={[styles.flowerTileText, isActive ? styles.flowerTileTextActive : null]}>{item}</Text>
             </Pressable>
           );
         })}
       </ScrollView>
 
-      <SectionHeading meta="선택한 꽃이 먼저 보여요" title="지금 보기 좋은 명소" />
+      <SectionHeading
+        meta={userCoords ? '가까운 순서로 보여요' : '랜덤 순서로 보여요'}
+        title="지금 보기 좋은 명소"
+      />
       <View style={styles.spotStack}>
-        {orderedSpots.slice(0, 5).map((pick) => (
-          <SpotPreview
-            key={pick.id}
-            badge={pick.badge}
-            flower={pick.flower}
-            helper={pick.helper}
-            imageSource={resolveSpotImage(pick) ?? undefined}
-            isFeatured={pick.id === selectedSpot.id}
-            place={pick.place}
-            tone={pick.tone}
-            onDirectionsPress={() => router.push('/map')}
-            onPress={() => router.push(`/spot/${pick.slug}`)}
-            onViewMapPress={() => router.push(`/spot/${pick.slug}`)}
-          />
+        {sectionSpots.map((pick, index) => (
+          <View key={pick.id}>
+            <SpotPreview
+              badge={pick.badge}
+              flower={pick.flower}
+              helper={pick.helper}
+              imageSource={resolveSpotImage(pick) ?? undefined}
+              isFeatured={pick.id === selectedSpot.id}
+              place={pick.place}
+              tone={pick.tone}
+              onDirectionsPress={() => router.push({ pathname: '/map', params: { spotSlug: pick.slug } })}
+              onPress={() => router.push(`/spot/${pick.slug}`)}
+              onViewMapPress={() => router.push(`/spot/${pick.slug}`)}
+            />
+            {(index + 1) % 3 === 0 && index < sectionSpots.length - 1 && <NativeSpotAd />}
+          </View>
         ))}
       </View>
       {orderedSpots.length > 5 && (
@@ -252,6 +312,8 @@ export function HomeScreen() {
         </View>
       </View>
 
+      <NativeSpotAd />
+
       <SectionHeading meta="주말 나들이 큐레이션" title="지역별 추천" />
       <View style={styles.regionGrid}>
         {regionSummaries.map((item, index) => (
@@ -260,9 +322,6 @@ export function HomeScreen() {
             onPress={() => router.push({ pathname: '/list', params: { region: item } })}
             style={[styles.regionTile, index % 2 === 0 ? styles.regionTileTall : null]}
           >
-            <View style={styles.regionArt}>
-              <BloomArt size="sm" tone={index === 3 ? 'yellow' : index === 1 ? 'pink' : 'green'} />
-            </View>
             <Text style={styles.regionTitle}>{item}</Text>
             <Text style={styles.regionHelper}>지금 인기 명소 보기</Text>
           </Pressable>
@@ -349,7 +408,7 @@ function SpotPreview({
             <Text style={styles.secondaryButtonText}>상세 보기</Text>
           </Pressable>
           <Pressable onPress={onDirectionsPress} style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>길찾기</Text>
+            <Text style={styles.primaryButtonText}>위치보기</Text>
           </Pressable>
         </View>
       </View>
@@ -358,6 +417,28 @@ function SpotPreview({
 }
 
 const styles = StyleSheet.create({
+  heroCarouselWrapper: {
+    marginHorizontal: -20,
+    marginBottom: 2,
+  },
+  heroCarousel: {},
+  heroDots: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  heroDot: {
+    backgroundColor: colors.border,
+    borderRadius: 999,
+    height: 7,
+    width: 7,
+  },
+  heroDotActive: {
+    backgroundColor: colors.primary,
+    width: 18,
+  },
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.72)',
@@ -384,7 +465,7 @@ const styles = StyleSheet.create({
   },
   eventAction: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.primaryDeep,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     marginTop: 16,
     paddingHorizontal: 14,
@@ -404,7 +485,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   eventBadgeText: {
-    color: colors.primaryDeep,
+    color: colors.primary,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -463,44 +544,31 @@ const styles = StyleSheet.create({
   },
   flowerTile: {
     alignItems: 'center',
+    backgroundColor: colors.cardAlt,
     borderColor: 'transparent',
-    borderRadius: 20,
+    borderRadius: 999,
     borderWidth: 1.5,
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
   flowerTileActive: {
-    borderColor: colors.primaryDeep,
-    shadowColor: colors.primaryDeep,
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    transform: [{ translateY: -1 }],
-  },
-  flowerTilePeach: {
-    backgroundColor: '#FBE9DE',
-  },
-  flowerTilePink: {
-    backgroundColor: colors.cardRose,
-  },
-  flowerTileRose: {
-    backgroundColor: '#F4E1E8',
+    backgroundColor: colors.primary,
+    borderColor: 'transparent',
   },
   flowerTileText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
+    color: colors.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
   },
-  flowerTileYellow: {
-    backgroundColor: colors.cardSun,
+  flowerTileTextActive: {
+    color: '#FFFFFF',
   },
   primaryButton: {
-    backgroundColor: colors.primaryDeep,
+    alignItems: 'center',
+    backgroundColor: colors.primary,
     borderRadius: 999,
+    justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
@@ -532,9 +600,7 @@ const styles = StyleSheet.create({
     padding: 16,
     width: '48%',
   },
-  regionTileTall: {
-    minHeight: 144,
-  },
+  regionTileTall: {},
   regionTitle: {
     color: colors.text,
     fontSize: 18,
@@ -584,7 +650,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   spotCardFeatured: {
-    shadowColor: colors.primaryDeep,
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 12,

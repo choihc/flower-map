@@ -44,9 +44,6 @@ export function SpotHeroCard({
       </View>
 
       <View style={[styles.body, hasImage && styles.bodyOverlay]}>
-        <Text style={[styles.title, !hasImage && styles.titleDark]}>{title}</Text>
-        <Text style={[styles.description, !hasImage && styles.descriptionDark]}>{description}</Text>
-
         {infoPills && infoPills.length > 0 && (
           <View style={styles.pillsRow}>
             {infoPills.map((pill) => (
@@ -57,12 +54,15 @@ export function SpotHeroCard({
           </View>
         )}
 
+        <Text style={[styles.title, !hasImage && styles.titleDark]}>{title}</Text>
+        <Text style={[styles.description, !hasImage && styles.descriptionDark]}>{description}</Text>
+
         <View style={styles.actions}>
-          <Pressable onPress={primaryButton.onPress} style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>{primaryButton.label}</Text>
-          </Pressable>
           <Pressable onPress={secondaryButton.onPress} style={[styles.secondaryButton, !hasImage && styles.secondaryButtonDark]}>
             <Text style={styles.secondaryButtonText}>{secondaryButton.label}</Text>
+          </Pressable>
+          <Pressable onPress={primaryButton.onPress} style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>{primaryButton.label}</Text>
           </Pressable>
         </View>
       </View>
@@ -96,21 +96,21 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   badgePill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
+    backgroundColor: colors.primary,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   badgePillEnded: {
-    backgroundColor: 'rgba(200, 190, 185, 0.72)',
+    backgroundColor: '#EDE8E4',
   },
   badgeText: {
-    color: colors.text,
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
   },
   badgeTextEnded: {
-    color: '#7A6058',
+    color: '#8C7060',
   },
   body: {
     justifyContent: 'flex-end',
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 34,
-    marginBottom: 22,
+    marginBottom: 12,
     minHeight: 390,
     overflow: 'hidden',
     padding: 22,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.softPink,
   },
   cardYellow: {
-    backgroundColor: '#FFF2BF',
+    backgroundColor: '#FFF8DC',
   },
   description: {
     color: '#FFF9F3',
@@ -172,18 +172,18 @@ const styles = StyleSheet.create({
     borderRadius: 34,
   },
   infoPill: {
-    backgroundColor: 'rgba(255,255,255,0.82)',
+    backgroundColor: colors.softYellow,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   infoPillOnImage: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderColor: 'rgba(255,255,255,0.35)',
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderColor: 'transparent',
+    borderWidth: 0,
   },
   infoPillTextOnImage: {
-    color: '#FFFFFF',
+    color: colors.secondaryDeep,
   },
   infoPillText: {
     color: colors.text,
@@ -191,43 +191,45 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   metaRight: {
-    color: '#FFF4F6',
+    color: '#FFFFFF',
     flexShrink: 1,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     marginLeft: 12,
     textAlign: 'right',
   },
   metaRightDark: {
-    color: colors.textMuted,
+    color: colors.primaryDeep,
   },
   pillsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 14,
+    marginBottom: 8,
   },
   primaryButton: {
-    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
     borderRadius: 999,
+    justifyContent: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 11,
+    paddingVertical: 10,
   },
   primaryButtonText: {
-    color: colors.primaryDeep,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
   },
   secondaryButton: {
-    backgroundColor: 'rgba(255,255,255,0.88)',
+    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
     borderRadius: 999,
+    borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 11,
+    paddingVertical: 10,
   },
   secondaryButtonDark: {
     backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderWidth: 1,
   },
   secondaryButtonText: {
     color: colors.text,
@@ -244,7 +246,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.6,
     lineHeight: 40,
-    marginTop: 16,
+    marginTop: 4,
     maxWidth: 280,
   },
   titleDark: {
