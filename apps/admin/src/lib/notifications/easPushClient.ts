@@ -46,7 +46,8 @@ export async function sendEasPushNotifications(
     });
 
     if (!res.ok) {
-      // EAS API HTTP 오류 시 해당 청크의 모든 토큰을 실패로 처리
+      const errText = await res.text();
+      console.error('[easPush] HTTP 오류:', res.status, errText);
       failureCount += chunk.length;
       continue;
     }
@@ -56,6 +57,7 @@ export async function sendEasPushNotifications(
       if (ticket.status === 'ok') {
         successCount++;
       } else {
+        console.error('[easPush] 티켓 오류:', ticket.message);
         failureCount++;
       }
     }

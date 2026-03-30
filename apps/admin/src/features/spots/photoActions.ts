@@ -17,12 +17,23 @@ export async function addSpotPhotoAction(
 ): Promise<void> {
   const supabase = await createServerSupabaseClient();
   const client = supabase as unknown as SupabaseClient<Database>;
-  await createSpotPhoto(client, {
-    spot_id: spotId,
-    url: data.url,
-    sort_order: data.sort_order,
-    caption: data.caption,
-  });
+
+  const existing = await listSpotPhotos(client, spotId);
+  const duplicate = existing.find((p) => p.url === data.url);
+
+  if (duplicate) {
+    await (client.from('spot_photos') as any)
+      .update({ sort_order: data.sort_order, caption: data.caption })
+      .eq('id', duplicate.id);
+  } else {
+    await createSpotPhoto(client, {
+      spot_id: spotId,
+      url: data.url,
+      sort_order: data.sort_order,
+      caption: data.caption,
+    });
+  }
+
   revalidatePath(`/spots/${spotId}`);
 }
 

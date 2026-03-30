@@ -82,7 +82,44 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">5. 이용자의 권리</h2>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">5. 계정 삭제 방법</h2>
+            <p className="mb-4">이용자는 언제든지 계정 및 관련 데이터 삭제를 요청할 수 있습니다.</p>
+            <div className="bg-[#FFF4F6] border border-rose-100 rounded-2xl p-5 space-y-3 text-sm">
+              <div>
+                <p className="font-semibold text-[#1A1A1A] mb-1">방법 1. 앱 내 직접 삭제</p>
+                <ol className="list-decimal list-inside space-y-1 text-gray-500 ml-1">
+                  <li>앱 실행 후 하단 탭의 <span className="font-medium text-[#1A1A1A]">내 정보</span> 선택</li>
+                  <li>로그인 후 하단의 <span className="font-medium text-[#1A1A1A]">계정 삭제</span> 버튼 탭</li>
+                  <li>확인 팝업에서 <span className="font-medium text-[#1A1A1A]">삭제</span> 선택</li>
+                </ol>
+              </div>
+              <div className="border-t border-rose-100 pt-3">
+                <p className="font-semibold text-[#1A1A1A] mb-1">방법 2. 이메일 요청</p>
+                <p className="text-gray-500">
+                  <span className="font-medium text-[#1A1A1A]">nextvine.flow@gmail.com</span>으로
+                  &quot;계정 삭제 요청&quot; 제목으로 이메일 발송 시 7일 이내 처리합니다.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden text-sm">
+              <div className="px-5 py-3 bg-gray-100 font-semibold text-gray-500">계정 삭제 시 처리 내역</div>
+              {[
+                ['카카오/Apple 계정 연동 정보', '즉시 삭제'],
+                ['저장한 명소 목록', '즉시 삭제'],
+                ['서비스 이용 기록', '1년 후 삭제 (통신비밀보호법)'],
+                ['전자상거래 관련 기록', '5년 후 삭제 (전자상거래법)'],
+              ].map(([item, action]) => (
+                <div key={item} className="grid grid-cols-2 px-5 py-3 border-t border-gray-100">
+                  <span className="text-gray-700">{item}</span>
+                  <span className="text-gray-500">{action}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">7. 이용자의 권리</h2>
             <p className="mb-3">이용자는 언제든지 아래 권리를 행사할 수 있습니다.</p>
             <ul className="space-y-2">
               {[
@@ -103,7 +140,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">6. 개인정보 보호책임자</h2>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">8. 개인정보 보호책임자</h2>
             <div className="bg-[#FFF4F6] border border-rose-100 rounded-2xl p-5 text-sm space-y-1">
               <p><span className="font-semibold text-[#1A1A1A]">책임자</span> <span className="text-gray-500 ml-2">넥스트바인 개인정보 담당</span></p>
               <p><span className="font-semibold text-[#1A1A1A]">이메일</span> <span className="text-gray-500 ml-2">nextvine.flow@gmail.com</span></p>
@@ -111,7 +148,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">7. 방침 변경 안내</h2>
+            <h2 className="text-lg font-bold text-[#1A1A1A] mb-3">9. 방침 변경 안내</h2>
             <p>
               본 방침은 법령 또는 서비스 정책에 따라 변경될 수 있으며,
               변경 시 앱 내 공지 또는 본 페이지를 통해 사전 안내합니다.

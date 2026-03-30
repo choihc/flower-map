@@ -370,10 +370,46 @@ function SpotPhotoManager({
 }) {
   const [photos, setPhotos] = React.useState<SpotPhotoRow[]>(initialPhotos);
   const [url, setUrl] = React.useState('');
-  const [sortOrder, setSortOrder] = React.useState(0);
+  const [sortOrder, setSortOrder] = React.useState(initialPhotos.length);
   const [caption, setCaption] = React.useState('');
   const [isPending, startTransition] = useTransition();
+  const [uploading, setUploading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const busy = isPending || uploading;
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setErrorMsg(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (!res.ok) {
+        setErrorMsg('업로드에 실패했습니다. 다시 시도해 주세요.');
+        return;
+      }
+
+      const result = await res.json();
+      if (!result.success) {
+        setErrorMsg(result.error.message);
+        return;
+      }
+
+      setUrl(result.data.url);
+    } catch {
+      setErrorMsg('네트워크 오류가 발생했습니다. 연결을 확인해 주세요.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
 
   function handleAdd() {
     if (!url.trim()) return;
@@ -387,9 +423,9 @@ function SpotPhotoManager({
         });
         setUrl('');
         setCaption('');
-        setSortOrder(photos.length);
         const updated = await listSpotPhotosAction(spotId);
         setPhotos(updated);
+        setSortOrder(updated.length);
       } catch (e) {
         setErrorMsg(e instanceof Error ? e.message : '사진 추가 중 오류가 발생했습니다.');
       }
@@ -409,7 +445,7 @@ function SpotPhotoManager({
       <Separator />
       <FormSection
         title="사진 관리"
-        description="명소 갤러리에 표시할 외부 URL 사진을 관리합니다."
+        description="이미지를 업로드하거나 외부 URL을 입력하여 갤러리 사진을 관리합니다."
       >
         {photos.length > 0 && (
           <div className="space-y-2 mb-4">
@@ -433,7 +469,7 @@ function SpotPhotoManager({
                 <Button
                   type="button"
                   onClick={() => handleDelete(photo.id)}
-                  disabled={isPending}
+                  disabled={busy}
                 >
                   삭제
                 </Button>
@@ -443,13 +479,47 @@ function SpotPhotoManager({
         )}
 
         <div className="grid gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+
           <div className="space-y-1">
-            <label className="text-sm font-medium text-foreground">URL</label>
+            <label className="text-sm font-medium text-foreground">이미지 업로드</label>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={busy}
+              className="flex w-full items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 py-6 text-sm font-medium text-muted-foreground hover:bg-muted/60 disabled:opacity-50"
+            >
+              {uploading ? '업로드 중...' : '파일 선택하여 업로드'}
+            </button>
+          </div>
+
+          {url && (
+            <div className="relative overflow-hidden rounded-xl border border-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="업로드 미리보기" className="h-32 w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setUrl('')}
+                className="absolute top-2 right-2 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-foreground shadow"
+              >
+                제거
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground">또는 URL 직접 입력</label>
             <Input
               placeholder="https://example.com/photo.jpg"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              disabled={isPending}
+              disabled={busy}
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -459,7 +529,7 @@ function SpotPhotoManager({
                 type="number"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(Number(e.target.value))}
-                disabled={isPending}
+                disabled={busy}
               />
             </div>
             <div className="space-y-1">
@@ -468,7 +538,7 @@ function SpotPhotoManager({
                 placeholder="사진 설명"
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                disabled={isPending}
+                disabled={busy}
               />
             </div>
           </div>
@@ -479,7 +549,7 @@ function SpotPhotoManager({
             <Button
               type="button"
               onClick={handleAdd}
-              disabled={isPending || !url.trim()}
+              disabled={busy || !url.trim()}
             >
               {isPending ? '처리 중...' : '사진 추가'}
             </Button>
