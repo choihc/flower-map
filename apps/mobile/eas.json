@@ -19,7 +19,11 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "environment": "production",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "autoIncrement": true
@@ -36,7 +40,7 @@
       },
       "android": {
         "serviceAccountKeyPath": "./nextvine-4acb4-5ef70b8794c6.json",
-        "track": "internal"
+        "track": "production"
       }
     }
   }

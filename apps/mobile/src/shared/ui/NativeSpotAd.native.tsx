@@ -123,7 +123,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
-    marginBottom: 14,
     overflow: 'hidden',
     shadowColor: '#BDAF9F',
     shadowOffset: { width: 0, height: 12 },
