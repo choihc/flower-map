@@ -12,6 +12,7 @@ import { signInWithApple, signInWithKakao } from '../../../shared/lib/auth';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { colors } from '../../../shared/theme/colors';
 import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
+import { SuggestSpotSheet } from '../components/SuggestSpotSheet';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SectionCard } from '../../../shared/ui/SectionCard';
 
@@ -103,6 +104,7 @@ export function SavedScreen() {
         </SectionCard>
       )}
 
+      <SuggestSpotSheet />
       <NativeSpotAd />
     </ScreenShell>
   );
