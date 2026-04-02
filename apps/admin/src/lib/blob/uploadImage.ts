@@ -40,7 +40,7 @@ export function invalidUploadRequest(message: string): UploadImageResult {
 
 export async function uploadImage(file: File): Promise<UploadImageResult> {
   try {
-    const blob = await put(file.name, file, { access: 'public' });
+    const blob = await put(file.name, file, { access: 'public', addRandomSuffix: false });
     return {
       success: true,
       data: {
