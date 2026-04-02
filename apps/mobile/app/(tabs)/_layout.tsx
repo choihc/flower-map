@@ -50,6 +50,21 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="search"
+        options={{
+          title: '검색',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconFrame, focused ? styles.iconFrameActive : null]}>
+              <Ionicons
+                color={focused ? colors.primary : color}
+                name={focused ? 'search' : 'search-outline'}
+                size={20}
+              />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="saved"
         options={{
           title: '저장',
