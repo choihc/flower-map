@@ -32,7 +32,7 @@ export function HomeScreen() {
   if (error) console.error('[HomeScreen] spots query error:', error);
   const flowerLabels = deriveFlowerLabels(featuredSpots);
   const regionSummaries = deriveRegionSummaries(featuredSpots);
-  const [selectedFlower, setSelectedFlower] = useState<string | undefined>(undefined);
+  const [selectedFlower, setSelectedFlower] = useState<string>('전체');
 
   type LocationState = 'idle' | 'loading' | 'granted' | 'denied';
   const [locationState, setLocationState] = useState<LocationState>('idle');
@@ -69,12 +69,6 @@ export function HomeScreen() {
     return () => sub.remove();
   }, []);
 
-  useEffect(() => {
-    if (flowerLabels.length > 0 && selectedFlower === undefined) {
-      setSelectedFlower(flowerLabels[Math.floor(Math.random() * flowerLabels.length)]);
-    }
-  }, [flowerLabels, selectedFlower]);
-
   if (isLoading) {
     return (
       <ScreenShell title="꽃 어디">
@@ -101,30 +95,39 @@ export function HomeScreen() {
   }
 
   const selectedSpot =
-    featuredSpots.find((spot) => spot.flower === selectedFlower) ?? featuredSpots[0];
-  const orderedSpots = selectedFlower
-    ? [
-        ...featuredSpots.filter((spot) => spot.flower === selectedFlower),
-        ...featuredSpots.filter((spot) => spot.flower !== selectedFlower),
-      ]
-    : featuredSpots;
+    selectedFlower === '전체'
+      ? featuredSpots[0]
+      : (featuredSpots.find((spot) => spot.flower === selectedFlower) ?? featuredSpots[0]);
+  const orderedSpots =
+    selectedFlower === '전체'
+      ? featuredSpots
+      : [
+          ...featuredSpots.filter((spot) => spot.flower === selectedFlower),
+          ...featuredSpots.filter((spot) => spot.flower !== selectedFlower),
+        ];
 
-  const heroSpots = orderedSpots.slice(0, 5);
+  // 히어로 영역: 꽃 선택과 무관하게 오늘 개화 중인 명소 5곳 랜덤 노출
+  const heroSpots = shuffledSpots.filter((s) => s.bloomStatus !== '개화 종료').slice(0, 5);
 
   const nearbySpots = userCoords ? getNearbySpots(featuredSpots, userCoords) : [];
 
-  // 지금 보기 좋은 명소: 위치 있으면 거리순, 없으면 랜덤 (선택 꽃 우선)
+  // 지금 보기 좋은 명소: 위치 있으면 거리순, 없으면 랜덤 (선택 꽃 우선, 개화 종료 제외)
   const sectionSpots = (() => {
     if (userCoords) {
-      const byDistance = getNearbySpots(featuredSpots, userCoords, featuredSpots.length).map(({ spot }) => spot);
+      const byDistance = getNearbySpots(featuredSpots, userCoords, featuredSpots.length)
+        .map(({ spot }) => spot)
+        .filter((s) => s.bloomStatus !== '개화 종료');
+      if (selectedFlower === '전체') return byDistance.slice(0, 5);
       return [
         ...byDistance.filter((s) => s.flower === selectedFlower),
         ...byDistance.filter((s) => s.flower !== selectedFlower),
       ].slice(0, 5);
     }
+    const activeSpots = shuffledSpots.filter((s) => s.bloomStatus !== '개화 종료');
+    if (selectedFlower === '전체') return activeSpots.slice(0, 5);
     return [
-      ...shuffledSpots.filter((s) => s.flower === selectedFlower),
-      ...shuffledSpots.filter((s) => s.flower !== selectedFlower),
+      ...activeSpots.filter((s) => s.flower === selectedFlower),
+      ...activeSpots.filter((s) => s.flower !== selectedFlower),
     ].slice(0, 5);
   })();
 
@@ -234,14 +237,14 @@ export function HomeScreen() {
         </Pressable>
       )}
 
-      <SectionHeading meta="선택한 꽃에 맞춰 상단 추천이 바뀌어요" title="꽃 종류 선택" />
+      <SectionHeading title="꽃 종류 선택" />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.flowerCarousel}
         style={styles.flowerCarouselWrapper}
       >
-        {flowerLabels.map((item) => {
+        {['전체', ...flowerLabels].map((item) => {
           const isActive = item === selectedFlower;
 
           return (
@@ -340,11 +343,11 @@ function getCountdownValue(value?: string) {
   return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
 }
 
-function SectionHeading({ meta, title }: { meta: string; title: string }) {
+function SectionHeading({ meta, title }: { meta?: string; title: string }) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <Text style={styles.sectionMeta}>{meta}</Text>
+      {meta && <Text style={styles.sectionMeta}>{meta}</Text>}
     </View>
   );
 }
