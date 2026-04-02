@@ -16,9 +16,14 @@ export default defineConfig({
         './src/__mocks__/react-native-google-mobile-ads.ts',
         import.meta.url,
       ).pathname,
+      'react-native-safe-area-context': new URL(
+        './src/__mocks__/react-native-safe-area-context.ts',
+        import.meta.url,
+      ).pathname,
     },
     environmentMatchGlobs: [
       ['src/shared/ui/**/*.test.tsx', 'jsdom'],
+      ['src/features/**/*.test.tsx', 'jsdom'],
     ],
   },
 });

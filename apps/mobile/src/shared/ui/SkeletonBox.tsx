@@ -4,11 +4,13 @@ type SkeletonBoxProps = {
   height: number;
   borderRadius?: number;
   width?: string | number;
+  testID?: string;
 };
 
-export function SkeletonBox({ height, borderRadius = 16, width = '100%' }: SkeletonBoxProps) {
+export function SkeletonBox({ height, borderRadius = 16, width = '100%', testID }: SkeletonBoxProps) {
   return (
     <View
+      testID={testID}
       style={[
         styles.base,
         { height, borderRadius, width: width as any },

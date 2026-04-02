@@ -8,6 +8,8 @@ type RenderResult = {
   queryByText: (text: string) => HTMLElement | null;
   getByTestId: (testId: string) => HTMLElement;
   queryByTestId: (testId: string) => HTMLElement | null;
+  getAllByTestId: (testId: string) => HTMLElement[];
+  getByPlaceholderText: (placeholder: string) => HTMLElement;
   unmount: () => void;
   container: HTMLElement;
 };
@@ -73,11 +75,29 @@ export function render(ui: React.ReactElement): RenderResult {
     return (container.querySelector(`[data-testid="${testId}"]`) as HTMLElement) ?? null;
   }
 
+  function getAllByTestId(testId: string): HTMLElement[] {
+    const els = Array.from(container.querySelectorAll(`[data-testid="${testId}"]`)) as HTMLElement[];
+    if (els.length === 0) {
+      throw new Error(`Unable to find any element with testId: "${testId}"`);
+    }
+    return els;
+  }
+
+  function getByPlaceholderText(placeholder: string): HTMLElement {
+    const el = container.querySelector(`[placeholder="${placeholder}"]`);
+    if (!el) {
+      throw new Error(`Unable to find element with placeholder: "${placeholder}"`);
+    }
+    return el as HTMLElement;
+  }
+
   return {
     getByText,
     queryByText,
     getByTestId,
     queryByTestId,
+    getAllByTestId,
+    getByPlaceholderText,
     unmount: () => {
       act(() => {
         root.unmount();
@@ -87,3 +107,27 @@ export function render(ui: React.ReactElement): RenderResult {
     container,
   };
 }
+
+// fireEvent utility
+export const fireEvent = {
+  changeText: (element: HTMLElement, value: string) => {
+    const onChangeText = (element as any).onChangeText ?? (element as any).__reactFiber?.pendingProps?.onChangeText;
+    if (onChangeText) {
+      act(() => { onChangeText(value); });
+      return;
+    }
+    // Walk React fiber to find onChangeText prop
+    let fiber = (element as any)._reactFiber ?? (element as any)[Object.keys(element).find((k) => k.startsWith('__reactFiber')) ?? ''];
+    while (fiber) {
+      if (fiber.pendingProps?.onChangeText) {
+        act(() => { fiber.pendingProps.onChangeText(value); });
+        return;
+      }
+      fiber = fiber.return;
+    }
+    throw new Error('fireEvent.changeText: onChangeText prop not found on element');
+  },
+  press: (element: HTMLElement) => {
+    act(() => { element.click(); });
+  },
+};

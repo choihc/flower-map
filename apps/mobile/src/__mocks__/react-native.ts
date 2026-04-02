@@ -40,15 +40,27 @@ const ScrollView = createComponent('ScrollView');
 const TouchableOpacity = createComponent('TouchableOpacity');
 const TouchableHighlight = createComponent('TouchableHighlight');
 const FlatList = React.forwardRef(
-  ({ data, renderItem, keyExtractor, testID, ...props }: Record<string, unknown>, ref: React.Ref<unknown>) => {
+  ({ data, renderItem, keyExtractor, testID, ListHeaderComponent, ListFooterComponent, style: _style, contentContainerStyle: _ccs, ...props }: Record<string, unknown>, ref: React.Ref<unknown>) => {
     const items = Array.isArray(data) ? data : [];
+    const header = ListHeaderComponent
+      ? React.isValidElement(ListHeaderComponent)
+        ? ListHeaderComponent
+        : React.createElement(ListHeaderComponent as React.ComponentType)
+      : null;
+    const footer = ListFooterComponent
+      ? React.isValidElement(ListFooterComponent)
+        ? ListFooterComponent
+        : React.createElement(ListFooterComponent as React.ComponentType)
+      : null;
     return React.createElement(
       'flatlist',
       { ref, 'data-testid': testID, ...props },
-      items.map((item: unknown, index: number) => {
+      header,
+      ...items.map((item: unknown, index: number) => {
         const key = keyExtractor ? (keyExtractor as (item: unknown, index: number) => string)(item, index) : String(index);
         return React.createElement(React.Fragment, { key }, (renderItem as (info: { item: unknown; index: number }) => React.ReactNode)({ item, index }));
       }),
+      footer,
     );
   },
 );
