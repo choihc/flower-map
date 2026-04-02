@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { isSpotLiked, toggleSpotLike } from '../../../shared/data/likeRepository';
+import { isSpotLiked, toggleSpotLike, getSpotLikeCount } from '../../../shared/data/likeRepository';
 import { colors } from '../../../shared/theme/colors';
 
 type LikeButtonProps = {
@@ -10,17 +10,23 @@ type LikeButtonProps = {
 
 export function LikeButton({ spotId }: LikeButtonProps) {
   const [liked, setLiked] = useState(false);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    isSpotLiked(spotId).then((v) => {
-      setLiked(v);
-      setLoading(false);
-    });
+    Promise.all([isSpotLiked(spotId), getSpotLikeCount(spotId)]).then(
+      ([isLiked, likeCount]) => {
+        setLiked(isLiked);
+        setCount(likeCount);
+        setLoading(false);
+      },
+    );
   }, [spotId]);
 
   async function handlePress() {
-    setLiked((prev) => !prev);
+    const willLike = !liked;
+    setLiked(willLike);
+    setCount((prev) => prev + (willLike ? 1 : -1));
     await toggleSpotLike(spotId);
   }
 
@@ -29,7 +35,7 @@ export function LikeButton({ spotId }: LikeButtonProps) {
   return (
     <Pressable onPress={handlePress} style={[styles.button, liked && styles.buttonLiked]}>
       <Text style={[styles.text, liked && styles.textLiked]}>
-        {liked ? '♥ 저장됨' : '♡ 저장하기'}
+        {liked ? '♥' : '♡'} 좋아요 {count > 0 ? count : ''}
       </Text>
     </Pressable>
   );
