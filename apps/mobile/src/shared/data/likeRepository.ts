@@ -1,34 +1,48 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const LIKES_KEY = 'spot_likes_v1';
-
-async function getLikedIds(): Promise<Set<string>> {
-  const raw = await AsyncStorage.getItem(LIKES_KEY);
-  const arr: string[] = raw ? JSON.parse(raw) : [];
-  return new Set(arr);
-}
-
-async function saveLikedIds(ids: Set<string>): Promise<void> {
-  await AsyncStorage.setItem(LIKES_KEY, JSON.stringify([...ids]));
-}
+import { supabase } from '../lib/supabase';
+import { getDeviceId } from '../lib/deviceId';
 
 export async function isSpotLiked(spotId: string): Promise<boolean> {
-  const ids = await getLikedIds();
-  return ids.has(spotId);
+  const deviceId = await getDeviceId();
+  const { count } = await supabase
+    .from('spot_likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('spot_id', spotId)
+    .eq('device_id', deviceId);
+  return (count ?? 0) > 0;
 }
 
 export async function toggleSpotLike(spotId: string): Promise<boolean> {
-  const ids = await getLikedIds();
-  if (ids.has(spotId)) {
-    ids.delete(spotId);
-  } else {
-    ids.add(spotId);
+  const deviceId = await getDeviceId();
+  const liked = await isSpotLiked(spotId);
+
+  if (liked) {
+    await supabase
+      .from('spot_likes')
+      .delete()
+      .eq('spot_id', spotId)
+      .eq('device_id', deviceId);
+    return false;
   }
-  await saveLikedIds(ids);
-  return ids.has(spotId);
+
+  await supabase
+    .from('spot_likes')
+    .insert({ spot_id: spotId, device_id: deviceId });
+  return true;
+}
+
+export async function getSpotLikeCount(spotId: string): Promise<number> {
+  const { count } = await supabase
+    .from('spot_likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('spot_id', spotId);
+  return count ?? 0;
 }
 
 export async function getAllLikedIds(): Promise<string[]> {
-  const ids = await getLikedIds();
-  return [...ids];
+  const deviceId = await getDeviceId();
+  const { data } = await supabase
+    .from('spot_likes')
+    .select('spot_id')
+    .eq('device_id', deviceId);
+  return (data ?? []).map((row) => row.spot_id);
 }
