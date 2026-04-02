@@ -43,8 +43,9 @@ describe('SearchResultCard', () => {
     const { getByText } = render(
       <SearchResultCard spot={baseSpot} onPress={onPress} />
     );
-    getByText('여의도 한강공원').parent?.props.onPress?.();
-    // Pressable이 감싸고 있으므로 fireEvent로 검증
+    // Pressable mock은 <pressable onClick={onPress}>으로 렌더링됨
+    getByText('여의도 한강공원').closest('pressable')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('개화 종료 spot은 회색 뱃지를 렌더링한다', () => {

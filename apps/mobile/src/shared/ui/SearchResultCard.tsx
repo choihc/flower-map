@@ -37,6 +37,7 @@ export function SearchResultCard({ spot, onPress }: SearchResultCardProps) {
       {imageUri ? (
         <Image
           testID="spot-thumbnail-image"
+          resizeMode="cover"
           source={{ uri: imageUri }}
           style={styles.thumbnail}
         />
