@@ -41,8 +41,8 @@ export function SavedScreen() {
 
   return (
     <ScreenShell
-      title="저장한 명소"
-      subtitle="이번 시즌 다시 가볼 만한 꽃 명소를 모아봤어요."
+      title="좋아요한 명소"
+      subtitle="내가 좋아요 누른 꽃 명소를 모아봤어요."
     >
       <View style={styles.filterRow}>
         {(['전체', '지금 시즌', '종료 임박'] as const).map((label) => (
@@ -58,12 +58,12 @@ export function SavedScreen() {
         ))}
       </View>
 
-      <SectionCard title="저장 목록">
+      <SectionCard title="좋아요 목록">
         {filteredSpots.length === 0 ? (
           <Text style={styles.emptyText}>
             {savedSpots.length === 0
-              ? '저장한 명소가 없어요. 명소 상세에서 ♡ 버튼을 눌러보세요.'
-              : `'${activeFilter}' 조건에 맞는 저장 명소가 없어요.`}
+              ? '좋아요한 명소가 없어요. 명소 상세에서 ♡ 버튼을 눌러보세요.'
+              : `'${activeFilter}' 조건에 맞는 명소가 없어요.`}
           </Text>
         ) : (
           filteredSpots.map((spot) => (
