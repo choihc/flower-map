@@ -20,6 +20,55 @@ import { SearchResultCard } from '../../../shared/ui/SearchResultCard';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import type { FlowerSpot } from '../../../shared/data/types';
 
+type SearchHeaderProps = {
+  query: string;
+  onChangeText: (text: string) => void;
+  isLoading: boolean;
+  isError: boolean;
+  resultsCount: number;
+};
+
+// ListHeaderComponent에 인라인 함수를 전달하면 렌더마다 재마운트되어 TextInput 포커스가 해제됨.
+// 컴포넌트를 SearchScreen 밖에 정의하고 JSX 엘리먼트로 전달해 이를 방지함.
+function SearchHeader({ query, onChangeText, isLoading, isError, resultsCount }: SearchHeaderProps) {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.title}>검색</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="꽃 이름, 명소, 지역으로 검색"
+        placeholderTextColor={colors.textMuted}
+        value={query}
+        onChangeText={onChangeText}
+        keyboardType="default"
+        returnKeyType="search"
+        autoCorrect={false}
+      />
+      {isLoading && (
+        <View style={styles.skeletonGroup}>
+          <SkeletonBox testID="skeleton-box" height={88} borderRadius={16} />
+          <SkeletonBox testID="skeleton-box" height={88} borderRadius={16} />
+          <SkeletonBox testID="skeleton-box" height={88} borderRadius={16} />
+        </View>
+      )}
+      {isError && (
+        <Text style={styles.errorText}>
+          데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.
+        </Text>
+      )}
+      {!isLoading && !isError && query.trim() === '' && (
+        <Text style={styles.guideText}>꽃 이름, 명소 이름, 지역으로 검색해보세요</Text>
+      )}
+      {!isLoading && !isError && query.trim() !== '' && resultsCount > 0 && (
+        <Text style={styles.countText}>{resultsCount}곳의 명소를 찾았어요</Text>
+      )}
+      {!isLoading && !isError && query.trim() !== '' && resultsCount === 0 && (
+        <Text style={styles.emptyText}>검색 결과가 없어요</Text>
+      )}
+    </View>
+  );
+}
+
 export function SearchScreen() {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -42,45 +91,6 @@ export function SearchScreen() {
     );
   }, [query, spots]);
 
-  function renderHeader() {
-    return (
-      <View style={styles.header}>
-        <Text style={styles.title}>검색</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="꽃 이름, 명소, 지역으로 검색"
-          placeholderTextColor={colors.textMuted}
-          value={query}
-          onChangeText={setQuery}
-          keyboardType="default"
-          returnKeyType="search"
-          autoCorrect={false}
-        />
-        {isLoading && (
-          <View style={styles.skeletonGroup}>
-            <SkeletonBox testID="skeleton-box" height={88} borderRadius={16} />
-            <SkeletonBox testID="skeleton-box" height={88} borderRadius={16} />
-            <SkeletonBox testID="skeleton-box" height={88} borderRadius={16} />
-          </View>
-        )}
-        {isError && (
-          <Text style={styles.errorText}>
-            데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.
-          </Text>
-        )}
-        {!isLoading && !isError && query.trim() === '' && (
-          <Text style={styles.guideText}>꽃 이름, 명소 이름, 지역으로 검색해보세요</Text>
-        )}
-        {!isLoading && !isError && query.trim() !== '' && results.length > 0 && (
-          <Text style={styles.countText}>{results.length}곳의 명소를 찾았어요</Text>
-        )}
-        {!isLoading && !isError && query.trim() !== '' && results.length === 0 && (
-          <Text style={styles.emptyText}>검색 결과가 없어요</Text>
-        )}
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
@@ -92,7 +102,15 @@ export function SearchScreen() {
             onPress={() => router.push(`/spot/${item.slug}`)}
           />
         )}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={
+          <SearchHeader
+            query={query}
+            onChangeText={setQuery}
+            isLoading={isLoading}
+            isError={isError}
+            resultsCount={results.length}
+          />
+        }
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       />
