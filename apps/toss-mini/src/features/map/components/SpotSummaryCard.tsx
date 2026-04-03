@@ -3,6 +3,14 @@ import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { FlowerSpot } from '@flower-map/flower-domain';
 
+import { BloomArt } from '../../../shared/components/BloomArt';
+
+const TONE_BG: Record<string, string> = {
+  pink: '#FBE8F0',
+  yellow: '#FBF0C0',
+  green: '#E8F5E9',
+};
+
 type SpotSummaryCardProps = {
   spot: FlowerSpot;
   isSelected: boolean;
@@ -15,12 +23,16 @@ export function SpotSummaryCard({ spot, isSelected, onPress }: SpotSummaryCardPr
       style={[styles.card, isSelected && styles.selected]}
       onPress={() => onPress(spot)}
     >
-      {spot.thumbnailUrl && (
+      {(spot.thumbnailUrl ?? spot.flowerThumbnailUrl) ? (
         <Image
-          source={{ uri: spot.thumbnailUrl }}
+          source={{ uri: (spot.thumbnailUrl ?? spot.flowerThumbnailUrl)! }}
           style={styles.image}
           resizeMode="cover"
         />
+      ) : (
+        <View style={[styles.image, { backgroundColor: TONE_BG[spot.tone] ?? '#FBE8F0', alignItems: 'center', justifyContent: 'center' }]}>
+          <BloomArt size="sm" tone={spot.tone} />
+        </View>
       )}
       <View style={styles.body}>
         <Badge size="small" type="green" badgeStyle="weak">
@@ -48,12 +60,11 @@ const styles = StyleSheet.create({
   },
   selected: {
     borderWidth: 2,
-    borderColor: '#5C9E66',
+    borderColor: '#C45C7E',
   },
   image: {
     width: '100%',
     height: 120,
-    backgroundColor: '#E8F5E9',
   },
   body: {
     padding: 12,
@@ -62,10 +73,10 @@ const styles = StyleSheet.create({
   place: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#142218',
+    color: '#3D1A27',
   },
   meta: {
     fontSize: 12,
-    color: '#5E7262',
+    color: '#8B5A6E',
   },
 });
