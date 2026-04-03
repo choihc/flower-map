@@ -35,6 +35,7 @@ export async function getSpotsAround({
   radiusKm,
   limit,
 }: SpotSelectQuery) {
+  // 서버 geo query가 아직 없어서 published spot을 읽은 뒤 클라이언트에서 반경 필터링합니다.
   const { data, error } = await supabase
     .from('spots')
     .select(SPOT_SELECT)
@@ -57,5 +58,9 @@ export async function getSpotsAround({
     .sort((left, right) => left.distanceKm - right.distanceKm)
     .map(({ spot }) => spot);
 
-  return limit ? spots.slice(0, limit) : spots;
+  if (limit !== undefined) {
+    return spots.slice(0, limit);
+  }
+
+  return spots;
 }

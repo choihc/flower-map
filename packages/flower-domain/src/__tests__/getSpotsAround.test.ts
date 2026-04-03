@@ -90,4 +90,15 @@ describe('getSpotsAround', () => {
     expect(spots.map((spot) => spot.id)).toEqual(['near-1', 'near-2']);
     expect(spots.every((spot) => spot.location === '서울 영등포구')).toBe(true);
   });
+
+  it('limit이 0이면 빈 배열을 반환합니다', async () => {
+    const spots = await getSpotsAround({
+      latitude: 37.5288,
+      longitude: 126.9291,
+      radiusKm: 5,
+      limit: 0,
+    });
+
+    expect(spots).toEqual([]);
+  });
 });

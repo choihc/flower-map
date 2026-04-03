@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "types": "src/index.ts",
-  "scripts": {},
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@flower-map/supabase": "workspace:*"
   },

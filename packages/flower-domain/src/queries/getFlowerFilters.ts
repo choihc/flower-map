@@ -2,7 +2,7 @@ import { supabase } from '@flower-map/supabase';
 
 import type { FlowerFilter } from '../types';
 
-const SPOT_SELECT = 'flower:flowers(name_ko, thumbnail_url)';
+const SPOT_SELECT = 'flower:flowers(name_ko)';
 
 type FlowerFilterRow = {
   flower:
