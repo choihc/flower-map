@@ -1,0 +1,9 @@
+{
+  "appName": "flower-map",
+  "permissions": [
+    {
+      "name": "geolocation",
+      "access": "access"
+    }
+  ]
+}
