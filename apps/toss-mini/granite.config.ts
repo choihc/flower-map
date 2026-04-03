@@ -25,7 +25,7 @@ const workspaceNodeModules = path.resolve(workspaceRoot, 'node_modules');
 
 export default defineConfig({
   scheme: 'flower-map-toss-mini',
-  appName: 'kkoteodi',
+  appName: 'flower-map',
   metro: {
     watchFolders: [workspaceRoot, workspaceNodeModules],
     resolver: {
