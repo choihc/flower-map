@@ -1,0 +1,5 @@
+{"type":"server-started","port":50224,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:50224","screen_dir":"/Users/user/workspace/flower-map/apps/mobile/.superpowers/brainstorm/51315-1775099018"}
+{"type":"screen-added","file":"/Users/user/workspace/flower-map/apps/mobile/.superpowers/brainstorm/51315-1775099018/search-card.html"}
+{"type":"screen-added","file":"/Users/user/workspace/flower-map/apps/mobile/.superpowers/brainstorm/51315-1775099018/tab-position.html"}
+{"type":"screen-added","file":"/Users/user/workspace/flower-map/apps/mobile/.superpowers/brainstorm/51315-1775099018/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}

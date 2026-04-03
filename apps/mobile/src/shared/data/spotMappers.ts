@@ -38,7 +38,11 @@ function toBadgeLabel(row: PublishedSpotRow, now: Date): string {
   const daysRemaining = getBloomDaysRemaining(row, now);
   const daysUntilStart = getBloomDaysUntilStart(row, now);
 
-  if (daysUntilStart > 0 && daysUntilStart <= 7) {
+  if (daysUntilStart > 7) {
+    return '개화 예정';
+  }
+
+  if (daysUntilStart > 0) {
     return '곧 개화';
   }
 

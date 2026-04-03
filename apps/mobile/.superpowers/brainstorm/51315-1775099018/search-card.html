@@ -1,0 +1,126 @@
+<h2>검색 결과 카드 레이아웃</h2>
+<p class="subtitle">어떤 형태의 카드가 검색 결과에 가장 잘 어울릴까요?</p>
+
+<div class="cards">
+
+  <!-- Option A: 기존 SpotSummaryCard 재사용 -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:12px 12px 0 0;">
+      <div style="background:linear-gradient(135deg,#f5e6d8,#f2c4ce);height:120px;display:flex;align-items:center;justify-content:center;position:relative;">
+        <div style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.9);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;color:#c06;"> 지금 보기 좋아요</div>
+        <div style="font-size:36px;">🌸</div>
+      </div>
+      <div style="padding:14px 16px 16px;">
+        <div style="font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:4px;">여의도 한강공원</div>
+        <div style="font-size:13px;color:#888;margin-bottom:8px;">벚꽃 · 서울 영등포구</div>
+        <div style="font-size:13px;color:#555;line-height:1.5;margin-bottom:14px;">서울에서 가장 유명한 벚꽃 명소</div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;border:1px solid #ddd;border-radius:999px;padding:8px;text-align:center;font-size:13px;font-weight:700;color:#333;">상세 보기</div>
+          <div style="flex:1;background:#4a7c59;border-radius:999px;padding:8px;text-align:center;font-size:13px;font-weight:700;color:#fff;">길찾기</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>기존 카드 재사용</h3>
+      <p>SpotSummaryCard 그대로. 이미지가 크고 버튼 2개. 한 화면에 1~2개만 보임.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>장점</h4><ul><li>기존 컴포넌트 재활용</li><li>이미지 임팩트 큼</li></ul></div>
+        <div class="cons"><h4>단점</h4><ul><li>스크롤이 많아짐</li><li>검색 결과 스캔 느림</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: 새 컴팩트 카드 (가로 배치) -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="card-image" style="padding:12px;">
+      <!-- 여러 개의 컴팩트 카드 미리보기 -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:12px;align-items:center;background:#fdf6f0;border:1px solid #edddd4;border-radius:16px;padding:12px;">
+          <div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,#f5e6d8,#f2c4ce);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;">🌸</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:15px;font-weight:700;color:#1a1a1a;">여의도 한강공원</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;">벚꽃 · 서울 영등포구</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+              <span style="background:#e8f4ec;color:#4a7c59;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;">지금 보기 좋아요</span>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#4a7c59;flex-shrink:0;">보기 ›</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;background:#fdf6f0;border:1px solid #edddd4;border-radius:16px;padding:12px;">
+          <div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,#fff8dc,#fce4b0);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;">🌼</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:15px;font-weight:700;color:#1a1a1a;">제주 유채꽃 프라자</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;">유채꽃 · 제주 서귀포시</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+              <span style="background:#fffbe6;color:#b07d00;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;">개화 중</span>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#4a7c59;flex-shrink:0;">보기 ›</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;background:#fdf6f0;border:1px solid #edddd4;border-radius:16px;padding:12px;">
+          <div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,#e8f4ec,#c8e6c9);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;">🌿</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:15px;font-weight:700;color:#1a1a1a;">창덕궁 후원</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;">튤립 · 서울 종로구</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+              <span style="background:#e8f4ec;color:#4a7c59;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;">이번 주 절정</span>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#4a7c59;flex-shrink:0;">보기 ›</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>새 컴팩트 카드 (신규)</h3>
+      <p>썸네일 + 제목/꽃/지역/뱃지 가로 배치. 한 화면에 5~6개 노출 가능.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>장점</h4><ul><li>검색 결과 빠르게 스캔</li><li>검색 맥락에 최적화</li></ul></div>
+        <div class="cons"><h4>단점</h4><ul><li>새 컴포넌트 작성 필요</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: 텍스트 리스트 -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="card-image" style="padding:12px;">
+      <div style="background:#fdf6f0;border:1px solid #edddd4;border-radius:16px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #edddd4;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#1a1a1a;">여의도 한강공원</div>
+            <div style="font-size:12px;color:#888;margin-top:3px;">벚꽃 · 서울 영등포구</div>
+            <div style="font-size:12px;color:#555;margin-top:4px;">서울에서 가장 유명한 벚꽃 명소</div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#4a7c59;">보기</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #edddd4;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#1a1a1a;">제주 유채꽃 프라자</div>
+            <div style="font-size:12px;color:#888;margin-top:3px;">유채꽃 · 제주 서귀포시</div>
+            <div style="font-size:12px;color:#555;margin-top:4px;">드넓은 유채꽃 풍경을 만끽하세요</div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#4a7c59;">보기</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#1a1a1a;">창덕궁 후원</div>
+            <div style="font-size:12px;color:#888;margin-top:3px;">튤립 · 서울 종로구</div>
+            <div style="font-size:12px;color:#555;margin-top:4px;">아름다운 궁궐 속 튤립 정원</div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#4a7c59;">보기</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>텍스트 리스트</h3>
+      <p>이미지 없이 텍스트 중심. SpotListScreen과 유사. 가장 많은 결과를 한눈에.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>장점</h4><ul><li>가장 많은 결과 노출</li><li>빠른 훑기</li></ul></div>
+        <div class="cons"><h4>단점</h4><ul><li>시각적 임팩트 약함</li><li>기존 리스트 화면과 차별화 없음</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
