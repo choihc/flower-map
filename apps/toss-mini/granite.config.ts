@@ -1,33 +1,12 @@
 import { appsInToss } from '@apps-in-toss/framework/plugins';
 import { defineConfig } from '@granite-js/react-native/config';
 import { env } from '@granite-js/plugin-env';
-import * as fs from 'fs';
 import * as path from 'path';
 
-// .env.local 로드 (없으면 process.env fallback)
-const envLocalPath = path.resolve(__dirname, '.env.local');
-const envVars: Record<string, string> = {};
-if (fs.existsSync(envLocalPath)) {
-  for (const line of fs.readFileSync(envLocalPath, 'utf8').split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eqIdx = trimmed.indexOf('=');
-    if (eqIdx < 0) continue;
-    const key = trimmed.slice(0, eqIdx).trim();
-    const value = trimmed.slice(eqIdx + 1).trim();
-    if (key) envVars[key] = value;
-  }
-} else {
-  // CI/CD 등 배포 환경에서는 process.env에서 읽음
-  const keys = [
-    'EXPO_PUBLIC_SUPABASE_URL',
-    'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-  ];
-  for (const key of keys) {
-    const value = process.env[key];
-    if (value) envVars[key] = value;
-  }
-}
+const envVars = {
+  EXPO_PUBLIC_SUPABASE_URL: 'https://ktmykdcmknaqsomzeank.supabase.co',
+  EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable__TfGxnQaNqCg96SKwTUCCA_5vrI-SKE',
+};
 
 const workspaceRoot = path.resolve(__dirname, '../..');
 const appNodeModules = path.resolve(__dirname, 'node_modules');
