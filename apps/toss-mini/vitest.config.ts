@@ -5,6 +5,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'react-native': fileURLToPath(
+        new URL('./src/__mocks__/react-native.tsx', import.meta.url),
+      ),
     },
   },
   test: {

@@ -23,4 +23,6 @@ declare module '@granite-js/react-native' {
   }
 }
 
+declare module 'react-test-renderer';
+
 export {};
