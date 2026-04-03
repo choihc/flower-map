@@ -1,4 +1,5 @@
 import { Loader, PageNavbar } from '@toss/tds-react-native';
+import { InlineAd } from '@apps-in-toss/framework';
 import { useQueries } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React from 'react';
@@ -51,13 +52,21 @@ function SavedPage() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.list}>
-          {spots.map((spot) => (
-            <SavedSpotCard
-              key={spot.id}
-              spot={spot}
-              onPress={handlePress}
-              onRemove={remove}
-            />
+          {spots.map((spot, index) => (
+            <React.Fragment key={spot.id}>
+              <SavedSpotCard
+                spot={spot}
+                onPress={handlePress}
+                onRemove={remove}
+              />
+              {((index + 1) % 5 === 0 || (spots.length <= 5 && index === spots.length - 1)) && (
+                <InlineAd
+                  adId="ait-ad-test-native-image-id"
+                  impressFallbackOnMount={true}
+                  style={styles.feedAd}
+                />
+              )}
+            </React.Fragment>
           ))}
         </ScrollView>
       )}
@@ -87,4 +96,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#C45C7E',
   },
   emptyBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  feedAd: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
 });

@@ -1,4 +1,5 @@
 import { Loader, PageNavbar, SearchField } from '@toss/tds-react-native';
+import { InlineAd } from '@apps-in-toss/framework';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useMemo, useState } from 'react';
@@ -52,11 +53,23 @@ function SearchPage() {
         </View>
       ) : (
         <ScrollView>
-          {results.map((spot) => (
-            <SpotListItem key={spot.id} spot={spot} onPress={handlePress} />
-          ))}
-          {results.length === 0 && (
+          {results.length === 0 ? (
             <Text style={styles.empty}>검색 결과가 없습니다.</Text>
+          ) : (
+            <>
+              {results.map((spot, index) => (
+                <React.Fragment key={spot.id}>
+                  <SpotListItem spot={spot} onPress={handlePress} />
+                  {((index + 1) % 5 === 0 || (results.length < 5 && index === results.length - 1)) && (
+                    <InlineAd
+                      adId="ait-ad-test-banner-id"
+                      impressFallbackOnMount={true}
+                      style={styles.listBanner}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </>
           )}
         </ScrollView>
       )}
@@ -69,4 +82,9 @@ const styles = StyleSheet.create({
   searchBox: { paddingHorizontal: 16, paddingVertical: 8 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 40 },
   empty: { textAlign: 'center', color: '#888', marginTop: 40, fontSize: 15 },
+  listBanner: {
+    height: 96,
+    backgroundColor: '#F9F0F4',
+    marginVertical: 8,
+  },
 });

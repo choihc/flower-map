@@ -1,4 +1,5 @@
 import { Icon, Loader, PageNavbar } from '@toss/tds-react-native';
+import { InlineAd } from '@apps-in-toss/framework';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useRef, useState } from 'react';
@@ -74,11 +75,21 @@ function HomePage() {
           <Text style={styles.sectionTitle}>
             {selectedFlower ? `${selectedFlower} 명소` : '지금 보기 좋은 명소'}
           </Text>
-          {filteredSpots.map((spot) => (
-            <SpotCard key={spot.id} spot={spot} onPress={handleSpotPress} />
-          ))}
-          {filteredSpots.length === 0 && (
+          {filteredSpots.length === 0 ? (
             <Text style={styles.empty}>해당 꽃 명소가 없습니다.</Text>
+          ) : (
+            filteredSpots.map((spot, index) => (
+              <React.Fragment key={spot.id}>
+                <SpotCard spot={spot} onPress={handleSpotPress} />
+                {(index + 1) % 5 === 0 && (
+                  <InlineAd
+                    adId="ait-ad-test-native-image-id"
+                    impressFallbackOnMount={true}
+                    style={styles.feedAd}
+                  />
+                )}
+              </React.Fragment>
+            ))
           )}
         </View>
       </ScrollView>
@@ -111,6 +122,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#B09099',
     marginTop: 24,
+  },
+  feedAd: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   scrollTopBtn: {
     position: 'absolute',

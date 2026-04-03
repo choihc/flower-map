@@ -1,4 +1,5 @@
 import { Loader, PageNavbar } from '@toss/tds-react-native';
+import { InlineAd } from '@apps-in-toss/framework';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useRef, useState } from 'react';
@@ -89,6 +90,11 @@ function MapPage() {
           />
         ))}
       </ScrollView>
+      <InlineAd
+        adId="ait-ad-test-banner-id"
+        impressFallbackOnMount={true}
+        style={styles.mapBanner}
+      />
     </View>
   );
 }
@@ -99,5 +105,9 @@ const styles = StyleSheet.create({
   cardList: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  mapBanner: {
+    height: 96,
+    backgroundColor: '#F9F0F4',
   },
 });
