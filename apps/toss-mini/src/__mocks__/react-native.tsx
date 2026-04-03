@@ -21,6 +21,10 @@ export function Image({ source, ...props }: BasicProps) {
   return React.createElement('Image', { source, ...props });
 }
 
+export function ScrollView({ children, ...props }: BasicProps) {
+  return React.createElement('ScrollView', props, children);
+}
+
 export const Alert = {
   alert: () => {},
 };
