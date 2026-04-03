@@ -1,4 +1,4 @@
-import { Loader, Navbar, SearchField } from '@toss/tds-react-native';
+import { Loader, PageNavbar, SearchField } from '@toss/tds-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useMemo, useState } from 'react';
@@ -59,7 +59,7 @@ function SearchPage() {
 
   return (
     <View style={styles.page}>
-      <Navbar title="검색" />
+      <PageNavbar><PageNavbar.Title>검색</PageNavbar.Title></PageNavbar>
       <View style={styles.searchBox}>
         <SearchField
           placeholder="명소 이름, 지역으로 검색"

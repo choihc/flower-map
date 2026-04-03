@@ -1,4 +1,4 @@
-import { Loader, Navbar } from '@toss/tds-react-native';
+import { Loader, PageNavbar } from '@toss/tds-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useState } from 'react';
@@ -51,7 +51,7 @@ function HomePage() {
 
   return (
     <View style={styles.page}>
-      <Navbar title="꽃 어디" />
+      <PageNavbar><PageNavbar.Title>꽃 어디</PageNavbar.Title></PageNavbar>
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}

@@ -2,14 +2,14 @@ import React from 'react';
 
 type Props = { children?: React.ReactNode; [key: string]: any };
 
-const Navbar = ({ title, left, right }: Props) => (
-  <>{left}{title}{right}</>
-);
-Navbar.BackButton = ({ onPress, children }: Props) => (
-  <button onClick={onPress}>{children ?? '뒤로'}</button>
-);
-Navbar.TextButton = ({ children, onPress }: Props) => (
+const PageNavbar = ({ children }: Props) => <>{children}</>;
+PageNavbar.Title = ({ children }: Props) => <>{children}</>;
+PageNavbar.AccessoryButtons = ({ children }: Props) => <>{children}</>;
+PageNavbar.AccessoryTextButton = ({ children, onPress }: Props) => (
   <button onClick={onPress}>{children}</button>
+);
+PageNavbar.AccessoryIconButton = ({ name, onPress }: Props) => (
+  <button onClick={onPress}>{name}</button>
 );
 
 const Carousel = ({ children }: Props) => <div>{children}</div>;
@@ -46,5 +46,5 @@ const ErrorPage = ({ title, subtitle, onPressRightButton }: Props) => (
 );
 
 export {
-  Navbar, Carousel, Badge, Button, ListRow, SearchField, Loader, ErrorPage,
+  PageNavbar, Carousel, Badge, Button, ListRow, SearchField, Loader, ErrorPage,
 };

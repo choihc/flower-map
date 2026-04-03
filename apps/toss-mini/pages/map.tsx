@@ -1,4 +1,4 @@
-import { Loader, Navbar } from '@toss/tds-react-native';
+import { Loader, PageNavbar } from '@toss/tds-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useRef, useState } from 'react';
@@ -60,7 +60,7 @@ function MapPage() {
 
   return (
     <View style={styles.page}>
-      <Navbar title="지도" />
+      <PageNavbar><PageNavbar.Title>지도</PageNavbar.Title></PageNavbar>
       <NaverMapCanvas
         latitude={selectedSpot?.latitude ?? DEFAULT_LATITUDE}
         longitude={selectedSpot?.longitude ?? DEFAULT_LONGITUDE}

@@ -1,4 +1,4 @@
-import { Badge, Button, Loader, Navbar } from '@toss/tds-react-native';
+import { Badge, Button, Loader, PageNavbar } from '@toss/tds-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute, openURL } from '@granite-js/react-native';
 import React from 'react';
@@ -52,10 +52,7 @@ function SpotDetailPage() {
   if (isError || !spot) {
     return (
       <View style={styles.center}>
-        <Navbar
-          left={<Navbar.BackButton onPress={() => navigation.goBack()} />}
-          title="명소 상세"
-        />
+        <PageNavbar><PageNavbar.Title>명소 상세</PageNavbar.Title></PageNavbar>
         <Text style={styles.errorText}>명소 정보를 불러올 수 없습니다.</Text>
       </View>
     );
@@ -65,15 +62,14 @@ function SpotDetailPage() {
 
   return (
     <View style={styles.page}>
-      <Navbar
-        left={<Navbar.BackButton onPress={() => navigation.goBack()} />}
-        title={spot.place}
-        right={
-          <Navbar.TextButton onPress={handleSaveToggle}>
+      <PageNavbar>
+        <PageNavbar.Title>{spot.place}</PageNavbar.Title>
+        <PageNavbar.AccessoryButtons>
+          <PageNavbar.AccessoryTextButton onPress={handleSaveToggle}>
             {saved ? '저장됨' : '저장'}
-          </Navbar.TextButton>
-        }
-      />
+          </PageNavbar.AccessoryTextButton>
+        </PageNavbar.AccessoryButtons>
+      </PageNavbar>
       <ScrollView showsVerticalScrollIndicator={false}>
         {spot.thumbnailUrl && (
           <Image

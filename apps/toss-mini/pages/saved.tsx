@@ -1,4 +1,4 @@
-import { ErrorPage, Loader, Navbar } from '@toss/tds-react-native';
+import { ErrorPage, Loader, PageNavbar } from '@toss/tds-react-native';
 import { useQueries } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React from 'react';
@@ -35,7 +35,7 @@ function SavedPage() {
 
   return (
     <View style={styles.page}>
-      <Navbar title="저장" />
+      <PageNavbar><PageNavbar.Title>저장</PageNavbar.Title></PageNavbar>
       {isPending && savedIds.length > 0 ? (
         <View style={styles.center}>
           <Loader size="large" type="primary" />
