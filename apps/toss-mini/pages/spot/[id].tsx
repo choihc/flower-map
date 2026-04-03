@@ -1,12 +1,11 @@
-import { Badge, Button, Loader, PageNavbar } from '@toss/tds-react-native';
+import { Badge, Icon, Loader, PageNavbar } from '@toss/tds-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute, openURL } from '@granite-js/react-native';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getSpotById } from '@flower-map/flower-domain';
 
 import { BloomArt } from '../../src/shared/components/BloomArt';
-
 import { useStorage } from '../../src/shared/hooks/useStorage';
 
 const TONE_BG: Record<string, string> = {
@@ -21,7 +20,6 @@ export const Route = createRoute('/spot/:id', {
 });
 
 function SpotDetailPage() {
-  const navigation = Route.useNavigation();
   const { id } = Route.useParams();
   const { isSaved, save, remove } = useStorage();
 
@@ -72,13 +70,8 @@ function SpotDetailPage() {
     <View style={styles.page}>
       <PageNavbar>
         <PageNavbar.Title>{spot.place}</PageNavbar.Title>
-        <PageNavbar.AccessoryButtons>
-          <PageNavbar.AccessoryTextButton onPress={handleSaveToggle}>
-            {saved ? '저장됨' : '저장'}
-          </PageNavbar.AccessoryTextButton>
-        </PageNavbar.AccessoryButtons>
       </PageNavbar>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {(spot.thumbnailUrl ?? spot.flowerThumbnailUrl) ? (
           <Image
             source={{ uri: (spot.thumbnailUrl ?? spot.flowerThumbnailUrl)! }}
@@ -90,27 +83,18 @@ function SpotDetailPage() {
             <BloomArt size="lg" tone={spot.tone} />
           </View>
         )}
+
         <View style={styles.body}>
           <View style={styles.badgeRow}>
-            <Badge size="small" type="red" badgeStyle="weak">
-              {spot.flower}
-            </Badge>
-            <Badge size="small" type="elephant" badgeStyle="weak">
-              {spot.badge}
-            </Badge>
+            <Badge size="small" type="red" badgeStyle="weak">{spot.flower}</Badge>
+            <Badge size="small" type="elephant" badgeStyle="weak">{spot.badge}</Badge>
           </View>
 
           <Text style={styles.place}>{spot.place}</Text>
-          <Text style={styles.meta}>
-            {spot.location} · {spot.bloomStatus}
-          </Text>
-          <Text style={styles.period}>
-            🌸 {spot.bloomStartAt} ~ {spot.bloomEndAt}
-          </Text>
+          <Text style={styles.meta}>{spot.location} · {spot.bloomStatus}</Text>
+          <Text style={styles.period}>🌸 {spot.bloomStartAt} ~ {spot.bloomEndAt}</Text>
 
-          {spot.description ? (
-            <Text style={styles.description}>{spot.description}</Text>
-          ) : null}
+          {spot.description ? <Text style={styles.description}>{spot.description}</Text> : null}
 
           {spot.helper ? (
             <View style={styles.tipBox}>
@@ -128,22 +112,23 @@ function SpotDetailPage() {
           </View>
 
           <View style={styles.actions}>
-            <Button
-              size="big"
-              type="primary"
-              style="fill"
-              onPress={handleDirections}
-            >
-              🗺️ 길찾기
-            </Button>
-            <Button
-              size="big"
-              type={saved ? 'dark' : 'light'}
-              style={saved ? 'fill' : 'weak'}
+            <Pressable style={styles.btnDirections} onPress={handleDirections}>
+              <Icon name="icon-map-mono" size={20} color="#FFFFFF" />
+              <Text style={styles.btnDirectionsText}>길찾기</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.btnSave, saved && styles.btnSaveActive]}
               onPress={handleSaveToggle}
             >
-              {saved ? '🌸 저장됨' : '🤍 저장하기'}
-            </Button>
+              <Icon
+                name="icon-heart-mono"
+                size={20}
+                color={saved ? '#FFFFFF' : '#C45C7E'}
+              />
+              <Text style={[styles.btnSaveText, saved && styles.btnSaveTextActive]}>
+                {saved ? '저장됨' : '저장하기'}
+              </Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>
@@ -154,6 +139,7 @@ function SpotDetailPage() {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#FFF5F8' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  scrollContent: { paddingBottom: 32 },
   image: { width: '100%', height: 260 },
   imagePlaceholder: { alignItems: 'center', justifyContent: 'center' },
   body: { padding: 20, gap: 12 },
@@ -162,15 +148,50 @@ const styles = StyleSheet.create({
   meta: { fontSize: 14, color: '#8B5A6E' },
   period: { fontSize: 13, color: '#C45C7E' },
   description: { fontSize: 15, color: '#333', lineHeight: 22 },
-  tipBox: {
-    backgroundColor: '#FDE8F0',
-    borderRadius: 12,
-    padding: 14,
-  },
+  tipBox: { backgroundColor: '#FDE8F0', borderRadius: 12, padding: 14 },
   tipText: { fontSize: 14, color: '#8B3A55', lineHeight: 20 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
   infoLabel: { fontSize: 14, color: '#888' },
   infoValue: { fontSize: 14, color: '#333', fontWeight: '500' },
-  actions: { marginTop: 8, gap: 10 },
+  actions: { flexDirection: 'row', marginTop: 8, gap: 10 },
+  btnDirections: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#C45C7E',
+  },
+  btnDirectionsText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  btnSave: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#FDE8F0',
+    borderWidth: 1,
+    borderColor: '#F0C0D4',
+  },
+  btnSaveActive: {
+    backgroundColor: '#C45C7E',
+    borderColor: '#C45C7E',
+  },
+  btnSaveText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#C45C7E',
+  },
+  btnSaveTextActive: {
+    color: '#FFFFFF',
+  },
   errorText: { color: '#888', fontSize: 15 },
 });
