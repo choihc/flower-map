@@ -1,1 +1,1 @@
-export const storageAdaptersPlaceholder = true;
+export {};

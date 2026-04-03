@@ -1,1 +1,1 @@
-export const flowerDomainPlaceholder = true;
+export {};
