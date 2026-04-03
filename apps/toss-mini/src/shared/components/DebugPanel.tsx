@@ -45,7 +45,7 @@ const LEVEL_COLOR: Record<LogEntry['level'], string> = {
 };
 
 export function DebugPanel() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [entries, setEntries] = useState<LogEntry[]>([...logs]);
   const scrollRef = useRef<ScrollView>(null);
 
