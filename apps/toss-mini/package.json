@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "granite dev",
     "build": "ait build",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
