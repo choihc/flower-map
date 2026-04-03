@@ -1,84 +1,102 @@
+import { Loader, Navbar } from '@toss/tds-react-native';
+import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
-import React from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  getFeaturedSpots,
+  getFlowerFilters,
+  type FlowerSpot,
+} from '@flower-map/flower-domain';
 
-import { NaverMapCanvas } from '../src/features/map/components/NaverMapCanvas';
-import { SelectedSpotCard } from '../src/features/map/components/SelectedSpotCard';
+import { HeroCarousel } from '../src/features/home/components/HeroCarousel';
+import { FlowerFilterChips } from '../src/features/home/components/FlowerFilterChips';
+import { SpotCard } from '../src/features/home/components/SpotCard';
 
 export const Route = createRoute('/', {
   component: HomePage,
 });
 
 function HomePage() {
-  const selectedSpot = {
-    id: 'yeouido-hangang-park',
-    place: '여의도 한강공원',
-    flower: '벚꽃',
-    helper: '한강 산책과 벚꽃 마커 탭 흐름을 먼저 검증합니다.',
+  const navigation = Route.useNavigation();
+  const [selectedFlower, setSelectedFlower] = useState<string | null>(null);
+
+  const { data: spots = [], isPending: spotsPending } = useQuery({
+    queryKey: ['featured-spots'],
+    queryFn: () => getFeaturedSpots(20),
+  });
+
+  const { data: filters = [] } = useQuery({
+    queryKey: ['flower-filters'],
+    queryFn: getFlowerFilters,
+  });
+
+  const filteredSpots = selectedFlower
+    ? spots.filter((s) => s.flower === selectedFlower)
+    : spots;
+
+  const heroSpots = spots.slice(0, 5);
+
+  const handleSpotPress = (spot: FlowerSpot) => {
+    navigation.navigate('/spot/:id' as never, { id: spot.id } as never);
   };
+
+  if (spotsPending) {
+    return (
+      <View style={styles.center}>
+        <Loader size="large" type="primary" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>Apps in Toss Spike</Text>
-        <Text style={styles.title}>네이버지도 렌더링 검증</Text>
-        <Text style={styles.subtitle}>
-          지도 렌더링, 마커 탭, 카드 액션까지 한 화면에서 우선 확인합니다.
-        </Text>
-      </View>
+      <Navbar title="꽃 어디" />
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        <HeroCarousel spots={heroSpots} onPress={handleSpotPress} />
 
-      <View style={styles.mapSection}>
-        <NaverMapCanvas
-          latitude={37.5288}
-          longitude={126.9291}
-          markerLatitude={37.5288}
-          markerLongitude={126.9291}
-          onMarkerTap={() => {
-            Alert.alert('마커 탭 감지', '여의도 한강공원 마커 이벤트가 연결되었습니다.');
-          }}
+        <FlowerFilterChips
+          filters={filters}
+          selected={selectedFlower}
+          onSelect={setSelectedFlower}
         />
-      </View>
 
-      <SelectedSpotCard
-        spot={selectedSpot}
-        onPressDetail={() => {
-          Alert.alert('상세 보기', '다음 단계에서 상세 라우트를 연결합니다.');
-        }}
-      />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {selectedFlower ? `${selectedFlower} 명소` : '지금 보기 좋은 명소'}
+          </Text>
+          {filteredSpots.map((spot) => (
+            <SpotCard key={spot.id} spot={spot} onPress={handleSpotPress} />
+          ))}
+          {filteredSpots.length === 0 && (
+            <Text style={styles.empty}>해당 꽃 명소가 없습니다.</Text>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  eyebrow: {
-    color: '#5C9E66',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  header: {
-    gap: 8,
-    marginBottom: 18,
-  },
-  mapSection: {
-    flex: 1,
-    marginBottom: 18,
-    minHeight: 320,
-  },
-  page: {
-    flex: 1,
-    backgroundColor: '#F4F8F4',
-    padding: 20,
-  },
-  subtitle: {
-    color: '#5E7262',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  title: {
+  page: { flex: 1, backgroundColor: '#F4F8F4' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  scroll: { flex: 1 },
+  content: { paddingBottom: 24 },
+  section: { marginTop: 8 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#142218',
-    fontSize: 28,
-    fontWeight: '800',
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
+  empty: {
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 24,
   },
 });
