@@ -126,7 +126,7 @@ function SpotDetailPage() {
             </Button>
             <Button
               size="big"
-              type={saved ? 'dark' : 'grey'}
+              type={saved ? 'dark' : 'light'}
               style={saved ? 'fill' : 'weak'}
               onPress={handleSaveToggle}
             >
