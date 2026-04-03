@@ -1,18 +1,22 @@
+import { Icon } from '@toss/tds-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type TabItem = {
   key: string;
   label: string;
-  icon: string;
+  iconName: string;
 };
 
 const TABS: TabItem[] = [
-  { key: '/', label: '홈', icon: '🏠' },
-  { key: '/map', label: '지도', icon: '🗺️' },
-  { key: '/search', label: '검색', icon: '🔍' },
-  { key: '/saved', label: '저장', icon: '❤️' },
+  { key: '/', label: '홈', iconName: 'icon-home-mono' },
+  { key: '/map', label: '지도', iconName: 'icon-map-mono' },
+  { key: '/search', label: '검색', iconName: 'icon-search-mono' },
+  { key: '/saved', label: '저장', iconName: 'icon-heart-mono' },
 ];
+
+const SAKURA_ACTIVE = '#C45C7E';
+const SAKURA_INACTIVE = '#B09099';
 
 type TabBarProps = {
   currentRoute: string;
@@ -24,6 +28,7 @@ export function TabBar({ currentRoute, onNavigate }: TabBarProps) {
     <View style={styles.container}>
       {TABS.map((tab) => {
         const isActive = currentRoute === tab.key;
+        const color = isActive ? SAKURA_ACTIVE : SAKURA_INACTIVE;
         return (
           <Pressable
             key={tab.key}
@@ -31,10 +36,8 @@ export function TabBar({ currentRoute, onNavigate }: TabBarProps) {
             onPress={() => onNavigate(tab.key)}
             accessibilityLabel={tab.label}
           >
-            <Text style={styles.icon}>{tab.icon}</Text>
-            <Text style={[styles.label, isActive && styles.activeLabel]}>
-              {tab.label}
-            </Text>
+            <Icon name={tab.iconName} size={22} color={color} />
+            <Text style={[styles.label, { color }]}>{tab.label}</Text>
           </Pressable>
         );
       })}
@@ -47,7 +50,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#E7DDD1',
+    borderTopColor: '#F0D6E4',
     paddingBottom: 20,
     paddingTop: 8,
   },
@@ -56,15 +59,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  icon: {
-    fontSize: 20,
-  },
   label: {
     fontSize: 10,
-    color: '#888888',
-  },
-  activeLabel: {
-    color: '#5C9E66',
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

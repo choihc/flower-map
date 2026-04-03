@@ -63,7 +63,7 @@ function SavedPage() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#F4F8F4' },
+  page: { flex: 1, backgroundColor: '#FFF5F8' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { paddingTop: 12, paddingBottom: 24 },
 });

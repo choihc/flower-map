@@ -1,6 +1,11 @@
 import React from 'react';
+import { View } from 'react-native';
 
 type Props = { children?: React.ReactNode; [key: string]: any };
+
+const Icon = ({ name, size, color }: Props) => (
+  <View style={{ width: size ?? 20, height: size ?? 20 }} />
+);
 
 const PageNavbar = ({ children }: Props) => <>{children}</>;
 PageNavbar.Title = ({ children }: Props) => <>{children}</>;
@@ -46,5 +51,5 @@ const ErrorPage = ({ title, subtitle, onPressRightButton }: Props) => (
 );
 
 export {
-  PageNavbar, Carousel, Badge, Button, ListRow, SearchField, Loader, ErrorPage,
+  PageNavbar, Icon, Badge, Button, ListRow, SearchField, Loader, ErrorPage,
 };

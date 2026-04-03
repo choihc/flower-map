@@ -82,7 +82,7 @@ function HomePage() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#F4F8F4' },
+  page: { flex: 1, backgroundColor: '#FFF5F8' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { flex: 1 },
   content: { paddingBottom: 24 },
@@ -90,13 +90,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#142218',
+    color: '#3D1A27',
     marginHorizontal: 16,
     marginBottom: 12,
   },
   empty: {
     textAlign: 'center',
-    color: '#888',
+    color: '#B09099',
     marginTop: 24,
   },
 });

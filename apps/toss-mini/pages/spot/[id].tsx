@@ -80,10 +80,10 @@ function SpotDetailPage() {
         )}
         <View style={styles.body}>
           <View style={styles.badgeRow}>
-            <Badge size="small" type="green" badgeStyle="weak">
+            <Badge size="small" type="red" badgeStyle="weak">
               {spot.flower}
             </Badge>
-            <Badge size="small" type="blue" badgeStyle="weak">
+            <Badge size="small" type="grey" badgeStyle="weak">
               {spot.badge}
             </Badge>
           </View>
@@ -126,11 +126,11 @@ function SpotDetailPage() {
             </Button>
             <Button
               size="big"
-              type={saved ? 'dark' : 'light'}
+              type={saved ? 'dark' : 'grey'}
               style={saved ? 'fill' : 'weak'}
               onPress={handleSaveToggle}
             >
-              {saved ? '❤️ 저장됨' : '🤍 저장하기'}
+              {saved ? '🌸 저장됨' : '🤍 저장하기'}
             </Button>
           </View>
         </View>
@@ -140,21 +140,21 @@ function SpotDetailPage() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#F4F8F4' },
+  page: { flex: 1, backgroundColor: '#FFF5F8' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   image: { width: '100%', height: 260 },
   body: { padding: 20, gap: 12 },
   badgeRow: { flexDirection: 'row', gap: 8 },
-  place: { fontSize: 24, fontWeight: '800', color: '#142218' },
-  meta: { fontSize: 14, color: '#5E7262' },
-  period: { fontSize: 13, color: '#5C9E66' },
+  place: { fontSize: 24, fontWeight: '800', color: '#3D1A27' },
+  meta: { fontSize: 14, color: '#8B5A6E' },
+  period: { fontSize: 13, color: '#C45C7E' },
   description: { fontSize: 15, color: '#333', lineHeight: 22 },
   tipBox: {
-    backgroundColor: '#EEF4EA',
+    backgroundColor: '#FDE8F0',
     borderRadius: 12,
     padding: 14,
   },
-  tipText: { fontSize: 14, color: '#2D5C33', lineHeight: 20 },
+  tipText: { fontSize: 14, color: '#8B3A55', lineHeight: 20 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
   infoLabel: { fontSize: 14, color: '#888' },
   infoValue: { fontSize: 14, color: '#333', fontWeight: '500' },
