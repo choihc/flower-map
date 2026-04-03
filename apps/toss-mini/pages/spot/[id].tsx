@@ -2,17 +2,11 @@ import { Badge, Icon, Loader, PageNavbar } from '@toss/tds-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute, openURL } from '@granite-js/react-native';
 import React from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getSpotById } from '@flower-map/flower-domain';
 
-import { BloomArt } from '../../src/shared/components/BloomArt';
+import { SpotImage } from '../../src/shared/components/SpotImage';
 import { useStorage } from '../../src/shared/hooks/useStorage';
-
-const TONE_BG: Record<string, string> = {
-  pink: '#FBE8F0',
-  yellow: '#FBF0C0',
-  green: '#E8F5E9',
-};
 
 export const Route = createRoute('/spot/:id', {
   validateParams: (params) => params as { id: string },
@@ -72,17 +66,7 @@ function SpotDetailPage() {
         <PageNavbar.Title>{spot.place}</PageNavbar.Title>
       </PageNavbar>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {(spot.thumbnailUrl ?? spot.flowerThumbnailUrl) ? (
-          <Image
-            source={{ uri: (spot.thumbnailUrl ?? spot.flowerThumbnailUrl)! }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: TONE_BG[spot.tone] ?? '#FBE8F0' }]}>
-            <BloomArt size="lg" tone={spot.tone} />
-          </View>
-        )}
+        <SpotImage spot={spot} style={styles.image} bloomSize="lg" />
 
         <View style={styles.body}>
           <View style={styles.badgeRow}>
@@ -141,7 +125,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 32 },
   image: { width: '100%', height: 260 },
-  imagePlaceholder: { alignItems: 'center', justifyContent: 'center' },
   body: { padding: 20, gap: 12 },
   badgeRow: { flexDirection: 'row', gap: 8 },
   place: { fontSize: 24, fontWeight: '800', color: '#3D1A27' },

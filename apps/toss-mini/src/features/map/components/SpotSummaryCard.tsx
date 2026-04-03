@@ -1,15 +1,9 @@
 import { Badge } from '@toss/tds-react-native';
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { FlowerSpot } from '@flower-map/flower-domain';
 
-import { BloomArt } from '../../../shared/components/BloomArt';
-
-const TONE_BG: Record<string, string> = {
-  pink: '#FBE8F0',
-  yellow: '#FBF0C0',
-  green: '#E8F5E9',
-};
+import { SpotImage } from '../../../shared/components/SpotImage';
 
 type SpotSummaryCardProps = {
   spot: FlowerSpot;
@@ -23,17 +17,7 @@ export function SpotSummaryCard({ spot, isSelected, onPress }: SpotSummaryCardPr
       style={[styles.card, isSelected && styles.selected]}
       onPress={() => onPress(spot)}
     >
-      {(spot.thumbnailUrl ?? spot.flowerThumbnailUrl) ? (
-        <Image
-          source={{ uri: (spot.thumbnailUrl ?? spot.flowerThumbnailUrl)! }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={[styles.image, { backgroundColor: TONE_BG[spot.tone] ?? '#FBE8F0', alignItems: 'center', justifyContent: 'center' }]}>
-          <BloomArt size="sm" tone={spot.tone} />
-        </View>
-      )}
+      <SpotImage spot={spot} style={styles.image} bloomSize="sm" />
       <View style={styles.body}>
         <Badge size="small" type="green" badgeStyle="weak">
           {spot.flower}

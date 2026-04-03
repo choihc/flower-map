@@ -1,9 +1,9 @@
 import { Badge } from '@toss/tds-react-native';
 import React from 'react';
-import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { FlowerSpot } from '@flower-map/flower-domain';
 
-import { BloomArt } from '../../../shared/components/BloomArt';
+import { SpotImage } from '../../../shared/components/SpotImage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_MARGIN = 20;
@@ -12,29 +12,6 @@ type HeroCarouselProps = {
   spots: FlowerSpot[];
   onPress: (spot: FlowerSpot) => void;
 };
-
-const TONE_BG: Record<string, string> = {
-  pink: '#FBE8F0',
-  yellow: '#FBF0C0',
-  green: '#E8F5E9',
-};
-
-function SpotImage({ spot }: { spot: FlowerSpot }) {
-  const uri = spot.thumbnailUrl ?? spot.flowerThumbnailUrl;
-  if (uri) {
-    return <Image source={{ uri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />;
-  }
-  return (
-    <View
-      style={[
-        StyleSheet.absoluteFillObject,
-        { backgroundColor: TONE_BG[spot.tone] ?? '#FBE8F0', alignItems: 'center', justifyContent: 'center' },
-      ]}
-    >
-      <BloomArt size="lg" tone={spot.tone} />
-    </View>
-  );
-}
 
 export function HeroCarousel({ spots, onPress }: HeroCarouselProps) {
   if (spots.length === 0) return null;
@@ -49,7 +26,7 @@ export function HeroCarousel({ spots, onPress }: HeroCarouselProps) {
       {spots.map((spot) => (
         <View key={spot.id} style={styles.page}>
           <Pressable style={styles.card} onPress={() => onPress(spot)}>
-            <SpotImage spot={spot} />
+            <SpotImage spot={spot} style={StyleSheet.absoluteFillObject} bloomSize="lg" />
             <View style={styles.overlay}>
               <Badge size="small" type="red" badgeStyle="fill">{spot.badge}</Badge>
               <Text style={styles.place}>{spot.place}</Text>
