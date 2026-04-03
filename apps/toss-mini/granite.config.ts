@@ -25,7 +25,7 @@ const workspaceNodeModules = path.resolve(workspaceRoot, 'node_modules');
 
 export default defineConfig({
   scheme: 'flower-map-toss-mini',
-  appName: 'flower-map',
+  appName: 'kkoteodi',
   metro: {
     watchFolders: [workspaceRoot, workspaceNodeModules],
     resolver: {
@@ -37,7 +37,7 @@ export default defineConfig({
     appsInToss({
       brand: {
         displayName: '꽃 어디',
-        primaryColor: '#5C9E66',
+        primaryColor: '#C45C7E',
         icon: '',
       },
       permissions: [
