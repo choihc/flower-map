@@ -29,6 +29,12 @@ export const Alert = {
   alert: () => {},
 };
 
+export const NativeModules: Record<string, unknown> = {};
+
+export const Dimensions = {
+  get: () => ({ width: 375, height: 812 }),
+};
+
 export const StyleSheet = {
   create<T extends Record<string, unknown>>(styles: T): T {
     return styles;
