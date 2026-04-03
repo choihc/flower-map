@@ -17,6 +17,10 @@ export function Pressable({ children, ...props }: BasicProps) {
   return React.createElement('Pressable', props, children);
 }
 
+export function Image({ source, ...props }: BasicProps) {
+  return React.createElement('Image', { source, ...props });
+}
+
 export const Alert = {
   alert: () => {},
 };
