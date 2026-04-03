@@ -90,7 +90,7 @@ function SpotDetailPage() {
             <Text style={styles.infoLabel}>입장료</Text>
             <Text style={styles.infoValue}>{spot.fee}</Text>
           </View>
-          <View style={styles.infoRow}>
+          <View style={styles.infoCol}>
             <Text style={styles.infoLabel}>주차</Text>
             <Text style={styles.infoValue}>{spot.parking}</Text>
           </View>
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
   tipBox: { backgroundColor: '#FDE8F0', borderRadius: 12, padding: 14 },
   tipText: { fontSize: 14, color: '#8B3A55', lineHeight: 20 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  infoCol: { flexDirection: 'column', gap: 4 },
   infoLabel: { fontSize: 14, color: '#888' },
   infoValue: { fontSize: 14, color: '#333', fontWeight: '500' },
   actions: { flexDirection: 'row', marginTop: 8, gap: 10 },
