@@ -1,16 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
+declare const process:
+  | {
+      env: Record<string, string | undefined>;
+    }
+  | undefined;
+
 // SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY 형식(일반 Node/서버 환경)과
 // EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY 형식(Expo 환경) 모두 지원합니다.
-const env = ((globalThis as typeof globalThis & {
-  process?: { env: Record<string, string | undefined> };
-}).process?.env) ?? {};
-
 const supabaseUrl =
-  env.SUPABASE_URL ?? env.EXPO_PUBLIC_SUPABASE_URL;
+  (typeof process === 'undefined' ? undefined : process.env.SUPABASE_URL) ??
+  (typeof process === 'undefined'
+    ? undefined
+    : process.env.EXPO_PUBLIC_SUPABASE_URL);
 
 const supabaseKey =
-  env.SUPABASE_PUBLISHABLE_KEY ?? env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  (typeof process === 'undefined'
+    ? undefined
+    : process.env.SUPABASE_PUBLISHABLE_KEY) ??
+  (typeof process === 'undefined'
+    ? undefined
+    : process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error(
