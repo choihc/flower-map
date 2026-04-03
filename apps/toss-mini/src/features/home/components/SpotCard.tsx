@@ -3,6 +3,8 @@ import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { FlowerSpot } from '@flower-map/flower-domain';
 
+import { BloomArt } from '../../../shared/components/BloomArt';
+
 type SpotCardProps = {
   spot: FlowerSpot;
   onPress: (spot: FlowerSpot) => void;
@@ -14,15 +16,23 @@ const TONE_BADGE: Record<FlowerSpot['tone'], 'teal' | 'blue' | 'green'> = {
   yellow: 'teal',
 };
 
+const TONE_BG: Record<string, string> = {
+  pink: '#FBE8F0',
+  yellow: '#FBF0C0',
+  green: '#E8F5E9',
+};
+
 export function SpotCard({ spot, onPress }: SpotCardProps) {
+  const imageUri = spot.thumbnailUrl ?? spot.flowerThumbnailUrl;
+
   return (
     <Pressable style={styles.card} onPress={() => onPress(spot)}>
-      {spot.thumbnailUrl && (
-        <Image
-          source={{ uri: spot.thumbnailUrl }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+      {imageUri ? (
+        <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+      ) : (
+        <View style={[styles.image, { backgroundColor: TONE_BG[spot.tone] ?? '#FBE8F0', alignItems: 'center', justifyContent: 'center' }]}>
+          <BloomArt size="md" tone={spot.tone} />
+        </View>
       )}
       <View style={styles.body}>
         <View style={styles.row}>

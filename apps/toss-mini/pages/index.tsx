@@ -4,7 +4,7 @@ import { createRoute } from '@granite-js/react-native';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
-  getFeaturedSpots,
+  getAllSpots,
   getFlowerFilters,
   type FlowerSpot,
 } from '@flower-map/flower-domain';
@@ -22,8 +22,8 @@ function HomePage() {
   const [selectedFlower, setSelectedFlower] = useState<string | null>(null);
 
   const { data: spots = [], isPending: spotsPending } = useQuery({
-    queryKey: ['featured-spots'],
-    queryFn: () => getFeaturedSpots(20),
+    queryKey: ['all-spots'],
+    queryFn: () => getAllSpots(100),
   });
 
   const { data: filters = [] } = useQuery({

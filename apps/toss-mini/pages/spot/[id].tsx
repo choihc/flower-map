@@ -5,7 +5,15 @@ import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getSpotById } from '@flower-map/flower-domain';
 
+import { BloomArt } from '../../src/shared/components/BloomArt';
+
 import { useStorage } from '../../src/shared/hooks/useStorage';
+
+const TONE_BG: Record<string, string> = {
+  pink: '#FBE8F0',
+  yellow: '#FBF0C0',
+  green: '#E8F5E9',
+};
 
 export const Route = createRoute('/spot/:id', {
   validateParams: (params) => params as { id: string },
@@ -71,12 +79,16 @@ function SpotDetailPage() {
         </PageNavbar.AccessoryButtons>
       </PageNavbar>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {spot.thumbnailUrl && (
+        {(spot.thumbnailUrl ?? spot.flowerThumbnailUrl) ? (
           <Image
-            source={{ uri: spot.thumbnailUrl }}
+            source={{ uri: (spot.thumbnailUrl ?? spot.flowerThumbnailUrl)! }}
             style={styles.image}
             resizeMode="cover"
           />
+        ) : (
+          <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: TONE_BG[spot.tone] ?? '#FBE8F0' }]}>
+            <BloomArt size="lg" tone={spot.tone} />
+          </View>
         )}
         <View style={styles.body}>
           <View style={styles.badgeRow}>
@@ -143,6 +155,7 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#FFF5F8' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   image: { width: '100%', height: 260 },
+  imagePlaceholder: { alignItems: 'center', justifyContent: 'center' },
   body: { padding: 20, gap: 12 },
   badgeRow: { flexDirection: 'row', gap: 8 },
   place: { fontSize: 24, fontWeight: '800', color: '#3D1A27' },

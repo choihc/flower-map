@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { getFeaturedSpots, type FlowerSpot } from '@flower-map/flower-domain';
+import { getAllSpots, type FlowerSpot } from '@flower-map/flower-domain';
 
 import { SpotListItem } from '../src/features/search/components/SpotListItem';
 
@@ -16,8 +16,8 @@ function SearchPage() {
   const [query, setQuery] = useState('');
 
   const { data: spots = [], isPending } = useQuery({
-    queryKey: ['featured-spots'],
-    queryFn: () => getFeaturedSpots(100),
+    queryKey: ['all-spots'],
+    queryFn: () => getAllSpots(100),
   });
 
   const results = useMemo(() => {

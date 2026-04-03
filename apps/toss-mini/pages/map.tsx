@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { getFeaturedSpots, getFlowerFilters, type FlowerSpot } from '@flower-map/flower-domain';
+import { getAllSpots, getFlowerFilters, type FlowerSpot } from '@flower-map/flower-domain';
 
 import { NaverMapCanvas } from '../src/features/map/components/NaverMapCanvas';
 import { SpotSummaryCard } from '../src/features/map/components/SpotSummaryCard';
@@ -23,8 +23,8 @@ function MapPage() {
   const scrollRef = useRef<ScrollView>(null);
 
   const { data: spots = [], isPending } = useQuery({
-    queryKey: ['featured-spots'],
-    queryFn: () => getFeaturedSpots(20),
+    queryKey: ['all-spots'],
+    queryFn: () => getAllSpots(100),
   });
 
   const { data: filters = [] } = useQuery({
