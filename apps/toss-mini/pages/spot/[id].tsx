@@ -83,7 +83,7 @@ function SpotDetailPage() {
             <Badge size="small" type="red" badgeStyle="weak">
               {spot.flower}
             </Badge>
-            <Badge size="small" type="grey" badgeStyle="weak">
+            <Badge size="small" type="elephant" badgeStyle="weak">
               {spot.badge}
             </Badge>
           </View>
