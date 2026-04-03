@@ -14,6 +14,7 @@
     "@flower-map/flower-domain": "workspace:*",
     "@flower-map/storage-adapters": "workspace:*",
     "@flower-map/supabase": "workspace:*",
+    "@granite-js/plugin-env": "^1.0.10",
     "@granite-js/react-native": "^1.0.10",
     "@mj-studio/react-native-naver-map": "^2.7.0",
     "@tanstack/react-query": "^5.95.2",

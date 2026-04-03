@@ -6,15 +6,24 @@ declare const process:
     }
   | undefined;
 
-// SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY 형식(일반 Node/서버 환경)과
-// EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY 형식(Expo 환경) 모두 지원합니다.
+// Granite는 import.meta.env → global.__granite.meta.env 로 babel 변환 후
+// 폴리필로 값을 주입합니다. Expo는 process.env EXPO_PUBLIC_*, Node는 process.env 를 사용합니다.
+declare const global: {
+  __granite?: { meta?: { env?: Record<string, string | undefined> } };
+} & Record<string, unknown>;
+
+const graniteEnv =
+  typeof global !== 'undefined' ? global.__granite?.meta?.env : undefined;
+
 const supabaseUrl =
+  graniteEnv?.EXPO_PUBLIC_SUPABASE_URL ??
   (typeof process === 'undefined' ? undefined : process.env.SUPABASE_URL) ??
   (typeof process === 'undefined'
     ? undefined
     : process.env.EXPO_PUBLIC_SUPABASE_URL);
 
 const supabaseKey =
+  graniteEnv?.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
   (typeof process === 'undefined'
     ? undefined
     : process.env.SUPABASE_PUBLISHABLE_KEY) ??
