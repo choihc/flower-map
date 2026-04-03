@@ -4,7 +4,7 @@ import { env } from '@granite-js/plugin-env';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// .env.local 로드
+// .env.local 로드 (없으면 process.env fallback)
 const envLocalPath = path.resolve(__dirname, '.env.local');
 const envVars: Record<string, string> = {};
 if (fs.existsSync(envLocalPath)) {
@@ -16,6 +16,16 @@ if (fs.existsSync(envLocalPath)) {
     const key = trimmed.slice(0, eqIdx).trim();
     const value = trimmed.slice(eqIdx + 1).trim();
     if (key) envVars[key] = value;
+  }
+} else {
+  // CI/CD 등 배포 환경에서는 process.env에서 읽음
+  const keys = [
+    'EXPO_PUBLIC_SUPABASE_URL',
+    'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  ];
+  for (const key of keys) {
+    const value = process.env[key];
+    if (value) envVars[key] = value;
   }
 }
 
