@@ -28,3 +28,4 @@ android/
 
 # TypeScript
 *.tsbuildinfo
+.worktrees/
