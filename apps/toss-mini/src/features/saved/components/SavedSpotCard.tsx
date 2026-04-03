@@ -1,7 +1,13 @@
-import { Badge, Button } from '@toss/tds-react-native';
-import React from 'react';
+import { Badge, Icon } from '@toss/tds-react-native';
+import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { FlowerSpot } from '@flower-map/flower-domain';
+
+const TONE_BG: Record<string, string> = {
+  pink: '#FBE8F0',
+  yellow: '#FBF0C0',
+  green: '#E8F5E9',
+};
 
 type SavedSpotCardProps = {
   spot: FlowerSpot;
@@ -10,32 +16,33 @@ type SavedSpotCardProps = {
 };
 
 export function SavedSpotCard({ spot, onPress, onRemove }: SavedSpotCardProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const uri = spot.thumbnailUrl ?? spot.flowerThumbnailUrl;
+
   return (
     <Pressable style={styles.card} onPress={() => onPress(spot)}>
-      {spot.thumbnailUrl && (
+      {uri && !imgFailed ? (
         <Image
-          source={{ uri: spot.thumbnailUrl }}
+          source={{ uri }}
           style={styles.image}
           resizeMode="cover"
+          onError={() => setImgFailed(true)}
         />
+      ) : (
+        <View style={[styles.image, { backgroundColor: TONE_BG[spot.tone] ?? '#FBE8F0' }]} />
       )}
       <View style={styles.body}>
-        <View style={styles.row}>
-          <Badge size="small" type="green" badgeStyle="weak">
-            {spot.flower}
-          </Badge>
-        </View>
-        <Text style={styles.place}>{spot.place}</Text>
+        <Badge size="small" type="red" badgeStyle="weak">{spot.flower}</Badge>
+        <Text style={styles.place} numberOfLines={1}>{spot.place}</Text>
         <Text style={styles.meta}>{spot.location} · {spot.bloomStatus}</Text>
       </View>
-      <Button
-        size="tiny"
-        type="danger"
-        style="weak"
+      <Pressable
+        style={styles.deleteBtn}
         onPress={() => onRemove(spot.id)}
+        hitSlop={8}
       >
-        삭제
-      </Button>
+        <Icon name="icon-x-circle-mono" size={22} color="#C45C7E" />
+      </Pressable>
     </Pressable>
   );
 }
@@ -60,10 +67,12 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 10,
-    backgroundColor: '#E8F5E9',
   },
   body: { flex: 1, gap: 4 },
-  row: { flexDirection: 'row' },
-  place: { fontSize: 15, fontWeight: '600', color: '#142218' },
-  meta: { fontSize: 12, color: '#888' },
+  place: { fontSize: 15, fontWeight: '600', color: '#3D1A27' },
+  meta: { fontSize: 12, color: '#8B5A6E' },
+  deleteBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
