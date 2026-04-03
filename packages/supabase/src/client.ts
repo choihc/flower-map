@@ -32,9 +32,10 @@ const supabaseKey =
     : process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error(
-    'Supabase 환경 변수가 필요합니다: SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY 또는 EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+  console.error(
+    '[Supabase] 환경 변수 누락: SUPABASE_URL 또는 SUPABASE_PUBLISHABLE_KEY가 없습니다.',
+    { supabaseUrl, supabaseKey }
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl ?? '', supabaseKey ?? '');
