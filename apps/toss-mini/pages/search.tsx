@@ -3,9 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { getFeaturedSpots, getFlowerFilters, type FlowerSpot } from '@flower-map/flower-domain';
+import { getFeaturedSpots, type FlowerSpot } from '@flower-map/flower-domain';
 
-import { FlowerFilterChips } from '../src/features/home/components/FlowerFilterChips';
 import { SpotListItem } from '../src/features/search/components/SpotListItem';
 
 export const Route = createRoute('/search', {
@@ -15,43 +14,22 @@ export const Route = createRoute('/search', {
 function SearchPage() {
   const navigation = Route.useNavigation();
   const [query, setQuery] = useState('');
-  const [selectedFlower, setSelectedFlower] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   const { data: spots = [], isPending } = useQuery({
     queryKey: ['featured-spots'],
     queryFn: () => getFeaturedSpots(100),
   });
 
-  const { data: filters = [] } = useQuery({
-    queryKey: ['flower-filters'],
-    queryFn: getFlowerFilters,
-  });
-
-  const locationFilters = useMemo(
-    () => Array.from(new Set(spots.map((s) => s.location))).filter(Boolean),
-    [spots],
-  );
-
   const results = useMemo(() => {
-    let list = spots;
-    if (selectedFlower) {
-      list = list.filter((s) => s.flower === selectedFlower);
-    }
-    if (selectedLocation) {
-      list = list.filter((s) => s.location === selectedLocation);
-    }
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      list = list.filter(
-        (s) =>
-          s.place.toLowerCase().includes(q) ||
-          s.location.toLowerCase().includes(q) ||
-          (s.description?.toLowerCase().includes(q) ?? false),
-      );
-    }
-    return list;
-  }, [spots, query, selectedFlower, selectedLocation]);
+    if (!query.trim()) return spots;
+    const q = query.trim().toLowerCase();
+    return spots.filter(
+      (s) =>
+        s.place.toLowerCase().includes(q) ||
+        s.location.toLowerCase().includes(q) ||
+        (s.description?.toLowerCase().includes(q) ?? false),
+    );
+  }, [spots, query]);
 
   const handlePress = (spot: FlowerSpot) => {
     navigation.navigate('/spot/:id' as never, { id: spot.id } as never);
@@ -68,16 +46,6 @@ function SearchPage() {
           onClear={() => setQuery('')}
         />
       </View>
-      <FlowerFilterChips
-        filters={filters}
-        selected={selectedFlower}
-        onSelect={setSelectedFlower}
-      />
-      <FlowerFilterChips
-        filters={locationFilters}
-        selected={selectedLocation}
-        onSelect={setSelectedLocation}
-      />
       {isPending ? (
         <View style={styles.center}>
           <Loader size="medium" type="primary" />
