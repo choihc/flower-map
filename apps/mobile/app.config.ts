@@ -25,7 +25,13 @@ const withLocalProperties: ConfigPlugin = (config) => {
 const config: ExpoConfig = {
   name: '꽃 어디',
   slug: 'kkoteodi',
-  version: '1.0.0',
+  version: '1.0.1',
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    url: 'https://u.expo.dev/c4af274d-b7c9-4d43-a479-00e6ae4d1944',
+  },
   orientation: 'portrait',
   icon: './assets/images/kkoticon.png',
   scheme: 'kkoteodi',
