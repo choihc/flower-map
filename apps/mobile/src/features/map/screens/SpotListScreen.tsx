@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -83,6 +83,11 @@ export function SpotListScreen() {
       <SectionCard title={sectionTitle}>
         {visibleSpots.slice(0, 5).map((spot) => (
           <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.slug}`)} style={styles.spotRow}>
+            {spot.thumbnailUrl || spot.flowerThumbnailUrl ? (
+              <Image source={{ uri: (spot.thumbnailUrl || spot.flowerThumbnailUrl)! }} style={styles.spotThumbnail} />
+            ) : (
+              <View style={styles.spotThumbnailPlaceholder} />
+            )}
             <View style={styles.spotContent}>
               <Text style={styles.spotTitle}>{spot.place}</Text>
               <Text style={styles.spotMeta}>
@@ -101,6 +106,11 @@ export function SpotListScreen() {
         <SectionCard>
           {visibleSpots.slice(5).map((spot) => (
             <Pressable key={spot.id} onPress={() => router.push(`/spot/${spot.slug}`)} style={styles.spotRow}>
+              {spot.thumbnailUrl || spot.flowerThumbnailUrl ? (
+                <Image source={{ uri: (spot.thumbnailUrl || spot.flowerThumbnailUrl)! }} style={styles.spotThumbnail} />
+              ) : (
+                <View style={styles.spotThumbnailPlaceholder} />
+              )}
               <View style={styles.spotContent}>
                 <Text style={styles.spotTitle}>{spot.place}</Text>
                 <Text style={styles.spotMeta}>
@@ -256,6 +266,17 @@ const styles = StyleSheet.create({
   },
   spotContent: {
     flex: 1,
+  },
+  spotThumbnail: {
+    borderRadius: 10,
+    height: 56,
+    width: 56,
+  },
+  spotThumbnailPlaceholder: {
+    backgroundColor: colors.cardAlt,
+    borderRadius: 10,
+    height: 56,
+    width: 56,
   },
   spotHelper: {
     color: colors.textMuted,

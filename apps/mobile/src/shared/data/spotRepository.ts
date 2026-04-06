@@ -10,17 +10,13 @@ export const spotKeys = {
 export function toRegionSummary(regionSecondary: string) {
   const primaryRegion = regionSecondary.split(' ')[0];
 
-  if (primaryRegion === '서울' || primaryRegion === '경기') {
-    return '서울/경기';
-  }
-
   return primaryRegion ?? regionSecondary;
 }
 
 export async function getPublishedSpots(): Promise<FlowerSpot[]> {
   const { data, error } = await supabase
     .from('spots')
-    .select('*, flower:flowers(name_ko, thumbnail_url)')
+    .select('*, flower:flowers(name_ko, thumbnail_url, is_active)')
     .eq('status', 'published')
     .order('display_order', { ascending: true });
 
@@ -32,7 +28,7 @@ export async function getPublishedSpots(): Promise<FlowerSpot[]> {
 export async function getPublishedSpotBySlug(slug: string): Promise<FlowerSpot | undefined> {
   const { data, error } = await supabase
     .from('spots')
-    .select('*, flower:flowers(name_ko, thumbnail_url)')
+    .select('*, flower:flowers(name_ko, thumbnail_url, is_active)')
     .eq('status', 'published')
     .eq('slug', slug)
     .maybeSingle();
@@ -67,6 +63,7 @@ export function deriveFlowerLabels(spots: FlowerSpot[]): string[] {
 
   const bestScoreByFlower = new Map<string, number>();
   for (const spot of spots) {
+    if (!spot.flowerIsActive) continue;
     const score = bloomProximityScore(spot, today);
     const existing = bestScoreByFlower.get(spot.flower);
     if (existing === undefined || score < existing) {

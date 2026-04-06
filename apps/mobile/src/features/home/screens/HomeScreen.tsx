@@ -286,7 +286,7 @@ export function HomeScreen() {
         ))}
       </View>
       {orderedSpots.length > 5 && (
-        <Pressable onPress={() => router.push('/list')} style={styles.viewAllButton}>
+        <Pressable onPress={() => router.push('/(tabs)/search')} style={styles.viewAllButton}>
           <Text style={styles.viewAllButtonText}>전체 명소 보기 ({orderedSpots.length}곳)</Text>
         </Pressable>
       )}
@@ -322,7 +322,7 @@ export function HomeScreen() {
         {regionSummaries.map((item, index) => (
           <Pressable
             key={item}
-            onPress={() => router.push({ pathname: '/list', params: { region: item } })}
+            onPress={() => router.push({ pathname: '/(tabs)/search', params: { query: item } })}
             style={[styles.regionTile, index % 2 === 0 ? styles.regionTileTall : null]}
           >
             <Text style={styles.regionTitle}>{item}</Text>

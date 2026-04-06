@@ -262,9 +262,19 @@ export function SpotForm({ defaultValue, flowers, submitAction, spotId, initialP
           </div>
           <div className="space-y-2">
             <label htmlFor="spot-short-tip" className="text-sm font-medium text-foreground">
-              짧은 팁
+              운영 팁
             </label>
-            <Textarea id="spot-short-tip" name="short_tip" defaultValue={defaultValue?.short_tip ?? ''} required />
+            <Textarea
+              id="spot-short-tip"
+              name="short_tip"
+              defaultValue={defaultValue?.short_tip ?? ''}
+              placeholder={'주말 오후보다 평일 오전이 비교적 한산한 편이에요.\n대표 포토 포인트는 입구보다 안쪽 산책로 구간에 몰려 있어요.'}
+              rows={4}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              줄바꿈(Enter)으로 구분하면 앱에서 항목별로 표시됩니다.
+            </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

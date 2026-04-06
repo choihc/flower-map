@@ -96,13 +96,12 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
 
       <SectionCard title="소개">
         <Text style={styles.bodyText}>{spot.description}</Text>
-        <Text style={styles.supportText}>{spot.helper}</Text>
       </SectionCard>
 
-      <SectionCard title="운영 팁">
-        <DetailTip text="주말 오후보다 평일 오전이 비교적 한산한 편이에요." />
-        <DetailTip text="대표 포토 포인트는 입구보다 안쪽 산책로 구간에 몰려 있어요." />
-        <DetailTip text="축제 기간에는 도보 이동 중심으로 동선을 잡는 편이 편합니다." />
+      <SectionCard title="팁">
+        {spot.helper.split('\n').filter(Boolean).map((tip, index) => (
+          <DetailTip key={index} text={tip} />
+        ))}
       </SectionCard>
 
       <SectionCard title="비슷한 꽃 명소">
