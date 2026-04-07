@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild `apps/admin` into a polished, Toss-inspired dashboard admin with shadcn/ui primitives, a real dashboard home, and refined CRUD/import surfaces without changing the existing data model.
+**Goal:** Rebuild `apps/web` into a polished, Toss-inspired dashboard admin with shadcn/ui primitives, a real dashboard home, and refined CRUD/import surfaces without changing the existing data model.
 
-**Architecture:** Introduce a small design-system layer inside `apps/admin/src/components/ui` and `apps/admin/src/features/dashboard`, then recompose all admin routes around a shared sidebar + topbar shell. Keep existing server actions and data helpers, but move presentation into dashboard-grade sections, metric panels, structured forms, and dense data lists.
+**Architecture:** Introduce a small design-system layer inside `apps/web/src/components/ui` and `apps/web/src/features/dashboard`, then recompose all admin routes around a shared sidebar + topbar shell. Keep existing server actions and data helpers, but move presentation into dashboard-grade sections, metric panels, structured forms, and dense data lists.
 
 **Tech Stack:** Next.js App Router, React 19, TypeScript, shadcn/ui-style component primitives, Tailwind CSS, Supabase SSR/Auth, Vitest
 
@@ -12,71 +12,71 @@
 
 ## File Map
 
-- Modify: `apps/admin/package.json`
-- Modify: `apps/admin/tsconfig.json`
-- Modify: `apps/admin/app/layout.tsx`
-- Modify: `apps/admin/app/page.tsx`
-- Modify: `apps/admin/app/login/page.tsx`
-- Modify: `apps/admin/app/(dashboard)/layout.tsx`
-- Modify: `apps/admin/app/(dashboard)/flowers/page.tsx`
-- Modify: `apps/admin/app/(dashboard)/spots/page.tsx`
-- Modify: `apps/admin/app/(dashboard)/spots/import/page.tsx`
-- Modify: `apps/admin/src/features/dashboard/DashboardShell.tsx`
-- Modify: `apps/admin/src/features/dashboard/DashboardShell.test.tsx`
-- Modify: `apps/admin/src/features/flowers/FlowerForm.tsx`
-- Modify: `apps/admin/src/features/spots/SpotForm.tsx`
-- Modify: `apps/admin/src/features/import/ImportConsole.tsx`
-- Modify: `apps/admin/src/features/import/ImportConsole.test.tsx`
-- Create: `apps/admin/postcss.config.js`
-- Create: `apps/admin/components.json`
-- Create: `apps/admin/app/globals.css`
-- Create: `apps/admin/src/lib/utils.ts`
-- Create: `apps/admin/src/components/ui/button.tsx`
-- Create: `apps/admin/src/components/ui/card.tsx`
-- Create: `apps/admin/src/components/ui/input.tsx`
-- Create: `apps/admin/src/components/ui/textarea.tsx`
-- Create: `apps/admin/src/components/ui/select.tsx`
-- Create: `apps/admin/src/components/ui/badge.tsx`
-- Create: `apps/admin/src/components/ui/separator.tsx`
-- Create: `apps/admin/src/components/ui/table.tsx`
-- Create: `apps/admin/src/components/ui/sheet.tsx`
-- Create: `apps/admin/src/features/dashboard/AdminSidebar.tsx`
-- Create: `apps/admin/src/features/dashboard/AdminTopbar.tsx`
-- Create: `apps/admin/src/features/dashboard/MetricCard.tsx`
-- Create: `apps/admin/src/features/dashboard/SectionHeader.tsx`
-- Create: `apps/admin/src/features/dashboard/StatusBadge.tsx`
-- Create: `apps/admin/src/features/dashboard/FormSection.tsx`
-- Create: `apps/admin/src/features/dashboard/QuickActionPanel.tsx`
-- Create: `apps/admin/src/features/dashboard/DataListTable.tsx`
-- Create: `apps/admin/src/features/dashboard/DashboardHome.tsx`
-- Test: `apps/admin/src/features/dashboard/AdminSidebar.test.tsx`
-- Test: `apps/admin/src/features/dashboard/DashboardHome.test.tsx`
-- Test: `apps/admin/src/features/dashboard/StatusBadge.test.tsx`
+- Modify: `apps/web/package.json`
+- Modify: `apps/web/tsconfig.json`
+- Modify: `apps/web/app/layout.tsx`
+- Modify: `apps/web/app/page.tsx`
+- Modify: `apps/web/app/login/page.tsx`
+- Modify: `apps/web/app/(dashboard)/layout.tsx`
+- Modify: `apps/web/app/(dashboard)/flowers/page.tsx`
+- Modify: `apps/web/app/(dashboard)/spots/page.tsx`
+- Modify: `apps/web/app/(dashboard)/spots/import/page.tsx`
+- Modify: `apps/web/src/features/dashboard/DashboardShell.tsx`
+- Modify: `apps/web/src/features/dashboard/DashboardShell.test.tsx`
+- Modify: `apps/web/src/features/flowers/FlowerForm.tsx`
+- Modify: `apps/web/src/features/spots/SpotForm.tsx`
+- Modify: `apps/web/src/features/import/ImportConsole.tsx`
+- Modify: `apps/web/src/features/import/ImportConsole.test.tsx`
+- Create: `apps/web/postcss.config.js`
+- Create: `apps/web/components.json`
+- Create: `apps/web/app/globals.css`
+- Create: `apps/web/src/lib/utils.ts`
+- Create: `apps/web/src/components/ui/button.tsx`
+- Create: `apps/web/src/components/ui/card.tsx`
+- Create: `apps/web/src/components/ui/input.tsx`
+- Create: `apps/web/src/components/ui/textarea.tsx`
+- Create: `apps/web/src/components/ui/select.tsx`
+- Create: `apps/web/src/components/ui/badge.tsx`
+- Create: `apps/web/src/components/ui/separator.tsx`
+- Create: `apps/web/src/components/ui/table.tsx`
+- Create: `apps/web/src/components/ui/sheet.tsx`
+- Create: `apps/web/src/features/dashboard/AdminSidebar.tsx`
+- Create: `apps/web/src/features/dashboard/AdminTopbar.tsx`
+- Create: `apps/web/src/features/dashboard/MetricCard.tsx`
+- Create: `apps/web/src/features/dashboard/SectionHeader.tsx`
+- Create: `apps/web/src/features/dashboard/StatusBadge.tsx`
+- Create: `apps/web/src/features/dashboard/FormSection.tsx`
+- Create: `apps/web/src/features/dashboard/QuickActionPanel.tsx`
+- Create: `apps/web/src/features/dashboard/DataListTable.tsx`
+- Create: `apps/web/src/features/dashboard/DashboardHome.tsx`
+- Test: `apps/web/src/features/dashboard/AdminSidebar.test.tsx`
+- Test: `apps/web/src/features/dashboard/DashboardHome.test.tsx`
+- Test: `apps/web/src/features/dashboard/StatusBadge.test.tsx`
 
 ### Task 1: Install UI styling foundation and shared primitives
 
 **Files:**
-- Modify: `apps/admin/package.json`
-- Modify: `apps/admin/tsconfig.json`
-- Modify: `apps/admin/app/layout.tsx`
-- Create: `apps/admin/postcss.config.js`
-- Create: `apps/admin/components.json`
-- Create: `apps/admin/app/globals.css`
-- Create: `apps/admin/src/lib/utils.ts`
-- Create: `apps/admin/src/components/ui/button.tsx`
-- Create: `apps/admin/src/components/ui/card.tsx`
-- Create: `apps/admin/src/components/ui/input.tsx`
-- Create: `apps/admin/src/components/ui/textarea.tsx`
-- Create: `apps/admin/src/components/ui/select.tsx`
-- Create: `apps/admin/src/components/ui/badge.tsx`
-- Create: `apps/admin/src/components/ui/separator.tsx`
-- Create: `apps/admin/src/components/ui/table.tsx`
-- Test: `apps/admin/src/features/dashboard/DashboardShell.test.tsx`
+- Modify: `apps/web/package.json`
+- Modify: `apps/web/tsconfig.json`
+- Modify: `apps/web/app/layout.tsx`
+- Create: `apps/web/postcss.config.js`
+- Create: `apps/web/components.json`
+- Create: `apps/web/app/globals.css`
+- Create: `apps/web/src/lib/utils.ts`
+- Create: `apps/web/src/components/ui/button.tsx`
+- Create: `apps/web/src/components/ui/card.tsx`
+- Create: `apps/web/src/components/ui/input.tsx`
+- Create: `apps/web/src/components/ui/textarea.tsx`
+- Create: `apps/web/src/components/ui/select.tsx`
+- Create: `apps/web/src/components/ui/badge.tsx`
+- Create: `apps/web/src/components/ui/separator.tsx`
+- Create: `apps/web/src/components/ui/table.tsx`
+- Test: `apps/web/src/features/dashboard/DashboardShell.test.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardShell.test.tsx
+// apps/web/src/features/dashboard/DashboardShell.test.tsx
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -108,20 +108,20 @@ describe('DashboardShell', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
 Expected: FAIL because `DashboardShell` does not yet accept `description` and `actions`, and the new navigation structure does not exist.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```tsx
-// apps/admin/src/lib/utils.ts
+// apps/web/src/lib/utils.ts
 export function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ');
 }
 ```
 
 ```tsx
-// apps/admin/src/components/ui/button.tsx
+// apps/web/src/components/ui/button.tsx
 import type { ButtonHTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -140,7 +140,7 @@ export function Button({ className, ...props }: ButtonHTMLAttributes<HTMLButtonE
 ```
 
 ```tsx
-// apps/admin/src/components/ui/card.tsx
+// apps/web/src/components/ui/card.tsx
 import type { HTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -151,7 +151,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 ```
 
 ```tsx
-// apps/admin/app/layout.tsx
+// apps/web/app/layout.tsx
 import './globals.css';
 
 import type { ReactNode } from 'react';
@@ -166,7 +166,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 ```
 
 ```css
-/* apps/admin/app/globals.css */
+/* apps/web/app/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -191,7 +191,7 @@ body {
 ```
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardShell.tsx
+// apps/web/src/features/dashboard/DashboardShell.tsx
 import type { ReactNode } from 'react';
 
 import { AdminSidebar } from './AdminSidebar';
@@ -221,34 +221,34 @@ export function DashboardShell({ title, description, actions, children }: Dashbo
 
 - [ ] **Step 4: Add Tailwind and class-based styling dependencies**
 
-Run: `cd apps/admin && pnpm add -D tailwindcss postcss autoprefixer`
+Run: `cd apps/web && pnpm add -D tailwindcss postcss autoprefixer`
 Expected: PASS and `package.json` updates with the new dev dependencies.
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
 Expected: PASS with 1 passing test.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add apps/admin/package.json apps/admin/tsconfig.json apps/admin/postcss.config.js apps/admin/components.json apps/admin/app/layout.tsx apps/admin/app/globals.css apps/admin/src/lib/utils.ts apps/admin/src/components/ui apps/admin/src/features/dashboard/DashboardShell.tsx apps/admin/src/features/dashboard/DashboardShell.test.tsx
+git add apps/web/package.json apps/web/tsconfig.json apps/web/postcss.config.js apps/web/components.json apps/web/app/layout.tsx apps/web/app/globals.css apps/web/src/lib/utils.ts apps/web/src/components/ui apps/web/src/features/dashboard/DashboardShell.tsx apps/web/src/features/dashboard/DashboardShell.test.tsx
 git commit -m "feat: add admin design system foundation"
 ```
 
 ### Task 2: Build the Toss-style navigation shell
 
 **Files:**
-- Create: `apps/admin/src/features/dashboard/AdminSidebar.tsx`
-- Create: `apps/admin/src/features/dashboard/AdminTopbar.tsx`
-- Create: `apps/admin/src/features/dashboard/AdminSidebar.test.tsx`
-- Modify: `apps/admin/src/features/dashboard/DashboardShell.tsx`
-- Test: `apps/admin/src/features/dashboard/AdminSidebar.test.tsx`
+- Create: `apps/web/src/features/dashboard/AdminSidebar.tsx`
+- Create: `apps/web/src/features/dashboard/AdminTopbar.tsx`
+- Create: `apps/web/src/features/dashboard/AdminSidebar.test.tsx`
+- Modify: `apps/web/src/features/dashboard/DashboardShell.tsx`
+- Test: `apps/web/src/features/dashboard/AdminSidebar.test.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/dashboard/AdminSidebar.test.tsx
+// apps/web/src/features/dashboard/AdminSidebar.test.tsx
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -270,13 +270,13 @@ describe('AdminSidebar', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/AdminSidebar.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/AdminSidebar.test.tsx`
 Expected: FAIL because `AdminSidebar` does not exist yet.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```tsx
-// apps/admin/src/features/dashboard/AdminSidebar.tsx
+// apps/web/src/features/dashboard/AdminSidebar.tsx
 import Link from 'next/link';
 
 import { Card } from '@/components/ui/card';
@@ -315,7 +315,7 @@ export function AdminSidebar() {
 ```
 
 ```tsx
-// apps/admin/src/features/dashboard/AdminTopbar.tsx
+// apps/web/src/features/dashboard/AdminTopbar.tsx
 import type { ReactNode } from 'react';
 
 export function AdminTopbar({
@@ -344,33 +344,33 @@ export function AdminTopbar({
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/AdminSidebar.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/AdminSidebar.test.tsx`
 Expected: PASS with 1 passing test.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin/src/features/dashboard/AdminSidebar.tsx apps/admin/src/features/dashboard/AdminTopbar.tsx apps/admin/src/features/dashboard/AdminSidebar.test.tsx apps/admin/src/features/dashboard/DashboardShell.tsx
+git add apps/web/src/features/dashboard/AdminSidebar.tsx apps/web/src/features/dashboard/AdminTopbar.tsx apps/web/src/features/dashboard/AdminSidebar.test.tsx apps/web/src/features/dashboard/DashboardShell.tsx
 git commit -m "feat: add admin sidebar and topbar shell"
 ```
 
 ### Task 3: Turn `/` into a real dashboard home
 
 **Files:**
-- Create: `apps/admin/src/features/dashboard/MetricCard.tsx`
-- Create: `apps/admin/src/features/dashboard/QuickActionPanel.tsx`
-- Create: `apps/admin/src/features/dashboard/SectionHeader.tsx`
-- Create: `apps/admin/src/features/dashboard/StatusBadge.tsx`
-- Create: `apps/admin/src/features/dashboard/DashboardHome.tsx`
-- Create: `apps/admin/src/features/dashboard/DashboardHome.test.tsx`
-- Modify: `apps/admin/app/page.tsx`
-- Test: `apps/admin/src/features/dashboard/DashboardHome.test.tsx`
-- Test: `apps/admin/src/features/dashboard/StatusBadge.test.tsx`
+- Create: `apps/web/src/features/dashboard/MetricCard.tsx`
+- Create: `apps/web/src/features/dashboard/QuickActionPanel.tsx`
+- Create: `apps/web/src/features/dashboard/SectionHeader.tsx`
+- Create: `apps/web/src/features/dashboard/StatusBadge.tsx`
+- Create: `apps/web/src/features/dashboard/DashboardHome.tsx`
+- Create: `apps/web/src/features/dashboard/DashboardHome.test.tsx`
+- Modify: `apps/web/app/page.tsx`
+- Test: `apps/web/src/features/dashboard/DashboardHome.test.tsx`
+- Test: `apps/web/src/features/dashboard/StatusBadge.test.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardHome.test.tsx
+// apps/web/src/features/dashboard/DashboardHome.test.tsx
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -403,13 +403,13 @@ describe('DashboardHome', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardHome.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardHome.test.tsx`
 Expected: FAIL because `DashboardHome` and related dashboard UI pieces do not exist yet.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```tsx
-// apps/admin/src/features/dashboard/MetricCard.tsx
+// apps/web/src/features/dashboard/MetricCard.tsx
 import { Card } from '@/components/ui/card';
 
 export function MetricCard({ label, value }: { label: string; value: number }) {
@@ -423,7 +423,7 @@ export function MetricCard({ label, value }: { label: string; value: number }) {
 ```
 
 ```tsx
-// apps/admin/src/features/dashboard/StatusBadge.tsx
+// apps/web/src/features/dashboard/StatusBadge.tsx
 import { Badge } from '@/components/ui/badge';
 
 export function StatusBadge({ status }: { status: 'draft' | 'published' }) {
@@ -432,7 +432,7 @@ export function StatusBadge({ status }: { status: 'draft' | 'published' }) {
 ```
 
 ```tsx
-// apps/admin/src/features/dashboard/QuickActionPanel.tsx
+// apps/web/src/features/dashboard/QuickActionPanel.tsx
 import Link from 'next/link';
 
 import { Card } from '@/components/ui/card';
@@ -461,7 +461,7 @@ export function QuickActionPanel() {
 ```
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardHome.tsx
+// apps/web/src/features/dashboard/DashboardHome.tsx
 import { Card } from '@/components/ui/card';
 
 import { MetricCard } from './MetricCard';
@@ -516,7 +516,7 @@ export function DashboardHome({ metrics, recentSpots }: DashboardHomeProps) {
 ```
 
 ```tsx
-// apps/admin/app/page.tsx
+// apps/web/app/page.tsx
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { DashboardHome } from '@/features/dashboard/DashboardHome';
@@ -555,27 +555,27 @@ export default async function HomePage() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardHome.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardHome.test.tsx`
 Expected: PASS with 1 passing test.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin/src/features/dashboard/MetricCard.tsx apps/admin/src/features/dashboard/QuickActionPanel.tsx apps/admin/src/features/dashboard/SectionHeader.tsx apps/admin/src/features/dashboard/StatusBadge.tsx apps/admin/src/features/dashboard/DashboardHome.tsx apps/admin/src/features/dashboard/DashboardHome.test.tsx apps/admin/app/page.tsx
+git add apps/web/src/features/dashboard/MetricCard.tsx apps/web/src/features/dashboard/QuickActionPanel.tsx apps/web/src/features/dashboard/SectionHeader.tsx apps/web/src/features/dashboard/StatusBadge.tsx apps/web/src/features/dashboard/DashboardHome.tsx apps/web/src/features/dashboard/DashboardHome.test.tsx apps/web/app/page.tsx
 git commit -m "feat: add admin dashboard home"
 ```
 
 ### Task 4: Redesign the flowers screen into a management workspace
 
 **Files:**
-- Modify: `apps/admin/app/(dashboard)/flowers/page.tsx`
-- Modify: `apps/admin/src/features/flowers/FlowerForm.tsx`
-- Create: `apps/admin/src/features/dashboard/FormSection.tsx`
+- Modify: `apps/web/app/(dashboard)/flowers/page.tsx`
+- Modify: `apps/web/src/features/flowers/FlowerForm.tsx`
+- Create: `apps/web/src/features/dashboard/FormSection.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardShell.test.tsx
+// apps/web/src/features/dashboard/DashboardShell.test.tsx
 it('supports split-panel page content for management workspaces', () => {
   render(
     <DashboardShell title="꽃 관리" description="꽃 마스터를 관리합니다.">
@@ -591,13 +591,13 @@ it('supports split-panel page content for management workspaces', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
 Expected: FAIL until the updated shell layout still renders multi-panel content correctly after the design refactor.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```tsx
-// apps/admin/src/features/dashboard/FormSection.tsx
+// apps/web/src/features/dashboard/FormSection.tsx
 import type { ReactNode } from 'react';
 
 export function FormSection({
@@ -622,7 +622,7 @@ export function FormSection({
 ```
 
 ```tsx
-// apps/admin/src/features/flowers/FlowerForm.tsx
+// apps/web/src/features/flowers/FlowerForm.tsx
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -716,7 +716,7 @@ function normalizeOptionalText(value: FormDataEntryValue | null) {
 ```
 
 ```tsx
-// apps/admin/app/(dashboard)/flowers/page.tsx
+// apps/web/app/(dashboard)/flowers/page.tsx
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 
@@ -765,27 +765,27 @@ export default async function FlowersPage() {
 
 - [ ] **Step 4: Run targeted verification**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
 Expected: PASS and no regression in shell rendering.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin/app/\(dashboard\)/flowers/page.tsx apps/admin/src/features/flowers/FlowerForm.tsx apps/admin/src/features/dashboard/FormSection.tsx
+git add apps/web/app/\(dashboard\)/flowers/page.tsx apps/web/src/features/flowers/FlowerForm.tsx apps/web/src/features/dashboard/FormSection.tsx
 git commit -m "feat: redesign flowers management screen"
 ```
 
 ### Task 5: Redesign the spots screen into a dense operational workspace
 
 **Files:**
-- Modify: `apps/admin/app/(dashboard)/spots/page.tsx`
-- Modify: `apps/admin/src/features/spots/SpotForm.tsx`
-- Create: `apps/admin/src/features/dashboard/DataListTable.tsx`
+- Modify: `apps/web/app/(dashboard)/spots/page.tsx`
+- Modify: `apps/web/src/features/spots/SpotForm.tsx`
+- Create: `apps/web/src/features/dashboard/DataListTable.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardHome.test.tsx
+// apps/web/src/features/dashboard/DashboardHome.test.tsx
 it('renders draft and published spot metrics with the dashboard card style', () => {
   render(
     <DashboardHome
@@ -801,13 +801,13 @@ it('renders draft and published spot metrics with the dashboard card style', () 
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardHome.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardHome.test.tsx`
 Expected: FAIL until the dashboard metric card surface is in place and the page uses the new layout consistently.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```tsx
-// apps/admin/src/features/dashboard/DataListTable.tsx
+// apps/web/src/features/dashboard/DataListTable.tsx
 import type { ReactNode } from 'react';
 
 import { Card } from '@/components/ui/card';
@@ -834,7 +834,7 @@ export function DataListTable({
 ```
 
 ```tsx
-// apps/admin/src/features/spots/SpotForm.tsx
+// apps/web/src/features/spots/SpotForm.tsx
 // Preserve the current validation and submitAction logic, but wrap the form with:
 // - <Card className="rounded-[24px] px-6 py-6">
 // - <FormSection title="기본 정보" ... />
@@ -846,7 +846,7 @@ export function DataListTable({
 ```
 
 ```tsx
-// apps/admin/app/(dashboard)/spots/page.tsx
+// apps/web/app/(dashboard)/spots/page.tsx
 // Preserve existing Supabase reads and submitAction, but render:
 // - a KPI row using MetricCard for total/draft/published/featured
 // - a toolbar row with non-functional filter shells for 꽃 종류 / 상태 / 지역 / 검색
@@ -856,28 +856,28 @@ export function DataListTable({
 
 - [ ] **Step 4: Run targeted verification**
 
-Run: `cd apps/admin && pnpm test -- src/features/import/ImportConsole.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/import/ImportConsole.test.tsx`
 Expected: PASS and no import regressions.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin/app/\(dashboard\)/spots/page.tsx apps/admin/src/features/spots/SpotForm.tsx apps/admin/src/features/dashboard/DataListTable.tsx
+git add apps/web/app/\(dashboard\)/spots/page.tsx apps/web/src/features/spots/SpotForm.tsx apps/web/src/features/dashboard/DataListTable.tsx
 git commit -m "feat: redesign spots management workspace"
 ```
 
 ### Task 6: Redesign the JSON import screen and login surface
 
 **Files:**
-- Modify: `apps/admin/app/(dashboard)/spots/import/page.tsx`
-- Modify: `apps/admin/src/features/import/ImportConsole.tsx`
-- Modify: `apps/admin/src/features/import/ImportConsole.test.tsx`
-- Modify: `apps/admin/app/login/page.tsx`
+- Modify: `apps/web/app/(dashboard)/spots/import/page.tsx`
+- Modify: `apps/web/src/features/import/ImportConsole.tsx`
+- Modify: `apps/web/src/features/import/ImportConsole.test.tsx`
+- Modify: `apps/web/app/login/page.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/import/ImportConsole.test.tsx
+// apps/web/src/features/import/ImportConsole.test.tsx
 it('renders draft save and validation summaries in separate dashboard panels', () => {
   render(<ImportConsole />);
 
@@ -888,13 +888,13 @@ it('renders draft save and validation summaries in separate dashboard panels', (
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/features/import/ImportConsole.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/import/ImportConsole.test.tsx`
 Expected: FAIL until the import page uses the two-panel dashboard layout and still exposes both actions.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```tsx
-// apps/admin/src/features/import/ImportConsole.tsx
+// apps/web/src/features/import/ImportConsole.tsx
 // Preserve validation and importAction logic, but render:
 // - a desktop two-column grid
 // - left Card containing a large Textarea and the two action buttons
@@ -903,7 +903,7 @@ Expected: FAIL until the import page uses the two-panel dashboard layout and sti
 ```
 
 ```tsx
-// apps/admin/app/(dashboard)/spots/import/page.tsx
+// apps/web/app/(dashboard)/spots/import/page.tsx
 // Preserve existing slug loading and importAction wiring, but wrap the page in:
 // <DashboardShell
 //   title="JSON 등록"
@@ -912,7 +912,7 @@ Expected: FAIL until the import page uses the two-panel dashboard layout and sti
 ```
 
 ```tsx
-// apps/admin/app/login/page.tsx
+// apps/web/app/login/page.tsx
 // Replace the plain layout with a two-column auth composition:
 // - left: brand copy, short product description, and admin utility note
 // - right: Card-wrapped LoginForm with the existing redirect behavior preserved
@@ -920,20 +920,20 @@ Expected: FAIL until the import page uses the two-panel dashboard layout and sti
 
 - [ ] **Step 4: Run targeted verification**
 
-Run: `cd apps/admin && pnpm test -- src/features/import/ImportConsole.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/import/ImportConsole.test.tsx`
 Expected: PASS with all import console tests green.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin/app/\(dashboard\)/spots/import/page.tsx apps/admin/src/features/import/ImportConsole.tsx apps/admin/src/features/import/ImportConsole.test.tsx apps/admin/app/login/page.tsx
+git add apps/web/app/\(dashboard\)/spots/import/page.tsx apps/web/src/features/import/ImportConsole.tsx apps/web/src/features/import/ImportConsole.test.tsx apps/web/app/login/page.tsx
 git commit -m "feat: redesign import and login surfaces"
 ```
 
 ### Task 7: Final integration verification and documentation refresh
 
 **Files:**
-- Modify: `apps/admin/README.md`
+- Modify: `apps/web/README.md`
 
 - [ ] **Step 1: Update README for the new dashboard shell**
 
@@ -949,15 +949,15 @@ git commit -m "feat: redesign import and login surfaces"
 
 - [ ] **Step 2: Run full verification**
 
-Run: `cd apps/admin && pnpm test`
+Run: `cd apps/web && pnpm test`
 Expected: PASS with all admin Vitest suites green.
 
-Run: `cd apps/admin && NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=test-publishable-key SUPABASE_SECRET_KEY=test-secret-key pnpm build`
+Run: `cd apps/web && NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=test-publishable-key SUPABASE_SECRET_KEY=test-secret-key pnpm build`
 Expected: PASS with successful Next.js production build.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add apps/admin/README.md
+git add apps/web/README.md
 git commit -m "docs: refresh admin dashboard docs"
 ```

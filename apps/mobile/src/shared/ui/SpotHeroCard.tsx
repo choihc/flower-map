@@ -33,17 +33,22 @@ export function SpotHeroCard({
   const inner = (
     <>
       {hasImage && <View style={styles.shade} />}
-      <View style={styles.glowA} />
-      <View style={styles.glowB} />
 
-      <View style={styles.topRow}>
-        <View style={[styles.badgePill, isEnded && styles.badgePillEnded]}>
-          <Text style={[styles.badgeText, isEnded && styles.badgeTextEnded]}>{badge}</Text>
+      {/* 상단: 뱃지만 */}
+      <View style={styles.topSection}>
+        <View style={styles.topRow}>
+          <View style={[styles.badgePill, isEnded && styles.badgePillEnded]}>
+            <Text style={[styles.badgeText, isEnded && styles.badgeTextEnded]}>{badge}</Text>
+          </View>
+          {metaRight ? <Text style={[styles.metaRight, !hasImage && styles.metaRightDark]}>{metaRight}</Text> : null}
         </View>
-        {metaRight ? <Text style={[styles.metaRight, !hasImage && styles.metaRightDark]}>{metaRight}</Text> : null}
       </View>
 
-      <View style={[styles.body, hasImage && styles.bodyOverlay]}>
+      {/* 뱃지와 오버레이 사이 공간 */}
+      {hasImage && <View style={styles.imageSpacer} />}
+
+      {/* 하단: pills + 타이틀 + 설명 + 버튼 */}
+      <View style={[styles.body, hasImage ? styles.bodyOverlay : styles.bodyNoImage]}>
         {infoPills && infoPills.length > 0 && (
           <View style={styles.pillsRow}>
             {infoPills.map((pill) => (
@@ -56,6 +61,8 @@ export function SpotHeroCard({
 
         <Text style={[styles.title, !hasImage && styles.titleDark]}>{title}</Text>
         <Text style={[styles.description, !hasImage && styles.descriptionDark]}>{description}</Text>
+
+        <View style={styles.descriptionSpacer} />
 
         <View style={styles.actions}>
           <Pressable onPress={secondaryButton.onPress} style={[styles.secondaryButton, !hasImage && styles.secondaryButtonDark]}>
@@ -113,15 +120,23 @@ const styles = StyleSheet.create({
     color: '#8C7060',
   },
   body: {
-    justifyContent: 'flex-end',
-    minHeight: 300,
     width: '100%',
+  },
+  bodyNoImage: {
+    flex: 1,
   },
   bodyOverlay: {
     backgroundColor: 'rgba(18, 14, 12, 0.62)',
     borderRadius: 20,
-    marginTop: 12,
+    minHeight: 300,
     padding: 16,
+  },
+  descriptionSpacer: {
+    flex: 1,
+  },
+  imageSpacer: {
+    flex: 1,
+    minHeight: 16,
   },
   card: {
     borderRadius: 34,
@@ -150,24 +165,6 @@ const styles = StyleSheet.create({
   descriptionDark: {
     color: colors.text,
   },
-  glowA: {
-    backgroundColor: 'rgba(247, 214, 216, 0.28)',
-    borderRadius: 999,
-    height: 160,
-    position: 'absolute',
-    right: -30,
-    top: -14,
-    width: 160,
-  },
-  glowB: {
-    backgroundColor: 'rgba(248, 234, 193, 0.18)',
-    borderRadius: 999,
-    bottom: -46,
-    height: 124,
-    position: 'absolute',
-    right: 74,
-    width: 124,
-  },
   imageInner: {
     borderRadius: 34,
   },
@@ -182,13 +179,13 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     borderWidth: 0,
   },
-  infoPillTextOnImage: {
-    color: colors.secondaryDeep,
-  },
   infoPillText: {
     color: colors.text,
     fontSize: 12,
     fontWeight: '600',
+  },
+  infoPillTextOnImage: {
+    color: colors.secondaryDeep,
   },
   metaRight: {
     color: '#FFFFFF',
@@ -256,5 +253,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  topSection: {
+    zIndex: 1,
   },
 });

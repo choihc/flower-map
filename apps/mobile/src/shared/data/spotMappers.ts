@@ -116,6 +116,7 @@ export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpo
     fee: row.admission_fee ?? '정보 없음',
     festivalDate: formatDateRange(row.festival_start_at, row.festival_end_at),
     flower: row.flower.name_ko,
+    flowerIsActive: row.flower.is_active,
     helper: row.short_tip,
     latitude: row.latitude,
     longitude: row.longitude,

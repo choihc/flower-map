@@ -8,7 +8,7 @@ import { NaverMapCanvas } from '../NaverMapCanvas';
 // 폴백 플레이스홀더가 렌더링된다.
 describe('NaverMapCanvas', () => {
   it('네이티브 모듈 미지원 시 폴백 플레이스홀더를 렌더링합니다', () => {
-    let renderer: TestRenderer.ReactTestRenderer;
+    let renderer: any;
     act(() => {
       renderer = TestRenderer.create(
         <NaverMapCanvas

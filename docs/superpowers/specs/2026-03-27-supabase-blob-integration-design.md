@@ -58,10 +58,10 @@ src/lib/blob/uploadStatus.ts ← HTTP 상태코드 매핑 (변경 없음)
 
 | 파일 | 종류 | 설명 |
 |------|------|------|
-| `apps/admin/package.json` | 수정 | `@vercel/blob` 추가 |
-| `apps/admin/src/lib/blob/uploadImage.ts` | 수정 | 스텁 → `put()` 실제 구현 |
-| `apps/admin/src/lib/blob/uploadImage.test.ts` | 수정 | `vi.mock('@vercel/blob')`으로 재작성 |
-| `apps/admin/src/features/spots/SpotForm.tsx` | 수정 | `thumbnail_url` 텍스트 인풋 → `ImageUploader` 컴포넌트 교체 |
+| `apps/web/package.json` | 수정 | `@vercel/blob` 추가 |
+| `apps/web/src/lib/blob/uploadImage.ts` | 수정 | 스텁 → `put()` 실제 구현 |
+| `apps/web/src/lib/blob/uploadImage.test.ts` | 수정 | `vi.mock('@vercel/blob')`으로 재작성 |
+| `apps/web/src/features/spots/SpotForm.tsx` | 수정 | `thumbnail_url` 텍스트 인풋 → `ImageUploader` 컴포넌트 교체 |
 
 ### uploadImage.ts 구현
 

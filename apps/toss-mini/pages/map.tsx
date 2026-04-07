@@ -1,5 +1,4 @@
 import { Loader, PageNavbar } from '@toss/tds-react-native';
-import { InlineAd } from '@apps-in-toss/framework';
 import { useQuery } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React, { useRef, useState } from 'react';
@@ -9,6 +8,7 @@ import { getAllSpots, getFlowerFilters, type FlowerSpot } from '@flower-map/flow
 import { NaverMapCanvas } from '../src/features/map/components/NaverMapCanvas';
 import { SpotSummaryCard } from '../src/features/map/components/SpotSummaryCard';
 import { FlowerFilterChips } from '../src/features/home/components/FlowerFilterChips';
+import { SafeInlineAd } from '../src/shared/components/SafeInlineAd';
 
 export const Route = createRoute('/map', {
   component: MapPage,
@@ -25,7 +25,7 @@ function MapPage() {
 
   const { data: spots = [], isPending } = useQuery({
     queryKey: ['all-spots'],
-    queryFn: () => getAllSpots(100),
+    queryFn: getAllSpots,
   });
 
   const { data: filters = [] } = useQuery({
@@ -48,7 +48,7 @@ function MapPage() {
   };
 
   const handleCardPress = (spot: FlowerSpot) => {
-    navigation.navigate('/spot/:id' as never, { id: spot.id } as never);
+    navigation.navigate('/spot/:id', { id: spot.id });
   };
 
   if (isPending) {
@@ -90,8 +90,8 @@ function MapPage() {
           />
         ))}
       </ScrollView>
-      <InlineAd
-        adId="ait-ad-test-banner-id"
+      <SafeInlineAd
+        adGroupId="ait-ad-test-banner-id"
         impressFallbackOnMount={true}
         style={styles.mapBanner}
       />

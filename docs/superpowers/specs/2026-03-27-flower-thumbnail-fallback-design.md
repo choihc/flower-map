@@ -39,11 +39,11 @@ ALTER TABLE flowers ADD COLUMN thumbnail_url text;
 
 | 파일 | 변경 내용 |
 |------|----------|
-| `apps/admin/src/lib/types.ts` | `FlowerRow`에 `thumbnail_url: string \| null`, `FlowerInsert`에 `thumbnail_url?: string \| null` 추가 |
-| `apps/admin/src/features/flowers/flowerSchema.ts` | `thumbnail_url` 선택 필드 추가 |
-| `apps/admin/src/features/flowers/flowerSchema.test.ts` | 새 필드 관련 케이스 업데이트 |
-| `apps/admin/src/features/flowers/FlowerForm.tsx` | `ImageUploader` 컴포넌트 추가 |
-| `apps/admin/src/lib/data/flowers.ts` | insert/update 쿼리에 `thumbnail_url` 포함 |
+| `apps/web/src/lib/types.ts` | `FlowerRow`에 `thumbnail_url: string \| null`, `FlowerInsert`에 `thumbnail_url?: string \| null` 추가 |
+| `apps/web/src/features/flowers/flowerSchema.ts` | `thumbnail_url` 선택 필드 추가 |
+| `apps/web/src/features/flowers/flowerSchema.test.ts` | 새 필드 관련 케이스 업데이트 |
+| `apps/web/src/features/flowers/FlowerForm.tsx` | `ImageUploader` 컴포넌트 추가 |
+| `apps/web/src/lib/data/flowers.ts` | insert/update 쿼리에 `thumbnail_url` 포함 |
 
 `ImageUploader`는 스팟 폼과 동일하게 `/api/upload` 엔드포인트를 사용한다. `ImageUploader`의 hidden input `name="thumbnail_url"`이 이미 하드코딩되어 있어 꽃 폼에서도 그대로 재사용 가능하다 (flowers 테이블도 동일한 컬럼명 사용).
 

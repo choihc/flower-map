@@ -8,8 +8,10 @@ export const Storage = {
   removeItem: vi.fn(async (_key: string): Promise<void> => {}),
 };
 
-export const InlineAd = vi.fn(({ adId: _adId, impressFallbackOnMount: _imp, style }: {
-  adId: string;
+export const getTossAppVersion = vi.fn(() => '5.254.0');
+
+export const InlineAd = vi.fn(({ adGroupId: _adGroupId, impressFallbackOnMount: _imp, style }: {
+  adGroupId: string;
   impressFallbackOnMount?: boolean;
   style?: object;
 }) => React.createElement(View, { style, testID: 'InlineAd' }));

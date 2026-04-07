@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Supabase Auth 가입 후 `user_id` 기준으로 admin 권한을 부여하고, admin 사용자만 `apps/admin`과 관리용 테이블에 접근할 수 있게 만든다.
+**Goal:** Supabase Auth 가입 후 `user_id` 기준으로 admin 권한을 부여하고, admin 사용자만 `apps/web`과 관리용 테이블에 접근할 수 있게 만든다.
 
 **Architecture:** `public.admin_users`를 권한 소스로 추가하고, 앱 레벨에서는 공통 admin 판별 헬퍼를 통해 로그인/레이아웃/미들웨어를 보호한다. DB 레벨에서는 RLS를 admin 전용으로 재정의해 우회 접근도 막는다.
 
@@ -14,15 +14,15 @@
 
 **Files:**
 - Create: `supabase/migrations/20260327_admin_access_control.sql`
-- Modify: `apps/admin/src/lib/types.ts`
+- Modify: `apps/web/src/lib/types.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-`apps/admin/src/lib/auth/admin.test.ts`에서 `admin_users` 조회 결과에 따라 admin 여부가 갈리는 테스트를 추가합니다.
+`apps/web/src/lib/auth/admin.test.ts`에서 `admin_users` 조회 결과에 따라 admin 여부가 갈리는 테스트를 추가합니다.
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/lib/auth/admin.test.ts`
+Run: `cd apps/web && pnpm test -- src/lib/auth/admin.test.ts`
 Expected: FAIL because the auth helper does not exist yet.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -31,19 +31,19 @@ Expected: FAIL because the auth helper does not exist yet.
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd apps/admin && pnpm test -- src/lib/auth/admin.test.ts`
+Run: `cd apps/web && pnpm test -- src/lib/auth/admin.test.ts`
 Expected: PASS
 
 ### Task 2: Enforce admin-only app access
 
 **Files:**
-- Create: `apps/admin/src/lib/auth/admin.ts`
-- Create: `apps/admin/app/(dashboard)/layout.test.tsx`
-- Modify: `apps/admin/app/(dashboard)/layout.tsx`
-- Modify: `apps/admin/app/login/page.tsx`
-- Modify: `apps/admin/app/login/page.test.tsx`
-- Modify: `apps/admin/middleware.ts`
-- Modify: `apps/admin/src/lib/supabase/server.ts`
+- Create: `apps/web/src/lib/auth/admin.ts`
+- Create: `apps/web/app/(dashboard)/layout.test.tsx`
+- Modify: `apps/web/app/(dashboard)/layout.tsx`
+- Modify: `apps/web/app/login/page.tsx`
+- Modify: `apps/web/app/login/page.test.tsx`
+- Modify: `apps/web/middleware.ts`
+- Modify: `apps/web/src/lib/supabase/server.ts`
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -51,7 +51,7 @@ Expected: PASS
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd apps/admin && pnpm test -- app/login/page.test.tsx 'app/(dashboard)/layout.test.tsx'`
+Run: `cd apps/web && pnpm test -- app/login/page.test.tsx 'app/(dashboard)/layout.test.tsx'`
 Expected: FAIL because admin access checks are not implemented.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -60,13 +60,13 @@ Expected: FAIL because admin access checks are not implemented.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd apps/admin && pnpm test -- app/login/page.test.tsx 'app/(dashboard)/layout.test.tsx'`
+Run: `cd apps/web && pnpm test -- app/login/page.test.tsx 'app/(dashboard)/layout.test.tsx'`
 Expected: PASS
 
 ### Task 3: Document grant flow
 
 **Files:**
-- Modify: `apps/admin/README.md`
+- Modify: `apps/web/README.md`
 
 - [ ] **Step 1: Update docs**
 
@@ -74,5 +74,5 @@ Expected: PASS
 
 - [ ] **Step 2: Verify**
 
-Run: `cd apps/admin && pnpm test -- src/lib/auth/admin.test.ts app/login/page.test.tsx 'app/(dashboard)/layout.test.tsx'`
+Run: `cd apps/web && pnpm test -- src/lib/auth/admin.test.ts app/login/page.test.tsx 'app/(dashboard)/layout.test.tsx'`
 Expected: PASS

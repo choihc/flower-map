@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { resolveSupabaseEnv } from './resolveSupabaseEnv';
 
 declare const process:
   | {
@@ -6,30 +7,14 @@ declare const process:
     }
   | undefined;
 
-// Granite는 import.meta.env → global.__granite.meta.env 로 babel 변환 후
-// 폴리필로 값을 주입합니다. Expo는 process.env EXPO_PUBLIC_*, Node는 process.env 를 사용합니다.
-declare const global: {
-  __granite?: { meta?: { env?: Record<string, string | undefined> } };
-} & Record<string, unknown>;
+type ImportMetaEnv = {
+  env?: Record<string, string | undefined>;
+};
 
-const graniteEnv =
-  typeof global !== 'undefined' ? global.__granite?.meta?.env : undefined;
-
-const supabaseUrl =
-  graniteEnv?.EXPO_PUBLIC_SUPABASE_URL ??
-  (typeof process === 'undefined' ? undefined : process.env.SUPABASE_URL) ??
-  (typeof process === 'undefined'
-    ? undefined
-    : process.env.EXPO_PUBLIC_SUPABASE_URL);
-
-const supabaseKey =
-  graniteEnv?.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-  (typeof process === 'undefined'
-    ? undefined
-    : process.env.SUPABASE_PUBLISHABLE_KEY) ??
-  (typeof process === 'undefined'
-    ? undefined
-    : process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+const { supabaseUrl, supabaseKey } = resolveSupabaseEnv(
+  (import.meta as ImportMetaEnv).env,
+  typeof process === 'undefined' ? undefined : process.env,
+);
 
 if (!supabaseUrl || !supabaseKey) {
   console.error(
@@ -38,4 +23,11 @@ if (!supabaseUrl || !supabaseKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl ?? '', supabaseKey ?? '');
+export const supabase = createClient(supabaseUrl ?? '', supabaseKey ?? '', {
+  // 앱인토스 미니앱은 인증 세션을 쓰지 않으므로 브라우저 저장소/URL 세션 초기화를 끕니다.
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+});

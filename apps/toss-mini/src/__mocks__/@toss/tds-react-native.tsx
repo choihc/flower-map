@@ -30,14 +30,13 @@ const ListRow = ({ contents, left, right, onPress }: Props) => (
 ListRow.Texts = ({ texts }: Props) => (
   <>{(texts ?? []).map((t: any) => <span key={t.text}>{t.text}</span>)}</>
 );
-const SearchField = ({ onChangeText, value, placeholder, onClear }: Props) => (
+const SearchField = ({ onChange, value, placeholder, hasClearButton }: Props) => (
   <div>
     <input
       placeholder={placeholder}
       value={value ?? ''}
-      onChange={(e) => onChangeText?.(e.target.value)}
+      onChange={(e) => onChange?.({ nativeEvent: { text: (e.target as any).value } })}
     />
-    {onClear && <button onClick={onClear}>×</button>}
   </div>
 );
 const Loader = () => <div>Loading...</div>;

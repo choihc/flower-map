@@ -15,19 +15,19 @@
 ### Task 1: uploadImage.ts 구현 + 테스트 재작성
 
 **Files:**
-- Modify: `apps/admin/package.json`
-- Modify: `apps/admin/src/lib/blob/uploadImage.ts`
-- Modify: `apps/admin/src/lib/blob/uploadImage.test.ts`
+- Modify: `apps/web/package.json`
+- Modify: `apps/web/src/lib/blob/uploadImage.ts`
+- Modify: `apps/web/src/lib/blob/uploadImage.test.ts`
 
 - [ ] **Step 1: @vercel/blob 설치**
 
 ```bash
-cd apps/admin && npm install @vercel/blob
+cd apps/web && npm install @vercel/blob
 ```
 
 - [ ] **Step 2: uploadImage.test.ts 재작성**
 
-`apps/admin/src/lib/blob/uploadImage.test.ts` 전체를 아래로 교체:
+`apps/web/src/lib/blob/uploadImage.test.ts` 전체를 아래로 교체:
 
 ```typescript
 import { describe, expect, it, vi } from 'vitest';
@@ -64,14 +64,14 @@ describe('uploadImage', () => {
 - [ ] **Step 3: 테스트 실패 확인**
 
 ```bash
-cd apps/admin && npm run test -- --reporter=verbose 2>&1 | grep -A5 "uploadImage"
+cd apps/web && npm run test -- --reporter=verbose 2>&1 | grep -A5 "uploadImage"
 ```
 
 Expected: FAIL — stub 구현이라 `success: false` 반환
 
 - [ ] **Step 4: uploadImage.ts 구현**
 
-`apps/admin/src/lib/blob/uploadImage.ts` 전체를 아래로 교체:
+`apps/web/src/lib/blob/uploadImage.ts` 전체를 아래로 교체:
 
 ```typescript
 import { put } from '@vercel/blob';
@@ -131,7 +131,7 @@ export async function uploadImage(file: File): Promise<UploadImageResult> {
 - [ ] **Step 5: 테스트 통과 확인**
 
 ```bash
-cd apps/admin && npm run test -- --reporter=verbose 2>&1 | grep -A5 "uploadImage"
+cd apps/web && npm run test -- --reporter=verbose 2>&1 | grep -A5 "uploadImage"
 ```
 
 Expected: PASS (2 tests)
@@ -139,7 +139,7 @@ Expected: PASS (2 tests)
 - [ ] **Step 6: 커밋**
 
 ```bash
-cd apps/admin && git add package.json package-lock.json src/lib/blob/uploadImage.ts src/lib/blob/uploadImage.test.ts
+cd apps/web && git add package.json package-lock.json src/lib/blob/uploadImage.ts src/lib/blob/uploadImage.test.ts
 git commit -m "feat(admin): Vercel Blob 이미지 업로드 구현"
 ```
 
@@ -148,14 +148,14 @@ git commit -m "feat(admin): Vercel Blob 이미지 업로드 구현"
 ### Task 2: ImageUploader 컴포넌트 + SpotForm 교체
 
 **Files:**
-- Create: `apps/admin/src/features/spots/ImageUploader.tsx`
-- Modify: `apps/admin/src/features/spots/SpotForm.tsx`
+- Create: `apps/web/src/features/spots/ImageUploader.tsx`
+- Modify: `apps/web/src/features/spots/SpotForm.tsx`
 
 - [ ] **Step 1: ImageUploader.tsx 생성**
 
 > `ImageUploader`는 `'use client'` 컴포넌트이므로 `uploadImage()`를 직접 import해선 안 된다. `BLOB_READ_WRITE_TOKEN`은 서버 환경 변수라 브라우저에서 접근 불가하다. 대신 `/api/upload` 엔드포인트에 `fetch + FormData`로 요청한다.
 
-`apps/admin/src/features/spots/ImageUploader.tsx` 신규 생성:
+`apps/web/src/features/spots/ImageUploader.tsx` 신규 생성:
 
 ```typescript
 'use client';
@@ -245,7 +245,7 @@ export function ImageUploader({ defaultUrl }: ImageUploaderProps) {
 
 - [ ] **Step 2: SpotForm.tsx에서 thumbnail_url 인풋 교체**
 
-`apps/admin/src/features/spots/SpotForm.tsx` 상단 import에 추가:
+`apps/web/src/features/spots/SpotForm.tsx` 상단 import에 추가:
 
 ```typescript
 import { ImageUploader } from './ImageUploader';
@@ -253,7 +253,7 @@ import { ImageUploader } from './ImageUploader';
 
 그리고 아래 구간을 교체:
 
-기존 (`apps/admin/src/features/spots/SpotForm.tsx:246-251`):
+기존 (`apps/web/src/features/spots/SpotForm.tsx:246-251`):
 ```tsx
           <div className="space-y-2">
             <label htmlFor="spot-thumbnail-url" className="text-sm font-medium text-foreground">
@@ -276,7 +276,7 @@ import { ImageUploader } from './ImageUploader';
 - [ ] **Step 3: 빌드 확인**
 
 ```bash
-cd apps/admin && npm run build 2>&1 | tail -10
+cd apps/web && npm run build 2>&1 | tail -10
 ```
 
 Expected: ✓ Compiled successfully
@@ -284,7 +284,7 @@ Expected: ✓ Compiled successfully
 - [ ] **Step 4: 커밋**
 
 ```bash
-cd apps/admin && git add src/features/spots/ImageUploader.tsx src/features/spots/SpotForm.tsx
+cd apps/web && git add src/features/spots/ImageUploader.tsx src/features/spots/SpotForm.tsx
 git commit -m "feat(admin): 이미지 업로드 UI 추가 (ImageUploader)"
 ```
 
@@ -310,7 +310,7 @@ cd apps/mobile && npm install @supabase/supabase-js @tanstack/react-query
 
 ```
 EXPO_PUBLIC_SUPABASE_URL=https://ktmykdcmknaqsomzeank.supabase.co
-EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<apps/admin/.env.local의 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY 값>
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<apps/web/.env.local의 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY 값>
 ```
 
 - [ ] **Step 3: .gitignore 확인**
@@ -1269,7 +1269,7 @@ git commit -m "feat(mobile): SpotDetailScreen React Query + 스켈레톤 + thumb
 ## 완료 검증
 
 - [ ] 어드민에서 스팟 생성 시 이미지 업로드 UI가 표시되고 Blob URL이 저장됨
-- [ ] 어드민 테스트 전체 통과: `cd apps/admin && npm run test`
+- [ ] 어드민 테스트 전체 통과: `cd apps/web && npm run test`
 - [ ] 모바일 테스트 전체 통과: `cd apps/mobile && npm run test`
 - [ ] 모바일 앱 실행 시 Supabase에서 데이터를 읽어 화면에 표시됨
 - [ ] 데이터 로딩 중 스켈레톤이 표시됨

@@ -12,6 +12,7 @@ export type FlowerSpot = {
   fee: string;
   festivalDate: string;
   flower: string;
+  flowerIsActive: boolean;
   flowerThumbnailUrl: string | null;
   helper: string;
   latitude: number;
@@ -26,6 +27,7 @@ export type FlowerSpot = {
 export type PublishedSpotFlower = {
   name_ko: string;
   thumbnail_url: string | null;
+  is_active: boolean;
 };
 
 export type PublishedSpotRow = {

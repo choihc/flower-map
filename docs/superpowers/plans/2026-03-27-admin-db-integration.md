@@ -4,7 +4,7 @@
 
 **Goal:** Build the first working admin app, Supabase schema, JSON import flow, and mobile data layer needed to replace mock flower spot data with managed database records.
 
-**Architecture:** Add a standalone Next.js admin app under `apps/admin`, keep operational data normalized in Supabase with `flowers` and `spots`, validate JSON imports with Zod before writing to the database, and expose a small mobile-side repository/mapper layer that converts published DB rows into the existing UI shape. Keep draft/published enforcement in the admin and in the mobile query layer.
+**Architecture:** Add a standalone Next.js admin app under `apps/web`, keep operational data normalized in Supabase with `flowers` and `spots`, validate JSON imports with Zod before writing to the database, and expose a small mobile-side repository/mapper layer that converts published DB rows into the existing UI shape. Keep draft/published enforcement in the admin and in the mobile query layer.
 
 **Tech Stack:** Next.js App Router, React 19, TypeScript, Supabase Auth/Postgres, Zod, Vercel Blob, Vitest, Expo Router
 
@@ -12,42 +12,42 @@
 
 ## File Map
 
-- Create: `apps/admin/package.json`
-- Create: `apps/admin/tsconfig.json`
-- Create: `apps/admin/next.config.ts`
-- Create: `apps/admin/.gitignore`
-- Create: `apps/admin/app/layout.tsx`
-- Create: `apps/admin/app/page.tsx`
-- Create: `apps/admin/app/login/page.tsx`
-- Create: `apps/admin/app/(dashboard)/layout.tsx`
-- Create: `apps/admin/app/(dashboard)/flowers/page.tsx`
-- Create: `apps/admin/app/(dashboard)/spots/page.tsx`
-- Create: `apps/admin/app/(dashboard)/spots/import/page.tsx`
-- Create: `apps/admin/app/api/upload/route.ts`
-- Create: `apps/admin/middleware.ts`
-- Create: `apps/admin/vitest.config.ts`
-- Create: `apps/admin/src/test/setup.ts`
-- Create: `apps/admin/src/features/auth/LoginForm.tsx`
-- Create: `apps/admin/src/features/dashboard/DashboardShell.tsx`
-- Create: `apps/admin/src/features/flowers/flowerSchema.ts`
-- Create: `apps/admin/src/features/flowers/flowerSchema.test.ts`
-- Create: `apps/admin/src/features/spots/spotSchema.ts`
-- Create: `apps/admin/src/features/spots/spotSchema.test.ts`
-- Create: `apps/admin/src/features/import/importSchema.ts`
-- Create: `apps/admin/src/features/import/importSchema.test.ts`
-- Create: `apps/admin/src/features/import/classifyImport.ts`
-- Create: `apps/admin/src/features/import/classifyImport.test.ts`
-- Create: `apps/admin/src/features/import/ImportConsole.tsx`
-- Create: `apps/admin/src/features/spots/SpotForm.tsx`
-- Create: `apps/admin/src/features/flowers/FlowerForm.tsx`
-- Create: `apps/admin/src/lib/env.ts`
-- Create: `apps/admin/src/lib/supabase/browser.ts`
-- Create: `apps/admin/src/lib/supabase/server.ts`
-- Create: `apps/admin/src/lib/supabase/admin.ts`
-- Create: `apps/admin/src/lib/blob/uploadImage.ts`
-- Create: `apps/admin/src/lib/data/flowers.ts`
-- Create: `apps/admin/src/lib/data/spots.ts`
-- Create: `apps/admin/src/lib/types.ts`
+- Create: `apps/web/package.json`
+- Create: `apps/web/tsconfig.json`
+- Create: `apps/web/next.config.ts`
+- Create: `apps/web/.gitignore`
+- Create: `apps/web/app/layout.tsx`
+- Create: `apps/web/app/page.tsx`
+- Create: `apps/web/app/login/page.tsx`
+- Create: `apps/web/app/(dashboard)/layout.tsx`
+- Create: `apps/web/app/(dashboard)/flowers/page.tsx`
+- Create: `apps/web/app/(dashboard)/spots/page.tsx`
+- Create: `apps/web/app/(dashboard)/spots/import/page.tsx`
+- Create: `apps/web/app/api/upload/route.ts`
+- Create: `apps/web/middleware.ts`
+- Create: `apps/web/vitest.config.ts`
+- Create: `apps/web/src/test/setup.ts`
+- Create: `apps/web/src/features/auth/LoginForm.tsx`
+- Create: `apps/web/src/features/dashboard/DashboardShell.tsx`
+- Create: `apps/web/src/features/flowers/flowerSchema.ts`
+- Create: `apps/web/src/features/flowers/flowerSchema.test.ts`
+- Create: `apps/web/src/features/spots/spotSchema.ts`
+- Create: `apps/web/src/features/spots/spotSchema.test.ts`
+- Create: `apps/web/src/features/import/importSchema.ts`
+- Create: `apps/web/src/features/import/importSchema.test.ts`
+- Create: `apps/web/src/features/import/classifyImport.ts`
+- Create: `apps/web/src/features/import/classifyImport.test.ts`
+- Create: `apps/web/src/features/import/ImportConsole.tsx`
+- Create: `apps/web/src/features/spots/SpotForm.tsx`
+- Create: `apps/web/src/features/flowers/FlowerForm.tsx`
+- Create: `apps/web/src/lib/env.ts`
+- Create: `apps/web/src/lib/supabase/browser.ts`
+- Create: `apps/web/src/lib/supabase/server.ts`
+- Create: `apps/web/src/lib/supabase/admin.ts`
+- Create: `apps/web/src/lib/blob/uploadImage.ts`
+- Create: `apps/web/src/lib/data/flowers.ts`
+- Create: `apps/web/src/lib/data/spots.ts`
+- Create: `apps/web/src/lib/types.ts`
 - Create: `supabase/migrations/20260327_admin_schema.sql`
 - Create: `apps/mobile/src/shared/data/types.ts`
 - Create: `apps/mobile/src/shared/data/spotMappers.ts`
@@ -62,21 +62,21 @@
 ### Task 1: Scaffold the admin app and test harness
 
 **Files:**
-- Create: `apps/admin/package.json`
-- Create: `apps/admin/tsconfig.json`
-- Create: `apps/admin/next.config.ts`
-- Create: `apps/admin/.gitignore`
-- Create: `apps/admin/vitest.config.ts`
-- Create: `apps/admin/src/test/setup.ts`
-- Create: `apps/admin/src/features/dashboard/DashboardShell.tsx`
-- Create: `apps/admin/app/layout.tsx`
-- Create: `apps/admin/app/page.tsx`
-- Test: `apps/admin/src/features/dashboard/DashboardShell.test.tsx`
+- Create: `apps/web/package.json`
+- Create: `apps/web/tsconfig.json`
+- Create: `apps/web/next.config.ts`
+- Create: `apps/web/.gitignore`
+- Create: `apps/web/vitest.config.ts`
+- Create: `apps/web/src/test/setup.ts`
+- Create: `apps/web/src/features/dashboard/DashboardShell.tsx`
+- Create: `apps/web/app/layout.tsx`
+- Create: `apps/web/app/page.tsx`
+- Test: `apps/web/src/features/dashboard/DashboardShell.test.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardShell.test.tsx
+// apps/web/src/features/dashboard/DashboardShell.test.tsx
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -100,13 +100,13 @@ describe('DashboardShell', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm vitest run src/features/dashboard/DashboardShell.test.tsx`
+Run: `cd apps/web && pnpm vitest run src/features/dashboard/DashboardShell.test.tsx`
 Expected: FAIL because `package.json`, `vitest`, and `DashboardShell` do not exist yet.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```json
-// apps/admin/package.json
+// apps/web/package.json
 {
   "name": "flower-map-admin",
   "private": true,
@@ -143,7 +143,7 @@ Expected: FAIL because `package.json`, `vitest`, and `DashboardShell` do not exi
 ```
 
 ```tsx
-// apps/admin/src/features/dashboard/DashboardShell.tsx
+// apps/web/src/features/dashboard/DashboardShell.tsx
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -181,7 +181,7 @@ export function DashboardShell({ title, children }: DashboardShellProps) {
 ```
 
 ```tsx
-// apps/admin/app/layout.tsx
+// apps/web/app/layout.tsx
 import type { ReactNode } from 'react';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -194,7 +194,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 ```
 
 ```tsx
-// apps/admin/app/page.tsx
+// apps/web/app/page.tsx
 import { redirect } from 'next/navigation';
 
 export default function HomePage() {
@@ -204,13 +204,13 @@ export default function HomePage() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd apps/admin && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/dashboard/DashboardShell.test.tsx`
 Expected: PASS with 1 passing test.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin
+git add apps/web
 git commit -m "feat: scaffold admin app shell"
 ```
 
@@ -218,16 +218,16 @@ git commit -m "feat: scaffold admin app shell"
 
 **Files:**
 - Create: `supabase/migrations/20260327_admin_schema.sql`
-- Create: `apps/admin/src/lib/types.ts`
-- Create: `apps/admin/src/features/flowers/flowerSchema.ts`
-- Create: `apps/admin/src/features/flowers/flowerSchema.test.ts`
-- Create: `apps/admin/src/features/spots/spotSchema.ts`
-- Create: `apps/admin/src/features/spots/spotSchema.test.ts`
+- Create: `apps/web/src/lib/types.ts`
+- Create: `apps/web/src/features/flowers/flowerSchema.ts`
+- Create: `apps/web/src/features/flowers/flowerSchema.test.ts`
+- Create: `apps/web/src/features/spots/spotSchema.ts`
+- Create: `apps/web/src/features/spots/spotSchema.test.ts`
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
-// apps/admin/src/features/flowers/flowerSchema.test.ts
+// apps/web/src/features/flowers/flowerSchema.test.ts
 import { describe, expect, it } from 'vitest';
 
 import { flowerSchema } from './flowerSchema';
@@ -264,7 +264,7 @@ describe('flowerSchema', () => {
 ```
 
 ```ts
-// apps/admin/src/features/spots/spotSchema.test.ts
+// apps/web/src/features/spots/spotSchema.test.ts
 import { describe, expect, it } from 'vitest';
 
 import { spotSchema } from './spotSchema';
@@ -312,13 +312,13 @@ describe('spotSchema', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd apps/admin && pnpm test -- src/features/flowers/flowerSchema.test.ts src/features/spots/spotSchema.test.ts`
+Run: `cd apps/web && pnpm test -- src/features/flowers/flowerSchema.test.ts src/features/spots/spotSchema.test.ts`
 Expected: FAIL because the schemas do not exist yet.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```ts
-// apps/admin/src/features/flowers/flowerSchema.ts
+// apps/web/src/features/flowers/flowerSchema.ts
 import { z } from 'zod';
 
 const monthSchema = z.number().int().min(1).max(12);
@@ -336,7 +336,7 @@ export const flowerSchema = z.object({
 ```
 
 ```ts
-// apps/admin/src/features/spots/spotSchema.ts
+// apps/web/src/features/spots/spotSchema.ts
 import { z } from 'zod';
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -437,28 +437,28 @@ create table if not exists public.spots (
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd apps/admin && pnpm test -- src/features/flowers/flowerSchema.test.ts src/features/spots/spotSchema.test.ts`
+Run: `cd apps/web && pnpm test -- src/features/flowers/flowerSchema.test.ts src/features/spots/spotSchema.test.ts`
 Expected: PASS with 4 passing assertions.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add supabase/migrations/20260327_admin_schema.sql apps/admin/src/features/flowers apps/admin/src/features/spots apps/admin/src/lib/types.ts
+git add supabase/migrations/20260327_admin_schema.sql apps/web/src/features/flowers apps/web/src/features/spots apps/web/src/lib/types.ts
 git commit -m "feat: add flower and spot schemas"
 ```
 
 ### Task 3: Build JSON import parsing and change classification
 
 **Files:**
-- Create: `apps/admin/src/features/import/importSchema.ts`
-- Create: `apps/admin/src/features/import/importSchema.test.ts`
-- Create: `apps/admin/src/features/import/classifyImport.ts`
-- Create: `apps/admin/src/features/import/classifyImport.test.ts`
+- Create: `apps/web/src/features/import/importSchema.ts`
+- Create: `apps/web/src/features/import/importSchema.test.ts`
+- Create: `apps/web/src/features/import/classifyImport.ts`
+- Create: `apps/web/src/features/import/classifyImport.test.ts`
 
 - [ ] **Step 1: Write the failing tests**
 
 ```ts
-// apps/admin/src/features/import/importSchema.test.ts
+// apps/web/src/features/import/importSchema.test.ts
 import { describe, expect, it } from 'vitest';
 
 import { importPayloadSchema } from './importSchema';
@@ -496,7 +496,7 @@ describe('importPayloadSchema', () => {
 ```
 
 ```ts
-// apps/admin/src/features/import/classifyImport.test.ts
+// apps/web/src/features/import/classifyImport.test.ts
 import { describe, expect, it } from 'vitest';
 
 import { classifyImport } from './classifyImport';
@@ -517,13 +517,13 @@ describe('classifyImport', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd apps/admin && pnpm test -- src/features/import/importSchema.test.ts src/features/import/classifyImport.test.ts`
+Run: `cd apps/web && pnpm test -- src/features/import/importSchema.test.ts src/features/import/classifyImport.test.ts`
 Expected: FAIL because the import modules do not exist yet.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```ts
-// apps/admin/src/features/import/importSchema.ts
+// apps/web/src/features/import/importSchema.ts
 import { z } from 'zod';
 
 import { flowerSchema } from '../flowers/flowerSchema';
@@ -542,7 +542,7 @@ export const importPayloadSchema = z.union([
 ```
 
 ```ts
-// apps/admin/src/features/import/classifyImport.ts
+// apps/web/src/features/import/classifyImport.ts
 type WithSlug = { slug: string };
 
 export function classifyImport<TIncoming extends WithSlug, TExisting extends WithSlug>(
@@ -573,39 +573,39 @@ export function classifyImport<TIncoming extends WithSlug, TExisting extends Wit
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd apps/admin && pnpm test -- src/features/import/importSchema.test.ts src/features/import/classifyImport.test.ts`
+Run: `cd apps/web && pnpm test -- src/features/import/importSchema.test.ts src/features/import/classifyImport.test.ts`
 Expected: PASS with 2 passing tests.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin/src/features/import
+git add apps/web/src/features/import
 git commit -m "feat: add import validation and diffing"
 ```
 
 ### Task 4: Add admin auth, dashboard routes, and CRUD forms
 
 **Files:**
-- Create: `apps/admin/src/lib/env.ts`
-- Create: `apps/admin/src/lib/supabase/browser.ts`
-- Create: `apps/admin/src/lib/supabase/server.ts`
-- Create: `apps/admin/src/lib/supabase/admin.ts`
-- Create: `apps/admin/middleware.ts`
-- Create: `apps/admin/src/features/auth/LoginForm.tsx`
-- Create: `apps/admin/src/features/flowers/FlowerForm.tsx`
-- Create: `apps/admin/src/features/spots/SpotForm.tsx`
-- Create: `apps/admin/src/lib/data/flowers.ts`
-- Create: `apps/admin/src/lib/data/spots.ts`
-- Create: `apps/admin/app/login/page.tsx`
-- Create: `apps/admin/app/(dashboard)/layout.tsx`
-- Create: `apps/admin/app/(dashboard)/flowers/page.tsx`
-- Create: `apps/admin/app/(dashboard)/spots/page.tsx`
-- Test: `apps/admin/src/lib/data/spots.test.ts`
+- Create: `apps/web/src/lib/env.ts`
+- Create: `apps/web/src/lib/supabase/browser.ts`
+- Create: `apps/web/src/lib/supabase/server.ts`
+- Create: `apps/web/src/lib/supabase/admin.ts`
+- Create: `apps/web/middleware.ts`
+- Create: `apps/web/src/features/auth/LoginForm.tsx`
+- Create: `apps/web/src/features/flowers/FlowerForm.tsx`
+- Create: `apps/web/src/features/spots/SpotForm.tsx`
+- Create: `apps/web/src/lib/data/flowers.ts`
+- Create: `apps/web/src/lib/data/spots.ts`
+- Create: `apps/web/app/login/page.tsx`
+- Create: `apps/web/app/(dashboard)/layout.tsx`
+- Create: `apps/web/app/(dashboard)/flowers/page.tsx`
+- Create: `apps/web/app/(dashboard)/spots/page.tsx`
+- Test: `apps/web/src/lib/data/spots.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// apps/admin/src/lib/data/spots.test.ts
+// apps/web/src/lib/data/spots.test.ts
 import { describe, expect, it } from 'vitest';
 
 import { buildSpotWriteInput } from './spots';
@@ -638,13 +638,13 @@ describe('buildSpotWriteInput', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/lib/data/spots.test.ts`
+Run: `cd apps/web && pnpm test -- src/lib/data/spots.test.ts`
 Expected: FAIL because the data helper does not exist yet.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```ts
-// apps/admin/src/lib/data/spots.ts
+// apps/web/src/lib/data/spots.ts
 type SpotWriteDraft = {
   flower_id: string;
   slug: string;
@@ -678,7 +678,7 @@ export function buildSpotWriteInput(input: SpotWriteDraft) {
 ```
 
 ```tsx
-// apps/admin/app/(dashboard)/flowers/page.tsx
+// apps/web/app/(dashboard)/flowers/page.tsx
 import { DashboardShell } from '@/src/features/dashboard/DashboardShell';
 
 export default function FlowersPage() {
@@ -691,7 +691,7 @@ export default function FlowersPage() {
 ```
 
 ```tsx
-// apps/admin/app/(dashboard)/spots/page.tsx
+// apps/web/app/(dashboard)/spots/page.tsx
 import { DashboardShell } from '@/src/features/dashboard/DashboardShell';
 
 export default function SpotsPage() {
@@ -705,29 +705,29 @@ export default function SpotsPage() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd apps/admin && pnpm test -- src/lib/data/spots.test.ts`
+Run: `cd apps/web && pnpm test -- src/lib/data/spots.test.ts`
 Expected: PASS with 1 passing test.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin
+git add apps/web
 git commit -m "feat: add admin auth and CRUD foundations"
 ```
 
 ### Task 5: Build the JSON import screen and image upload route
 
 **Files:**
-- Create: `apps/admin/src/lib/blob/uploadImage.ts`
-- Create: `apps/admin/src/features/import/ImportConsole.tsx`
-- Create: `apps/admin/app/(dashboard)/spots/import/page.tsx`
-- Create: `apps/admin/app/api/upload/route.ts`
-- Test: `apps/admin/src/features/import/ImportConsole.test.tsx`
+- Create: `apps/web/src/lib/blob/uploadImage.ts`
+- Create: `apps/web/src/features/import/ImportConsole.tsx`
+- Create: `apps/web/app/(dashboard)/spots/import/page.tsx`
+- Create: `apps/web/app/api/upload/route.ts`
+- Test: `apps/web/src/features/import/ImportConsole.test.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// apps/admin/src/features/import/ImportConsole.test.tsx
+// apps/web/src/features/import/ImportConsole.test.tsx
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -756,13 +756,13 @@ describe('ImportConsole', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/admin && pnpm test -- src/features/import/ImportConsole.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/import/ImportConsole.test.tsx`
 Expected: FAIL because the component does not exist yet.
 
 - [ ] **Step 3: Write the minimal implementation**
 
 ```tsx
-// apps/admin/src/features/import/ImportConsole.tsx
+// apps/web/src/features/import/ImportConsole.tsx
 'use client';
 
 import { useState } from 'react';
@@ -808,7 +808,7 @@ export function ImportConsole({ onValidate }: ImportConsoleProps) {
 ```
 
 ```ts
-// apps/admin/app/api/upload/route.ts
+// apps/web/app/api/upload/route.ts
 import { NextResponse } from 'next/server';
 
 export async function POST() {
@@ -823,13 +823,13 @@ export async function POST() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd apps/admin && pnpm test -- src/features/import/ImportConsole.test.tsx`
+Run: `cd apps/web && pnpm test -- src/features/import/ImportConsole.test.tsx`
 Expected: PASS with 1 passing test.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add apps/admin
+git add apps/web
 git commit -m "feat: add import console and upload route"
 ```
 

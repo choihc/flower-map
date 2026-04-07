@@ -569,7 +569,7 @@ git commit -m "feat(mobile): SavedScreen에 명소 추천 카드 추가"
 ### Task 10: 어드민 추천 접수 데이터 조회
 
 **Files:**
-- Create: `apps/admin/src/lib/data/suggestions.ts`
+- Create: `apps/web/src/lib/data/suggestions.ts`
 
 - [ ] **Step 1: suggestions 데이터 레이어 작성**
 
@@ -600,14 +600,14 @@ export async function listSuggestions(client: SupabaseClient<Database>): Promise
 - [ ] **Step 2: 커밋**
 
 ```bash
-git add apps/admin/src/lib/data/suggestions.ts
+git add apps/web/src/lib/data/suggestions.ts
 git commit -m "feat(admin): 추천 접수 데이터 조회 함수 추가"
 ```
 
 ### Task 11: 어드민 추천 접수 페이지
 
 **Files:**
-- Create: `apps/admin/app/(dashboard)/suggestions/page.tsx`
+- Create: `apps/web/app/(dashboard)/suggestions/page.tsx`
 
 - [ ] **Step 1: 추천 접수 목록 페이지 작성**
 
@@ -670,14 +670,14 @@ export default async function SuggestionsPage() {
 - [ ] **Step 2: 커밋**
 
 ```bash
-git add apps/admin/app/\(dashboard\)/suggestions/page.tsx
+git add apps/web/app/\(dashboard\)/suggestions/page.tsx
 git commit -m "feat(admin): 추천 접수 목록 페이지 추가"
 ```
 
 ### Task 12: 어드민 사이드바에 추천 접수 메뉴 추가
 
 **Files:**
-- Modify: `apps/admin/src/features/dashboard/AdminSidebar.tsx:6-13`
+- Modify: `apps/web/src/features/dashboard/AdminSidebar.tsx:6-13`
 
 - [ ] **Step 1: 메뉴 항목 추가**
 
@@ -698,7 +698,7 @@ const primaryNavItems = [
 - [ ] **Step 2: 커밋**
 
 ```bash
-git add apps/admin/src/features/dashboard/AdminSidebar.tsx
+git add apps/web/src/features/dashboard/AdminSidebar.tsx
 git commit -m "feat(admin): 사이드바에 추천 접수 메뉴 추가"
 ```
 

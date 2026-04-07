@@ -1,5 +1,4 @@
 import { Loader, PageNavbar } from '@toss/tds-react-native';
-import { InlineAd } from '@apps-in-toss/framework';
 import { useQueries } from '@tanstack/react-query';
 import { createRoute } from '@granite-js/react-native';
 import React from 'react';
@@ -8,6 +7,7 @@ import { getSpotById, type FlowerSpot } from '@flower-map/flower-domain';
 
 import { useStorage } from '../src/shared/hooks/useStorage';
 import { SavedSpotCard } from '../src/features/saved/components/SavedSpotCard';
+import { SafeInlineAd } from '../src/shared/components/SafeInlineAd';
 
 export const Route = createRoute('/saved', {
   component: SavedPage,
@@ -31,7 +31,7 @@ function SavedPage() {
     .filter((s): s is FlowerSpot => s !== undefined && s !== null);
 
   const handlePress = (spot: FlowerSpot) => {
-    navigation.navigate('/spot/:id' as never, { id: spot.id } as never);
+    navigation.navigate('/spot/:id', { id: spot.id });
   };
 
   return (
@@ -46,7 +46,7 @@ function SavedPage() {
           <Text style={styles.emptyIcon}>🤍</Text>
           <Text style={styles.emptyTitle}>저장된 명소가 없어요</Text>
           <Text style={styles.emptySubtitle}>마음에 드는 명소를 저장해보세요</Text>
-          <Pressable style={styles.emptyBtn} onPress={() => navigation.navigate('/' as never)}>
+          <Pressable style={styles.emptyBtn} onPress={() => navigation.navigate('/')}>
             <Text style={styles.emptyBtnText}>명소 둘러보기</Text>
           </Pressable>
         </View>
@@ -60,8 +60,8 @@ function SavedPage() {
                 onRemove={remove}
               />
               {((index + 1) % 5 === 0 || (spots.length <= 5 && index === spots.length - 1)) && (
-                <InlineAd
-                  adId="ait-ad-test-native-image-id"
+                <SafeInlineAd
+                  adGroupId="ait-ad-test-native-image-id"
                   impressFallbackOnMount={true}
                   style={styles.feedAd}
                 />

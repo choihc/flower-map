@@ -1,7 +1,7 @@
 
     const React = require('react');
-    const reactUsePolyfill = require('/Users/user/workspace/flower-map/.worktrees/toss-mini/node_modules/.pnpm/react18-use@0.4.1_react@19.2.0/node_modules/react18-use/dist/cjs/index.js');
-    const reactEffectEventPolyfill = require('/Users/user/workspace/flower-map/.worktrees/toss-mini/node_modules/.pnpm/use-effect-event@2.0.3_react@19.2.0/node_modules/use-effect-event/dist/index.cjs');
+    const reactUsePolyfill = require('/Users/user/workspace/flower-map/node_modules/.pnpm/react18-use@0.4.1_react@19.2.0/node_modules/react18-use/dist/cjs/index.js');
+    const reactEffectEventPolyfill = require('/Users/user/workspace/flower-map/node_modules/.pnpm/use-effect-event@2.0.3_react@19.2.0/node_modules/use-effect-event/dist/index.cjs');
   
     function useOptimisticPolyfill(passthroughState, reducer) {
       const [optimisticState, setOptimisticState] = React.useState(passthroughState);

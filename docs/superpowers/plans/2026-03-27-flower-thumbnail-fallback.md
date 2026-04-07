@@ -16,9 +16,9 @@
 
 **Files:**
 - Create: `supabase/migrations/20260327_flower_thumbnail_url.sql`
-- Modify: `apps/admin/src/lib/types.ts`
-- Modify: `apps/admin/src/features/flowers/flowerSchema.ts`
-- Modify: `apps/admin/src/features/flowers/flowerSchema.test.ts`
+- Modify: `apps/web/src/lib/types.ts`
+- Modify: `apps/web/src/features/flowers/flowerSchema.ts`
+- Modify: `apps/web/src/features/flowers/flowerSchema.test.ts`
 
 - [ ] **Step 1: 마이그레이션 파일 생성**
 
@@ -30,7 +30,7 @@ ALTER TABLE flowers ADD COLUMN thumbnail_url text;
 
 - [ ] **Step 2: types.ts 업데이트**
 
-`apps/admin/src/lib/types.ts`의 `FlowerRow`와 `FlowerInsert`에 `thumbnail_url` 추가:
+`apps/web/src/lib/types.ts`의 `FlowerRow`와 `FlowerInsert`에 `thumbnail_url` 추가:
 
 기존 `FlowerRow` (1-13줄):
 ```typescript
@@ -104,7 +104,7 @@ export type FlowerInsert = {
 
 - [ ] **Step 3: flowerSchema.test.ts 업데이트 (테스트 먼저)**
 
-`apps/admin/src/features/flowers/flowerSchema.test.ts` 전체를 아래로 교체:
+`apps/web/src/features/flowers/flowerSchema.test.ts` 전체를 아래로 교체:
 
 ```typescript
 import { describe, expect, it } from 'vitest';
@@ -173,14 +173,14 @@ describe('flowerSchema', () => {
 - [ ] **Step 4: 테스트 실패 확인**
 
 ```bash
-cd /Users/user/workspace/flower-map/apps/admin && npm run test -- --reporter=verbose 2>&1 | grep -A5 "flowerSchema"
+cd /Users/user/workspace/flower-map/apps/web && npm run test -- --reporter=verbose 2>&1 | grep -A5 "flowerSchema"
 ```
 
 Expected: FAIL — `thumbnail_url` 필드가 스키마에 없으므로 새 케이스 실패
 
 - [ ] **Step 5: flowerSchema.ts 업데이트**
 
-`apps/admin/src/features/flowers/flowerSchema.ts` 전체를 아래로 교체:
+`apps/web/src/features/flowers/flowerSchema.ts` 전체를 아래로 교체:
 
 ```typescript
 import { z } from 'zod';
@@ -205,7 +205,7 @@ export type FlowerSchema = z.infer<typeof flowerSchema>;
 - [ ] **Step 6: 테스트 통과 확인**
 
 ```bash
-cd /Users/user/workspace/flower-map/apps/admin && npm run test -- --reporter=verbose 2>&1 | grep -A5 "flowerSchema"
+cd /Users/user/workspace/flower-map/apps/web && npm run test -- --reporter=verbose 2>&1 | grep -A5 "flowerSchema"
 ```
 
 Expected: PASS (4 tests)
@@ -213,7 +213,7 @@ Expected: PASS (4 tests)
 - [ ] **Step 7: 커밋**
 
 ```bash
-cd /Users/user/workspace/flower-map && git add supabase/migrations/20260327_flower_thumbnail_url.sql apps/admin/src/lib/types.ts apps/admin/src/features/flowers/flowerSchema.ts apps/admin/src/features/flowers/flowerSchema.test.ts && git commit -m "feat(admin): flowers 테이블 thumbnail_url 컬럼 추가 + 타입/스키마 업데이트"
+cd /Users/user/workspace/flower-map && git add supabase/migrations/20260327_flower_thumbnail_url.sql apps/web/src/lib/types.ts apps/web/src/features/flowers/flowerSchema.ts apps/web/src/features/flowers/flowerSchema.test.ts && git commit -m "feat(admin): flowers 테이블 thumbnail_url 컬럼 추가 + 타입/스키마 업데이트"
 ```
 
 ---
@@ -221,11 +221,11 @@ cd /Users/user/workspace/flower-map && git add supabase/migrations/20260327_flow
 ### Task 2: 어드민 데이터 함수 업데이트
 
 **Files:**
-- Modify: `apps/admin/src/lib/data/flowers.ts`
+- Modify: `apps/web/src/lib/data/flowers.ts`
 
 - [ ] **Step 1: flowers.ts 업데이트**
 
-`apps/admin/src/lib/data/flowers.ts`의 `buildFlowerWriteInput` 함수에 `thumbnail_url` 처리 추가:
+`apps/web/src/lib/data/flowers.ts`의 `buildFlowerWriteInput` 함수에 `thumbnail_url` 처리 추가:
 
 기존:
 ```typescript
@@ -255,7 +255,7 @@ export function buildFlowerWriteInput(input: FlowerWriteDraft): FlowerInsert {
 - [ ] **Step 2: 빌드 확인**
 
 ```bash
-cd /Users/user/workspace/flower-map/apps/admin && npm run build 2>&1 | tail -5
+cd /Users/user/workspace/flower-map/apps/web && npm run build 2>&1 | tail -5
 ```
 
 Expected: ✓ Compiled successfully
@@ -263,7 +263,7 @@ Expected: ✓ Compiled successfully
 - [ ] **Step 3: 커밋**
 
 ```bash
-cd /Users/user/workspace/flower-map && git add apps/admin/src/lib/data/flowers.ts && git commit -m "feat(admin): buildFlowerWriteInput에 thumbnail_url 처리 추가"
+cd /Users/user/workspace/flower-map && git add apps/web/src/lib/data/flowers.ts && git commit -m "feat(admin): buildFlowerWriteInput에 thumbnail_url 처리 추가"
 ```
 
 ---
@@ -271,11 +271,11 @@ cd /Users/user/workspace/flower-map && git add apps/admin/src/lib/data/flowers.t
 ### Task 3: FlowerForm에 ImageUploader 추가
 
 **Files:**
-- Modify: `apps/admin/src/features/flowers/FlowerForm.tsx`
+- Modify: `apps/web/src/features/flowers/FlowerForm.tsx`
 
 - [ ] **Step 1: FlowerForm.tsx 업데이트**
 
-`apps/admin/src/features/flowers/FlowerForm.tsx`에서:
+`apps/web/src/features/flowers/FlowerForm.tsx`에서:
 
 **import 추가** (기존 imports 아래에):
 ```typescript
@@ -331,7 +331,7 @@ import { ImageUploader } from '@/features/spots/ImageUploader';
 - [ ] **Step 2: 빌드 확인**
 
 ```bash
-cd /Users/user/workspace/flower-map/apps/admin && npm run build 2>&1 | tail -5
+cd /Users/user/workspace/flower-map/apps/web && npm run build 2>&1 | tail -5
 ```
 
 Expected: ✓ Compiled successfully
@@ -339,7 +339,7 @@ Expected: ✓ Compiled successfully
 - [ ] **Step 3: 커밋**
 
 ```bash
-cd /Users/user/workspace/flower-map && git add apps/admin/src/features/flowers/FlowerForm.tsx && git commit -m "feat(admin): FlowerForm에 대표 썸네일 이미지 업로드 UI 추가"
+cd /Users/user/workspace/flower-map && git add apps/web/src/features/flowers/FlowerForm.tsx && git commit -m "feat(admin): FlowerForm에 대표 썸네일 이미지 업로드 UI 추가"
 ```
 
 ---
@@ -932,7 +932,7 @@ cd /Users/user/workspace/flower-map/apps/mobile && npm run test 2>&1 | tail -5
 Expected: PASS (전체)
 
 ```bash
-cd /Users/user/workspace/flower-map/apps/admin && npm run test 2>&1 | tail -5
+cd /Users/user/workspace/flower-map/apps/web && npm run test 2>&1 | tail -5
 ```
 
 Expected: PASS (전체)
@@ -948,7 +948,7 @@ cd /Users/user/workspace/flower-map && git add apps/mobile/src/features/spot/scr
 ## 완료 검증
 
 - [ ] 어드민 꽃 편집 화면에서 썸네일 이미지 업로드 가능
-- [ ] 어드민 테스트 전체 통과: `cd apps/admin && npm run test`
+- [ ] 어드민 테스트 전체 통과: `cd apps/web && npm run test`
 - [ ] 모바일 테스트 전체 통과: `cd apps/mobile && npm run test`
 - [ ] 명소 썸네일 없는 경우 꽃 썸네일 표시 (3개 화면)
 - [ ] 명소 썸네일 있는 경우 명소 썸네일 우선 표시

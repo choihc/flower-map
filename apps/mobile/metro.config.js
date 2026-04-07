@@ -4,8 +4,9 @@ const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
 const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, '../..');
 const expoRouterRoot = path.join(projectRoot, 'node_modules', 'expo-router');
-const pnpmStoreRoot = path.join(projectRoot, 'node_modules', '.pnpm');
+const pnpmStoreRoot = path.join(monorepoRoot, 'node_modules', '.pnpm');
 
 const expoRouterExtensions = [
   '.ios.ts',
@@ -55,8 +56,10 @@ function resolveExpoRouterFile(moduleName) {
 const config = getDefaultConfig(projectRoot);
 const defaultResolveRequest = config.resolver.resolveRequest;
 
+const extraWatchFolders = [pnpmStoreRoot].filter(fs.existsSync);
+
 config.watchFolders = Array.from(
-  new Set([...(config.watchFolders ?? []), pnpmStoreRoot])
+  new Set([...(config.watchFolders ?? []), ...extraWatchFolders])
 );
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {

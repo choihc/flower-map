@@ -94,11 +94,11 @@ iOS `infoPlist`에 권한 설명 문구 추가:
 
 ---
 
-## 5. 어드민 패널 (`apps/admin`)
+## 5. 어드민 패널 (`apps/web`)
 
 ### 5.1 페이지: `/notifications`
 
-파일: `apps/admin/app/(dashboard)/notifications/page.tsx`
+파일: `apps/web/app/(dashboard)/notifications/page.tsx`
 
 UI 요소:
 - 알림 제목 입력 (text input)
@@ -108,7 +108,7 @@ UI 요소:
 
 ### 5.2 API Route: `/api/notifications/send`
 
-파일: `apps/admin/app/api/notifications/send/route.ts`
+파일: `apps/web/app/api/notifications/send/route.ts`
 
 처리 흐름:
 1. 요청 body에서 `title`, `body` 추출 및 유효성 검사

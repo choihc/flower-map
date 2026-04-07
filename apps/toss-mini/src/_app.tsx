@@ -1,18 +1,17 @@
 import { AppsInToss } from '@apps-in-toss/framework';
-import { getSchemeUri, InitialProps } from '@granite-js/react-native';
+import { InitialProps } from '@granite-js/react-native';
+import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PropsWithChildren } from 'react';
 
 import { context } from '../require.context';
+import { AppErrorBoundary } from './shared/components/AppErrorBoundary';
 
-// Toss 샌드박스 실제 스킴(intoss://)과 granite.config scheme 불일치 보정
-const g = global as any;
-if (g.__granite?.app) {
-  const actualScheme = getSchemeUri()?.split('://')[0];
-  if (actualScheme && actualScheme !== g.__granite.app.scheme) {
-    g.__granite.app.scheme = actualScheme;
-  }
-}
+Sentry.init({
+  dsn: 'https://17dd44e72929ede5c284e17ab9d988ce@o4511173458657280.ingest.us.sentry.io/4511173460361216',
+  enableNative: false,
+  debug: __DEV__,
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,7 +24,9 @@ const queryClient = new QueryClient({
 
 function AppContainer({ children }: PropsWithChildren<InitialProps>) {
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </AppErrorBoundary>
   );
 }
 

@@ -172,22 +172,22 @@ photos가 빈 배열이면 DELETE만 실행 (INSERT 없음).
 
 ## 4. 어드민 패널 변경
 
-**기존 라우트**: `apps/admin/app/(dashboard)/spots/[id]/page.tsx`
-**기존 폼 컴포넌트**: `apps/admin/src/features/spots/SpotForm.tsx`
+**기존 라우트**: `apps/web/app/(dashboard)/spots/[id]/page.tsx`
+**기존 폼 컴포넌트**: `apps/web/src/features/spots/SpotForm.tsx`
 
 ### 사진 CRUD Server Actions
 
 spot 저장과 독립적인 별도 Server Actions:
 
 ```ts
-// apps/admin/src/features/spots/photoActions.ts
+// apps/web/src/features/spots/photoActions.ts
 addSpotPhotoAction(spotId, { url, sort_order, caption })
 deleteSpotPhotoAction(photoId)
 ```
 
 ### Database 타입 업데이트
 
-`apps/admin/src/lib/types.ts`의 `Database` 타입에 `spot_photos` 테이블 추가.
+`apps/web/src/lib/types.ts`의 `Database` 타입에 `spot_photos` 테이블 추가.
 
 ### SpotForm.tsx 수정
 

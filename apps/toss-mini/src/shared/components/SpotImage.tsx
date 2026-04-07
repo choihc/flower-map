@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Image, ImageStyle, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import type { FlowerSpot } from '@flower-map/flower-domain';
 
 import { BloomArt } from './BloomArt';
@@ -37,7 +37,7 @@ export function SpotImage({ spot, style, bloomSize = 'md' }: SpotImageProps) {
   return (
     <Image
       source={{ uri }}
-      style={style}
+      style={style as StyleProp<ImageStyle>}
       resizeMode="cover"
       onError={() => setFailed(true)}
     />

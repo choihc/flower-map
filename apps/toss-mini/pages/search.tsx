@@ -1,24 +1,24 @@
-import { Loader, PageNavbar, SearchField } from '@toss/tds-react-native';
-import { InlineAd } from '@apps-in-toss/framework';
-import { useQuery } from '@tanstack/react-query';
-import { createRoute } from '@granite-js/react-native';
-import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { getAllSpots, type FlowerSpot } from '@flower-map/flower-domain';
+import { getAllSpots, type FlowerSpot } from "@flower-map/flower-domain";
+import { createRoute } from "@granite-js/react-native";
+import { useQuery } from "@tanstack/react-query";
+import { Loader, PageNavbar, SearchField } from "@toss/tds-react-native";
+import React, { useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { SpotListItem } from '../src/features/search/components/SpotListItem';
+import { SpotListItem } from "../src/features/search/components/SpotListItem";
+import { SafeInlineAd } from "../src/shared/components/SafeInlineAd";
 
-export const Route = createRoute('/search', {
+export const Route = createRoute("/search", {
   component: SearchPage,
 });
 
 function SearchPage() {
   const navigation = Route.useNavigation();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
   const { data: spots = [], isPending } = useQuery({
-    queryKey: ['all-spots'],
-    queryFn: () => getAllSpots(100),
+    queryKey: ["all-spots"],
+    queryFn: getAllSpots,
   });
 
   const results = useMemo(() => {
@@ -33,18 +33,20 @@ function SearchPage() {
   }, [spots, query]);
 
   const handlePress = (spot: FlowerSpot) => {
-    navigation.navigate('/spot/:id' as never, { id: spot.id } as never);
+    navigation.navigate("/spot/:id", { id: spot.id });
   };
 
   return (
     <View style={styles.page}>
-      <PageNavbar><PageNavbar.Title>검색</PageNavbar.Title></PageNavbar>
+      <PageNavbar>
+        <PageNavbar.Title>검색</PageNavbar.Title>
+      </PageNavbar>
       <View style={styles.searchBox}>
         <SearchField
           placeholder="명소 이름, 지역으로 검색"
           value={query}
-          onChangeText={setQuery}
-          onClear={() => setQuery('')}
+          onChange={(e) => setQuery(e.nativeEvent.text)}
+          hasClearButton
         />
       </View>
       {isPending ? (
@@ -60,9 +62,10 @@ function SearchPage() {
               {results.map((spot, index) => (
                 <React.Fragment key={spot.id}>
                   <SpotListItem spot={spot} onPress={handlePress} />
-                  {((index + 1) % 5 === 0 || (results.length < 5 && index === results.length - 1)) && (
-                    <InlineAd
-                      adId="ait-ad-test-banner-id"
+                  {((index + 1) % 5 === 0 ||
+                    (results.length < 5 && index === results.length - 1)) && (
+                    <SafeInlineAd
+                      adGroupId="ait-ad-test-banner-id"
                       impressFallbackOnMount={true}
                       style={styles.listBanner}
                     />
@@ -78,13 +81,18 @@ function SearchPage() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#FFFFFF' },
+  page: { flex: 1, backgroundColor: "#FFFFFF" },
   searchBox: { paddingHorizontal: 16, paddingVertical: 8 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 40 },
-  empty: { textAlign: 'center', color: '#888', marginTop: 40, fontSize: 15 },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 40,
+  },
+  empty: { textAlign: "center", color: "#888", marginTop: 40, fontSize: 15 },
   listBanner: {
     height: 96,
-    backgroundColor: '#F9F0F4',
+    backgroundColor: "#F9F0F4",
     marginVertical: 8,
   },
 });

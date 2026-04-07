@@ -1,0 +1,132 @@
+diff --git a/build/npm/cjs/dev/integrations/webWorker.js b/build/npm/cjs/dev/integrations/webWorker.js
+index 77c7d606d81ec114bba982448379602e6d077520..da39d55c0fb14267befe2684f2cd10dff4eb3bac 100644
+--- a/build/npm/cjs/dev/integrations/webWorker.js
++++ b/build/npm/cjs/dev/integrations/webWorker.js
+@@ -29,7 +29,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * Sentry.init(...)
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Add the integration
+  * const webWorkerIntegration = Sentry.webWorkerIntegration({ worker });
+@@ -65,7 +65,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * import * as Sentry from '@sentry/<your-sdk>';
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Initialize the SDK
+  * Sentry.init({
+diff --git a/build/npm/cjs/prod/integrations/webWorker.js b/build/npm/cjs/prod/integrations/webWorker.js
+index 77c7d606d81ec114bba982448379602e6d077520..da39d55c0fb14267befe2684f2cd10dff4eb3bac 100644
+--- a/build/npm/cjs/prod/integrations/webWorker.js
++++ b/build/npm/cjs/prod/integrations/webWorker.js
+@@ -29,7 +29,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * Sentry.init(...)
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Add the integration
+  * const webWorkerIntegration = Sentry.webWorkerIntegration({ worker });
+@@ -65,7 +65,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * import * as Sentry from '@sentry/<your-sdk>';
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Initialize the SDK
+  * Sentry.init({
+diff --git a/build/npm/esm/dev/integrations/webWorker.js b/build/npm/esm/dev/integrations/webWorker.js
+index e2fdbefb8f9cb072826d0684685645c3f6bbbe24..5524b97817de6d8aafca7ae1ce8fdd34c9d889b0 100644
+--- a/build/npm/esm/dev/integrations/webWorker.js
++++ b/build/npm/esm/dev/integrations/webWorker.js
+@@ -27,7 +27,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * Sentry.init(...)
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Add the integration
+  * const webWorkerIntegration = Sentry.webWorkerIntegration({ worker });
+@@ -63,7 +63,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * import * as Sentry from '@sentry/<your-sdk>';
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Initialize the SDK
+  * Sentry.init({
+diff --git a/build/npm/esm/prod/integrations/webWorker.js b/build/npm/esm/prod/integrations/webWorker.js
+index e2fdbefb8f9cb072826d0684685645c3f6bbbe24..5524b97817de6d8aafca7ae1ce8fdd34c9d889b0 100644
+--- a/build/npm/esm/prod/integrations/webWorker.js
++++ b/build/npm/esm/prod/integrations/webWorker.js
+@@ -27,7 +27,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * Sentry.init(...)
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Add the integration
+  * const webWorkerIntegration = Sentry.webWorkerIntegration({ worker });
+@@ -63,7 +63,7 @@ const INTEGRATION_NAME = 'WebWorker';
+  * import * as Sentry from '@sentry/<your-sdk>';
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Initialize the SDK
+  * Sentry.init({
+diff --git a/build/npm/types/integrations/webWorker.d.ts b/build/npm/types/integrations/webWorker.d.ts
+index 9126127200a1fe457ae0d8fa6f870fe455445161..c1af9cba31743efeec0dadfa1460b9700fc62fe6 100644
+--- a/build/npm/types/integrations/webWorker.d.ts
++++ b/build/npm/types/integrations/webWorker.d.ts
+@@ -24,7 +24,7 @@ interface WebWorkerIntegration extends Integration {
+  * Sentry.init(...)
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Add the integration
+  * const webWorkerIntegration = Sentry.webWorkerIntegration({ worker });
+@@ -60,7 +60,7 @@ interface WebWorkerIntegration extends Integration {
+  * import * as Sentry from '@sentry/<your-sdk>';
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Initialize the SDK
+  * Sentry.init({
+diff --git a/build/npm/types-ts3.8/integrations/webWorker.d.ts b/build/npm/types-ts3.8/integrations/webWorker.d.ts
+index 06e53436cd635b0f37c0e3b9aa162b1e9ed0008d..1a8d4aa1945f5d8fc0aa89b28dd0a6db59553e90 100644
+--- a/build/npm/types-ts3.8/integrations/webWorker.d.ts
++++ b/build/npm/types-ts3.8/integrations/webWorker.d.ts
+@@ -24,7 +24,7 @@ interface WebWorkerIntegration extends Integration {
+  * Sentry.init(...)
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Add the integration
+  * const webWorkerIntegration = Sentry.webWorkerIntegration({ worker });
+@@ -60,7 +60,7 @@ interface WebWorkerIntegration extends Integration {
+  * import * as Sentry from '@sentry/<your-sdk>';
+  *
+  * // 1. Initialize the worker
+- * const worker = new Worker(new URL('./worker.ts', import.meta.url));
++ * const worker = new Worker(new URL('./worker.ts', importMetaUrl));
+  *
+  * // 2. Initialize the SDK
+  * Sentry.init({

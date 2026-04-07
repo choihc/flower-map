@@ -10,7 +10,7 @@
 
 ### 포함
 
-- `apps/admin`에 Next.js App Router 기반 어드민 구축
+- `apps/web`에 Next.js App Router 기반 어드민 구축
 - Supabase Postgres 기반 `flowers`, `spots` 스키마 정의
 - 단일 관리자 로그인
 - 꽃 마스터 CRUD
@@ -322,7 +322,7 @@
 ## 14. 구현 순서
 
 1. Supabase 스키마 생성
-2. `apps/admin` 스캐폴딩
+2. `apps/web` 스캐폴딩
 3. 관리자 로그인
 4. 꽃/명소 CRUD
 5. JSON import + validation + preview
