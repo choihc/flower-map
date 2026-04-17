@@ -22,6 +22,7 @@ import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
+import { TopSpotsSection } from '../components/TopSpotsSection';
 
 export function HomeScreen() {
   const router = useRouter();
@@ -189,6 +190,8 @@ export function HomeScreen() {
           </View>
         )}
       </View>
+
+      <TopSpotsSection />
 
       {locationState === 'granted' && nearbySpots.length > 0 ? (
         <>
