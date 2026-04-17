@@ -16,6 +16,7 @@ import { calcNowScore } from '@/lib/now-score/aggregate';
 import { calcTrendScore } from '@/lib/now-score/trend';
 import { calcYoyScore } from '@/lib/now-score/yoy';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
+import type { SpotUpdate } from '@/lib/types';
 
 export const maxDuration = 300;
 
@@ -341,16 +342,28 @@ export async function POST(req: Request) {
 
       const nowScore = calcNowScore({ bloom, trend, content, yoy });
 
-      const { error: updateError } = await supabase
-        .from('spots')
-        .update({
-          bloom_score: bloom,
-          trend_score: trend,
-          content_score: content,
-          yoy_score: yoy,
-          now_score: nowScore,
-          now_score_at: now.toISOString(),
-        })
+      const updatePayload: SpotUpdate = {
+        bloom_score: bloom,
+        trend_score: trend,
+        content_score: content,
+        yoy_score: yoy,
+        now_score: nowScore,
+        now_score_at: now.toISOString(),
+      };
+
+      const { error: updateError } = await (
+        supabase.from('spots') as unknown as {
+          update: (
+            values: SpotUpdate,
+          ) => {
+            eq: (
+              column: string,
+              value: string,
+            ) => Promise<{ error: unknown }>;
+          };
+        }
+      )
+        .update(updatePayload)
         .eq('id', spot.id);
 
       if (updateError) {

@@ -16,6 +16,7 @@ import {
 } from '@/lib/external/naverSearch';
 import { getVideoStats, searchYouTube } from '@/lib/external/youtube';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
+import type { SpotBlogInsert, SpotVideoInsert } from '@/lib/types';
 
 export const maxDuration = 300;
 
@@ -153,20 +154,23 @@ export async function POST(req: Request) {
       }
 
       if (filteredVideos.length > 0) {
-        const { error: insertVideoError } = await supabase
-          .from('spot_videos')
-          .insert(
-            filteredVideos.map((v) => ({
-              spot_id: spot.id,
-              video_id: v.videoId,
-              title: v.title,
-              channel_title: v.channelTitle,
-              thumbnail_url: v.thumbnailUrl,
-              published_at: v.publishedAt.toISOString(),
-              view_count: v.viewCount,
-              relevance_score: v.relevanceScore ?? null,
-            })),
-          );
+        const videoRows: SpotVideoInsert[] = filteredVideos.map((v) => ({
+          spot_id: spot.id,
+          video_id: v.videoId,
+          title: v.title,
+          channel_title: v.channelTitle,
+          thumbnail_url: v.thumbnailUrl,
+          published_at: v.publishedAt.toISOString(),
+          view_count: v.viewCount,
+          relevance_score: v.relevanceScore ?? null,
+        }));
+        const { error: insertVideoError } = await (
+          supabase.from('spot_videos') as unknown as {
+            insert: (
+              values: SpotVideoInsert[],
+            ) => Promise<{ error: unknown }>;
+          }
+        ).insert(videoRows);
         if (insertVideoError) {
           console.error(
             'content-sync insert videos failed',
@@ -191,19 +195,22 @@ export async function POST(req: Request) {
       }
 
       if (filteredBlogs.length > 0) {
-        const { error: insertBlogError } = await supabase
-          .from('spot_blogs')
-          .insert(
-            filteredBlogs.map((b) => ({
-              spot_id: spot.id,
-              url: b.url,
-              title: b.title,
-              description: b.description,
-              blogger_name: b.bloggerName,
-              posted_at: b.postedAt.toISOString(),
-              relevance_score: b.relevanceScore ?? null,
-            })),
-          );
+        const blogRows: SpotBlogInsert[] = filteredBlogs.map((b) => ({
+          spot_id: spot.id,
+          url: b.url,
+          title: b.title,
+          description: b.description,
+          blogger_name: b.bloggerName,
+          posted_at: b.postedAt.toISOString(),
+          relevance_score: b.relevanceScore ?? null,
+        }));
+        const { error: insertBlogError } = await (
+          supabase.from('spot_blogs') as unknown as {
+            insert: (
+              values: SpotBlogInsert[],
+            ) => Promise<{ error: unknown }>;
+          }
+        ).insert(blogRows);
         if (insertBlogError) {
           console.error(
             'content-sync insert blogs failed',
