@@ -90,6 +90,9 @@ export async function searchYouTube(args: {
       continue;
     }
     const snippet = item.snippet ?? {};
+    if (!snippet.publishedAt) {
+      continue;
+    }
     videos.push({
       videoId,
       title: snippet.title ?? '',
@@ -97,7 +100,7 @@ export async function searchYouTube(args: {
       channelTitle: snippet.channelTitle ?? '',
       channelId: snippet.channelId ?? '',
       thumbnailUrl: pickThumbnailUrl(item),
-      publishedAt: new Date(snippet.publishedAt ?? 0),
+      publishedAt: new Date(snippet.publishedAt),
     });
   }
 
