@@ -40,3 +40,19 @@ export function getServerEnv() {
     ),
   };
 }
+
+export function getExternalApiEnv() {
+  return {
+    naverClientId: requireEnv('NAVER_CLIENT_ID', process.env.NAVER_CLIENT_ID),
+    naverClientSecret: requireEnv(
+      'NAVER_CLIENT_SECRET',
+      process.env.NAVER_CLIENT_SECRET,
+    ),
+    youtubeApiKey: requireEnv('YOUTUBE_API_KEY', process.env.YOUTUBE_API_KEY),
+    kmaServiceKey: requireEnv('KMA_SERVICE_KEY', process.env.KMA_SERVICE_KEY),
+  };
+}
+
+export function getCronSecret() {
+  return requireEnv('CRON_SECRET', process.env.CRON_SECRET);
+}
