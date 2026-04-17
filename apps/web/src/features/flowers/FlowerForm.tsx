@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { FormSection } from '@/components/ui/form-section';
 import type { FlowerInsert } from '@/lib/types';
 
@@ -34,6 +35,7 @@ export function FlowerForm({ defaultValue, submitAction }: FlowerFormProps) {
       sort_order: Number(formData.get('sort_order') ?? 0),
       is_active: formData.get('is_active') === 'on',
       thumbnail_url: normalizeOptionalText(formData.get('thumbnail_url')),
+      aliases: parseCommaSeparated(formData.get('aliases')),
     });
 
     if (!parsed.success) {
@@ -155,6 +157,29 @@ export function FlowerForm({ defaultValue, submitAction }: FlowerFormProps) {
       <Separator />
 
       <FormSection
+        title="유의어(Aliases)"
+        description="검색 및 콘텐츠 수집 시 함께 매칭할 이명을 쉼표로 구분해 입력합니다. 예: 벗꽃, 사쿠라"
+      >
+        <div className="space-y-2">
+          <label htmlFor="flower-aliases" className="text-sm font-medium text-foreground">
+            유의어 (쉼표 구분)
+          </label>
+          <Textarea
+            id="flower-aliases"
+            name="aliases"
+            defaultValue={(defaultValue?.aliases ?? []).join(', ')}
+            placeholder="벗꽃, 사쿠라"
+            rows={2}
+          />
+          <p className="text-xs text-muted-foreground">
+            빈 값과 앞뒤 공백은 저장 시 자동으로 제거됩니다.
+          </p>
+        </div>
+      </FormSection>
+
+      <Separator />
+
+      <FormSection
         title="대표 썸네일"
         description="명소 썸네일이 없을 때 표시될 꽃 대표 이미지입니다."
       >
@@ -177,4 +202,15 @@ function normalizeOptionalText(value: FormDataEntryValue | null) {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function parseCommaSeparated(value: FormDataEntryValue | null): string[] {
+  if (typeof value !== 'string') {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
 }
