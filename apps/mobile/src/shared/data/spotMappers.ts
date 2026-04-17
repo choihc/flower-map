@@ -104,7 +104,7 @@ function toEventEndsIn(row: PublishedSpotRow, now = new Date()) {
 }
 
 export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpot {
-  return {
+  const spot: FlowerSpot = {
     id: row.id,
     slug: row.slug,
     badge: toBadgeLabel(row, now),
@@ -127,4 +127,12 @@ export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpo
     flowerThumbnailUrl: row.flower.thumbnail_url ?? null,
     tone: toFlowerTone(row.flower.name_ko),
   };
+
+  if (row.now_score != null) spot.nowScore = row.now_score;
+  if (row.bloom_score != null) spot.bloomScore = row.bloom_score;
+  if (row.trend_score != null) spot.trendScore = row.trend_score;
+  if (row.yoy_score != null) spot.yoyScore = row.yoy_score;
+  if (row.now_score_at) spot.nowScoreAt = new Date(row.now_score_at);
+
+  return spot;
 }

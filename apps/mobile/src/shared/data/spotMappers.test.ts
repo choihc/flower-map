@@ -56,6 +56,47 @@ describe('toFlowerSpot', () => {
     expect(withUrl.flowerThumbnailUrl).toBe('https://blob.example.com/flower-cherry.jpg');
   });
 
+  it('maps now_score 계열 필드가 모두 존재할 때 FlowerSpot에 매핑한다', () => {
+    const withScores = toFlowerSpot({
+      ...baseRow,
+      bloom_score: 82,
+      trend_score: 71,
+      content_score: 60,
+      yoy_score: 75,
+      now_score: 79,
+      now_score_at: '2026-04-17T03:00:00Z',
+    } as never);
+
+    expect(withScores.bloomScore).toBe(82);
+    expect(withScores.trendScore).toBe(71);
+    expect(withScores.yoyScore).toBe(75);
+    expect(withScores.nowScore).toBe(79);
+    expect(withScores.nowScoreAt).toBeInstanceOf(Date);
+    expect(withScores.nowScoreAt?.toISOString()).toBe('2026-04-17T03:00:00.000Z');
+  });
+
+  it('maps now_score 계열 필드가 null/누락이면 undefined로 둔다', () => {
+    const nullScores = toFlowerSpot({
+      ...baseRow,
+      bloom_score: null,
+      trend_score: null,
+      yoy_score: null,
+      now_score: null,
+      now_score_at: null,
+    } as never);
+
+    expect(nullScores.bloomScore).toBeUndefined();
+    expect(nullScores.trendScore).toBeUndefined();
+    expect(nullScores.yoyScore).toBeUndefined();
+    expect(nullScores.nowScore).toBeUndefined();
+    expect(nullScores.nowScoreAt).toBeUndefined();
+
+    const missingScores = toFlowerSpot(baseRow);
+    expect(missingScores.bloomScore).toBeUndefined();
+    expect(missingScores.nowScore).toBeUndefined();
+    expect(missingScores.nowScoreAt).toBeUndefined();
+  });
+
   it('derives fallback presentation labels from raw row data', () => {
     const result = toFlowerSpot(
       {

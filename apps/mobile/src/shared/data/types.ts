@@ -22,7 +22,27 @@ export type FlowerSpot = {
   place: string;
   thumbnailUrl: string | null;
   tone: FlowerSpotTone;
+  nowScore?: number;
+  bloomScore?: number;
+  trendScore?: number;
+  yoyScore?: number;
+  nowScoreAt?: Date;
 };
+
+export interface SpotVideo {
+  videoId: string;
+  title: string;
+  channelTitle: string;
+  thumbnailUrl: string;
+  publishedAt: Date;
+}
+
+export interface SpotBlog {
+  url: string;
+  title: string;
+  bloggerName: string;
+  postedAt: Date;
+}
 
 export type PublishedSpotFlower = {
   name_ko: string;
@@ -48,4 +68,10 @@ export type PublishedSpotRow = {
   latitude: number;
   longitude: number;
   thumbnail_url: string | null;
+  bloom_score?: number | null;
+  trend_score?: number | null;
+  content_score?: number | null;
+  yoy_score?: number | null;
+  now_score?: number | null;
+  now_score_at?: string | null;
 };
