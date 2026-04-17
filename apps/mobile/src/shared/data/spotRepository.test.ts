@@ -62,33 +62,54 @@ const blogRows = [
 // from(table)이 반환할 체인 객체를 테이블+함수 문맥별로 제어한다.
 //
 // 설계:
-// - from('spots') 체인에서 .maybeSingle()이 호출되면 단일 row 반환 (getPublishedSpotBySlug용)
+// - from('spots') 체인에서 .maybeSingle()이 호출되면 단일 row 반환 (getPublishedSpotBySlug/getSpotContent용)
 // - from('spots') 체인에서 그렇지 않으면 배열 반환.
 //   단, 체인 도중 .eq('status','published')만 있고 .eq('slug', ...)이 없으면
 //   getPublishedSpots 또는 getTopSpots로 해석.
 // - getTopSpots 쿼리인지 판단은 .not('now_score',...) 호출 기록으로 판별.
 // - from('spot_videos') / from('spot_blogs')는 단순 배열 반환.
+//
+// 각 쿼리의 호출 인자를 recordCalls에 기록하여 필터/정렬 검증에 활용한다.
 
 type AnyFn = (...args: unknown[]) => unknown;
 
+type ChainCalls = {
+  eq: Array<[string, unknown]>;
+  order: Array<[string, unknown?]>;
+};
+
+const lastSpotsCalls: ChainCalls[] = [];
+const lastVideoCalls: ChainCalls[] = [];
+const lastBlogCalls: ChainCalls[] = [];
+
+function resetCallsFor(table: 'spots' | 'spot_videos' | 'spot_blogs') {
+  if (table === 'spots') lastSpotsCalls.length = 0;
+  if (table === 'spot_videos') lastVideoCalls.length = 0;
+  if (table === 'spot_blogs') lastBlogCalls.length = 0;
+}
+
 function makeSpotsChain() {
   const state = { calls: new Set<string>() };
+  const recorded: ChainCalls = { eq: [], order: [] };
+  lastSpotsCalls.push(recorded);
 
   const chain: Record<string, AnyFn> & PromiseLike<unknown> = {
     select(..._args: unknown[]) {
       state.calls.add('select');
       return chain;
     },
-    eq(..._args: unknown[]) {
+    eq(column: unknown, value: unknown) {
       state.calls.add('eq');
+      recorded.eq.push([String(column), value]);
       return chain;
     },
     not(..._args: unknown[]) {
       state.calls.add('not');
       return chain;
     },
-    order(..._args: unknown[]) {
+    order(column: unknown, options?: unknown) {
       state.calls.add('order');
+      recorded.order.push([String(column), options]);
       return chain;
     },
     limit(..._args: unknown[]) {
@@ -108,18 +129,23 @@ function makeSpotsChain() {
   return chain;
 }
 
-function makeArrayChain(rows: unknown[]) {
+function makeArrayChain(
+  rows: unknown[],
+  recorded?: ChainCalls,
+) {
   const chain: Record<string, AnyFn> & PromiseLike<unknown> = {
     select(..._args: unknown[]) {
       return chain;
     },
-    eq(..._args: unknown[]) {
+    eq(column: unknown, value: unknown) {
+      if (recorded) recorded.eq.push([String(column), value]);
       return chain;
     },
     in(..._args: unknown[]) {
       return chain;
     },
-    order(..._args: unknown[]) {
+    order(column: unknown, options?: unknown) {
+      if (recorded) recorded.order.push([String(column), options]);
       return chain;
     },
     limit(..._args: unknown[]) {
@@ -139,13 +165,24 @@ function makeArrayChain(rows: unknown[]) {
   return chain;
 }
 
+let videoRowsOverride: unknown[] | null = null;
+let blogRowsOverride: unknown[] | null = null;
+
 vi.mock('../lib/supabase', () => {
   return {
     supabase: {
       from: (table: string) => {
         if (table === 'spots') return makeSpotsChain();
-        if (table === 'spot_videos') return makeArrayChain(videoRows);
-        if (table === 'spot_blogs') return makeArrayChain(blogRows);
+        if (table === 'spot_videos') {
+          const recorded: ChainCalls = { eq: [], order: [] };
+          lastVideoCalls.push(recorded);
+          return makeArrayChain(videoRowsOverride ?? videoRows, recorded);
+        }
+        if (table === 'spot_blogs') {
+          const recorded: ChainCalls = { eq: [], order: [] };
+          lastBlogCalls.push(recorded);
+          return makeArrayChain(blogRowsOverride ?? blogRows, recorded);
+        }
         return makeArrayChain([]);
       },
     },
@@ -173,15 +210,26 @@ describe('spotRepository', () => {
   });
 
   it('getTopSpots(10)은 now_score desc 순서의 FlowerSpot 배열을 반환한다', async () => {
+    resetCallsFor('spots');
     const spots = await getTopSpots(10);
 
     expect(spots.length).toBe(topSpotRows.length);
     expect(spots[0]?.nowScore).toBe(95);
     expect(spots[0]?.nowScore).toBeGreaterThanOrEqual(spots[1]?.nowScore ?? 0);
     expect(spots[1]?.nowScore).toBeGreaterThanOrEqual(spots[2]?.nowScore ?? 0);
+
+    // now_score DESC 정렬이 호출되어야 한다.
+    const recorded = lastSpotsCalls.at(-1)!;
+    expect(recorded.order.some(([col]) => col === 'now_score')).toBe(true);
   });
 
   it('getSpotContent은 videos 3개·blogs 5개 이하로 Date 객체를 포함해 반환한다', async () => {
+    resetCallsFor('spots');
+    resetCallsFor('spot_videos');
+    resetCallsFor('spot_blogs');
+    videoRowsOverride = null;
+    blogRowsOverride = null;
+
     const content = await getSpotContent('yeouido-yunjung-ro');
 
     expect(content.videos.length).toBeLessThanOrEqual(3);
@@ -193,5 +241,91 @@ describe('spotRepository', () => {
 
     expect(content.blogs[0]?.url).toBe('https://b1');
     expect(content.blogs[0]?.postedAt).toBeInstanceOf(Date);
+  });
+
+  it("getSpotContent의 spot-id 조회 쿼리에 status='published' 필터가 걸린다", async () => {
+    resetCallsFor('spots');
+    videoRowsOverride = null;
+    blogRowsOverride = null;
+
+    await getSpotContent('yeouido-yunjung-ro');
+
+    // getSpotContent가 첫 번째로 만드는 spots 체인이 id 조회 쿼리다.
+    const spotIdCall = lastSpotsCalls[0]!;
+    expect(spotIdCall.eq.some(([col, val]) => col === 'slug' && val === 'yeouido-yunjung-ro')).toBe(true);
+    expect(spotIdCall.eq.some(([col, val]) => col === 'status' && val === 'published')).toBe(true);
+  });
+
+  it('spot_videos / spot_blogs 쿼리에 relevance_score DESC 정렬이 우선 호출된다', async () => {
+    resetCallsFor('spots');
+    resetCallsFor('spot_videos');
+    resetCallsFor('spot_blogs');
+    videoRowsOverride = null;
+    blogRowsOverride = null;
+
+    await getSpotContent('yeouido-yunjung-ro');
+
+    const videoOrder = lastVideoCalls.at(-1)!.order;
+    expect(videoOrder[0]?.[0]).toBe('relevance_score');
+    expect(videoOrder.some(([col]) => col === 'published_at')).toBe(true);
+
+    const blogOrder = lastBlogCalls.at(-1)!.order;
+    expect(blogOrder[0]?.[0]).toBe('relevance_score');
+    expect(blogOrder.some(([col]) => col === 'posted_at')).toBe(true);
+  });
+
+  it('spot_videos 결과에 published_at=null 또는 thumbnail_url=null row가 있어도 크래시하지 않고, published_at=null row는 제외된다', async () => {
+    resetCallsFor('spots');
+    resetCallsFor('spot_videos');
+    resetCallsFor('spot_blogs');
+    videoRowsOverride = [
+      {
+        video_id: 'vid-ok',
+        title: '정상',
+        channel_title: null,
+        thumbnail_url: null, // 빈 문자열 fallback
+        published_at: '2026-04-10T00:00:00Z',
+      },
+      {
+        video_id: 'vid-no-date',
+        title: '날짜 없음',
+        channel_title: '채널',
+        thumbnail_url: 'https://img/x.jpg',
+        published_at: null, // 제외 대상
+      },
+    ];
+    blogRowsOverride = [
+      {
+        url: 'https://ok',
+        title: '정상',
+        blogger_name: null, // 빈 문자열 fallback
+        posted_at: '2026-04-10T00:00:00Z',
+      },
+      {
+        url: 'https://no-date',
+        title: '날짜 없음',
+        blogger_name: '블로거',
+        posted_at: null, // 제외 대상
+      },
+    ];
+
+    const content = await getSpotContent('yeouido-yunjung-ro');
+
+    // published_at/posted_at이 null인 row는 결과에서 제외되어야 한다.
+    expect(content.videos).toHaveLength(1);
+    expect(content.videos[0]?.videoId).toBe('vid-ok');
+    expect(content.videos[0]?.channelTitle).toBe('');
+    expect(content.videos[0]?.thumbnailUrl).toBe('');
+    expect(content.videos[0]?.publishedAt).toBeInstanceOf(Date);
+    expect(Number.isNaN(content.videos[0]?.publishedAt.getTime())).toBe(false);
+
+    expect(content.blogs).toHaveLength(1);
+    expect(content.blogs[0]?.url).toBe('https://ok');
+    expect(content.blogs[0]?.bloggerName).toBe('');
+    expect(content.blogs[0]?.postedAt).toBeInstanceOf(Date);
+    expect(Number.isNaN(content.blogs[0]?.postedAt.getTime())).toBe(false);
+
+    videoRowsOverride = null;
+    blogRowsOverride = null;
   });
 });

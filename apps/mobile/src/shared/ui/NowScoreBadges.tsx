@@ -14,6 +14,7 @@ type BadgeDefinition = {
   label: string;
 };
 
+// SSOT: apps/web/src/lib/now-score/weights.ts · BADGE_THRESHOLDS — 변경 시 웹/모바일 동기화 필요
 const BLOOM_PEAK_THRESHOLD = 80;
 const TRENDING_THRESHOLD = 70;
 const YOY_RISING_THRESHOLD = 70;

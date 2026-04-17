@@ -8,6 +8,7 @@ export type MarkerStyle = {
   symbol: 'green' | 'pink' | 'red';
 };
 
+// SSOT: apps/web/src/lib/now-score/weights.ts · BADGE_THRESHOLDS — 변경 시 웹/모바일 동기화 필요
 const TIER_STYLES: Record<MarkerTier, Omit<MarkerStyle, 'tier'>> = {
   small: { width: 24, height: 28, symbol: 'green' },
   medium: { width: 30, height: 36, symbol: 'pink' },

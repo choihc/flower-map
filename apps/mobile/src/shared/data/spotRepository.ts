@@ -46,7 +46,7 @@ export async function getTopSpots(n: number): Promise<FlowerSpot[]> {
     .select('*, flower:flowers(name_ko, thumbnail_url, is_active)')
     .eq('status', 'published')
     .not('now_score', 'is', null)
-    .order('now_score', { ascending: false })
+    .order('now_score', { ascending: false, nullsFirst: false })
     .limit(n);
 
   if (error) throw error;
@@ -57,16 +57,16 @@ export async function getTopSpots(n: number): Promise<FlowerSpot[]> {
 type SpotVideoRow = {
   video_id: string;
   title: string;
-  channel_title: string;
-  thumbnail_url: string;
-  published_at: string;
+  channel_title: string | null;
+  thumbnail_url: string | null;
+  published_at: string | null;
 };
 
 type SpotBlogRow = {
   url: string;
   title: string;
-  blogger_name: string;
-  posted_at: string;
+  blogger_name: string | null;
+  posted_at: string | null;
 };
 
 export async function getSpotContent(
@@ -76,6 +76,7 @@ export async function getSpotContent(
     .from('spots')
     .select('id')
     .eq('slug', slug)
+    .eq('status', 'published')
     .maybeSingle();
 
   if (spotError) throw spotError;
@@ -88,36 +89,41 @@ export async function getSpotContent(
       .from('spot_videos')
       .select('video_id, title, channel_title, thumbnail_url, published_at')
       .eq('spot_id', spotId)
-      .order('published_at', { ascending: false })
+      .order('relevance_score', { ascending: false, nullsFirst: false })
+      .order('published_at', { ascending: false, nullsFirst: false })
       .limit(3),
     supabase
       .from('spot_blogs')
       .select('url, title, blogger_name, posted_at')
       .eq('spot_id', spotId)
-      .order('posted_at', { ascending: false })
+      .order('relevance_score', { ascending: false, nullsFirst: false })
+      .order('posted_at', { ascending: false, nullsFirst: false })
       .limit(5),
   ]);
 
   if (videoRes.error) throw videoRes.error;
   if (blogRes.error) throw blogRes.error;
 
+  // 날짜가 없는 row는 품질이 낮은 데이터로 간주해 결과에서 제외한다.
   const videos: SpotVideo[] = ((videoRes.data ?? []) as SpotVideoRow[])
+    .filter((row) => row.published_at != null)
     .slice(0, 3)
     .map((row) => ({
       videoId: row.video_id,
       title: row.title,
-      channelTitle: row.channel_title,
-      thumbnailUrl: row.thumbnail_url,
-      publishedAt: new Date(row.published_at),
+      channelTitle: row.channel_title ?? '',
+      thumbnailUrl: row.thumbnail_url ?? '',
+      publishedAt: new Date(row.published_at as string),
     }));
 
   const blogs: SpotBlog[] = ((blogRes.data ?? []) as SpotBlogRow[])
+    .filter((row) => row.posted_at != null)
     .slice(0, 5)
     .map((row) => ({
       url: row.url,
       title: row.title,
-      bloggerName: row.blogger_name,
-      postedAt: new Date(row.posted_at),
+      bloggerName: row.blogger_name ?? '',
+      postedAt: new Date(row.posted_at as string),
     }));
 
   return { videos, blogs };

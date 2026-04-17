@@ -128,10 +128,11 @@ export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpo
     tone: toFlowerTone(row.flower.name_ko),
   };
 
-  if (row.now_score != null) spot.nowScore = row.now_score;
-  if (row.bloom_score != null) spot.bloomScore = row.bloom_score;
-  if (row.trend_score != null) spot.trendScore = row.trend_score;
-  if (row.yoy_score != null) spot.yoyScore = row.yoy_score;
+  // Supabase가 NUMERIC(5,2)을 문자열로 반환할 가능성이 있어 Number()로 명시 변환한다.
+  if (row.now_score != null) spot.nowScore = Number(row.now_score);
+  if (row.bloom_score != null) spot.bloomScore = Number(row.bloom_score);
+  if (row.trend_score != null) spot.trendScore = Number(row.trend_score);
+  if (row.yoy_score != null) spot.yoyScore = Number(row.yoy_score);
   if (row.now_score_at) spot.nowScoreAt = new Date(row.now_score_at);
 
   return spot;

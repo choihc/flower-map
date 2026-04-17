@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: vi.fn(),
@@ -51,5 +52,54 @@ describe('SpotStoriesSection', () => {
     const { queryByTestId } = render(<SpotStoriesSection slug="x" />);
 
     expect(queryByTestId('spot-stories-section')).toBeNull();
+  });
+
+  it('blog.url이 javascript: 스킴이면 Linking.openURL을 호출하지 않는다', () => {
+    const videos: any[] = [];
+    const blogs = [
+      {
+        url: 'javascript:alert(1)',
+        title: '악성 블로그',
+        bloggerName: '해커',
+        postedAt: new Date('2026-04-10T00:00:00Z'),
+      },
+    ];
+
+    (useQuery as any).mockReturnValue({ data: { videos, blogs }, isLoading: false });
+
+    const openURLSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const { getByTestId } = render(<SpotStoriesSection slug="x" />);
+    fireEvent.press(getByTestId('story-blog'));
+
+    expect(openURLSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalled();
+
+    openURLSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
+
+  it('blog.url이 https:// 스킴이면 Linking.openURL이 호출된다', () => {
+    const videos: any[] = [];
+    const blogs = [
+      {
+        url: 'https://example.com/post',
+        title: '정상 블로그',
+        bloggerName: '블로거',
+        postedAt: new Date('2026-04-10T00:00:00Z'),
+      },
+    ];
+
+    (useQuery as any).mockReturnValue({ data: { videos, blogs }, isLoading: false });
+
+    const openURLSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
+
+    const { getByTestId } = render(<SpotStoriesSection slug="x" />);
+    fireEvent.press(getByTestId('story-blog'));
+
+    expect(openURLSpy).toHaveBeenCalledWith('https://example.com/post');
+
+    openURLSpy.mockRestore();
   });
 });

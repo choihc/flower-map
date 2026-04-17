@@ -16,6 +16,18 @@ function formatKoreanDate(date: Date): string {
   return `${y}.${m}.${d}`;
 }
 
+/**
+ * 외부 링크를 열기 전 스킴을 화이트리스트 검증한다.
+ * `javascript:`, `file:` 등 악의적 스킴으로 임의 코드를 실행하는 것을 방지한다.
+ */
+function openExternalLink(url: string) {
+  if (!/^https?:\/\//i.test(url)) {
+    console.warn('차단된 URL 스킴:', url);
+    return;
+  }
+  Linking.openURL(url).catch((err) => console.warn('openURL 실패', err));
+}
+
 export function SpotStoriesSection({ slug }: SpotStoriesSectionProps) {
   const { data, isLoading } = useQuery({
     queryKey: spotKeys.content(slug),
@@ -65,7 +77,7 @@ function VideoCard({ video }: { video: SpotVideo }) {
     <Pressable
       testID="story-video"
       onPress={() => {
-        Linking.openURL(`https://youtu.be/${video.videoId}`).catch(() => {});
+        openExternalLink(`https://youtu.be/${video.videoId}`);
       }}
       style={styles.videoCard}
     >
@@ -85,7 +97,7 @@ function BlogRow({ blog }: { blog: SpotBlog }) {
     <Pressable
       testID="story-blog"
       onPress={() => {
-        Linking.openURL(blog.url).catch(() => {});
+        openExternalLink(blog.url);
       }}
       style={styles.blogRow}
     >

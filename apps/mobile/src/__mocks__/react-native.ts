@@ -96,6 +96,17 @@ const Alert = {
   alert: () => {},
 };
 
+// Linking mock — 테스트에서 vi.spyOn(Linking, 'openURL')로 가로챌 수 있도록 메서드 노출
+const Linking = {
+  openURL: (_url: string) => Promise.resolve(true),
+  canOpenURL: (_url: string) => Promise.resolve(true),
+  addEventListener: (_event: string, _listener: (...args: unknown[]) => void) => ({
+    remove: () => {},
+  }),
+  removeEventListener: () => {},
+  getInitialURL: () => Promise.resolve(null as string | null),
+};
+
 // Dimensions mock
 const Dimensions = {
   get: (_dim: string) => ({ width: 375, height: 812, scale: 2, fontScale: 1 }),
@@ -136,6 +147,7 @@ export {
   FlatList,
   Image,
   Keyboard,
+  Linking,
   Modal,
   Platform,
   Pressable,

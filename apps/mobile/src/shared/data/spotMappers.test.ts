@@ -75,6 +75,23 @@ describe('toFlowerSpot', () => {
     expect(withScores.nowScoreAt?.toISOString()).toBe('2026-04-17T03:00:00.000Z');
   });
 
+  it('Supabase가 NUMERIC 값을 문자열로 반환해도 Number로 변환된다', () => {
+    // PostgREST가 NUMERIC(5,2)을 문자열 "79.50"로 직렬화할 수 있음에 대비.
+    const withStringScores = toFlowerSpot({
+      ...baseRow,
+      bloom_score: '82.00',
+      trend_score: '71.25',
+      yoy_score: '75.50',
+      now_score: '79.50',
+    } as never);
+
+    expect(withStringScores.bloomScore).toBe(82);
+    expect(withStringScores.trendScore).toBe(71.25);
+    expect(withStringScores.yoyScore).toBe(75.5);
+    expect(withStringScores.nowScore).toBe(79.5);
+    expect(typeof withStringScores.nowScore).toBe('number');
+  });
+
   it('maps now_score 계열 필드가 null/누락이면 undefined로 둔다', () => {
     const nullScores = toFlowerSpot({
       ...baseRow,
