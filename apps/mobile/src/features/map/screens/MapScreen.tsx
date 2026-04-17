@@ -33,6 +33,7 @@ import {
   requestAndGetLocation,
 } from '../../../shared/lib/location';
 import { SpotSummaryCard } from '../components/SpotSummaryCard';
+import { resolveMarkerStyle } from '../markerStyle';
 
 const defaultCamera = {
   latitude: 37.534,
@@ -96,18 +97,19 @@ function NativeMapCanvas({ spots, selectedSpotSlug, userCamera, onSelectSpot }: 
     >
       {spots.map((spot) => {
         const isSelected = spot.slug === selectedSpotSlug;
+        const markerStyle = resolveMarkerStyle(spot.nowScore);
 
         return (
           <NaverMapMarkerOverlay
             key={spot.id}
             caption={{ text: spot.place }}
-            height={isSelected ? 40 : 34}
-            image={{ symbol: isSelected ? 'pink' : 'green' }}
+            height={isSelected ? 44 : markerStyle.height}
+            image={{ symbol: isSelected ? 'pink' : markerStyle.symbol }}
             isForceShowIcon={isSelected}
             latitude={spot.latitude}
             longitude={spot.longitude}
             onTap={() => onSelectSpot(spot.slug)}
-            width={isSelected ? 32 : 28}
+            width={isSelected ? 36 : markerStyle.width}
           />
         );
       })}
