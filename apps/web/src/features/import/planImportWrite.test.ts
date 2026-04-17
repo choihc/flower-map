@@ -23,6 +23,7 @@ describe('planImportWrite', () => {
         status: 'published',
         is_featured: false,
         display_order: 0,
+        exclude_keywords: [],
         photos: [],
       },
     };
@@ -58,6 +59,7 @@ describe('planImportWrite', () => {
         season_end_month: 4,
         sort_order: 1,
         is_active: true,
+        aliases: [],
       },
       spots: [
         {
@@ -75,6 +77,7 @@ describe('planImportWrite', () => {
           status: 'published',
           is_featured: false,
           display_order: 0,
+          exclude_keywords: [],
           photos: [],
         },
         {
@@ -92,6 +95,7 @@ describe('planImportWrite', () => {
           status: 'published',
           is_featured: false,
           display_order: 0,
+          exclude_keywords: [],
           photos: [],
         },
       ],
