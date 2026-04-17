@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { filterVideos } from './filters';
-import type { VideoItem, SpotContext } from './filters';
+import { filterBlogs, filterVideos } from './filters';
+import type { BlogItem, SpotContext, VideoItem } from './filters';
 
 function makeVideo(overrides: Partial<VideoItem> = {}): VideoItem {
   return {
@@ -155,6 +155,171 @@ describe('filterVideos', () => {
     const original = makeVideo({ videoId: 'pure' });
     const snapshot = { ...original };
     filterVideos([original], spot);
+    expect(original).toEqual(snapshot);
+    expect(original.relevanceScore).toBeUndefined();
+  });
+});
+
+function makeBlog(overrides: Partial<BlogItem> = {}): BlogItem {
+  return {
+    url: 'https://blog.example.com/default',
+    title: '여의도 벚꽃 다녀왔어요',
+    description: '여의도 벚꽃 구경',
+    bloggerName: '기본블로거',
+    postedAt: new Date('2026-04-01T00:00:00Z'),
+    ...overrides,
+  };
+}
+
+describe('filterBlogs', () => {
+  const now = new Date('2026-04-17T00:00:00Z');
+
+  it('title에 명소명이 없으면 제거한다', () => {
+    const items = [
+      makeBlog({ url: 'u1' }),
+      makeBlog({ url: 'u2', title: '남산 벚꽃 탐방' }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result.map((i) => i.url)).toEqual(['u1']);
+  });
+
+  it('12개월(365일)을 초과한 postedAt은 제거한다', () => {
+    const items = [
+      makeBlog({
+        url: 'too-old',
+        postedAt: new Date('2025-04-16T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'just-in',
+        postedAt: new Date('2025-04-18T00:00:00Z'),
+      }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result.map((i) => i.url)).toEqual(['just-in']);
+  });
+
+  it('동일 bloggerName은 최신 1개만 유지한다', () => {
+    const items = [
+      makeBlog({
+        url: 'old',
+        bloggerName: 'b1',
+        postedAt: new Date('2026-01-01T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'new',
+        bloggerName: 'b1',
+        postedAt: new Date('2026-03-01T00:00:00Z'),
+      }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result).toHaveLength(1);
+    expect(result[0].url).toBe('new');
+  });
+
+  it('꽃 유의어 포함 시 relevanceScore는 0.7이다', () => {
+    const items = [
+      makeBlog({
+        url: 'alias',
+        title: '여의도 사쿠라 만개',
+        description: '봄 나들이',
+      }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result[0].relevanceScore).toBeCloseTo(0.7, 5);
+  });
+
+  it('꽃 이름/유의어가 없으면 relevanceScore는 0.5이다', () => {
+    const items = [
+      makeBlog({
+        url: 'no-flower',
+        title: '여의도 맛집 탐방',
+        description: '여의도 한강 산책',
+      }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result[0].relevanceScore).toBeCloseTo(0.5, 5);
+  });
+
+  it('제외 키워드 포함 시 제거한다', () => {
+    const items = [
+      makeBlog({
+        url: 'ad',
+        title: '여의도 벚꽃 광고 포스팅',
+      }),
+      makeBlog({ url: 'ok' }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result.map((i) => i.url)).toEqual(['ok']);
+  });
+
+  it('7개 중 최대 5개만 반환하며 relevance DESC, postedAt DESC 순으로 정렬된다', () => {
+    const items = [
+      makeBlog({
+        url: 'a',
+        bloggerName: 'b1',
+        title: '여의도 벚꽃 명소',
+        description: '한강 피크닉',
+        postedAt: new Date('2026-03-10T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'b',
+        bloggerName: 'b2',
+        title: '여의도 봄 여행',
+        description: '맛집 리뷰',
+        postedAt: new Date('2026-03-09T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'c',
+        bloggerName: 'b3',
+        title: '여의도 한강',
+        description: '자전거',
+        postedAt: new Date('2026-03-08T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'd',
+        bloggerName: 'b4',
+        title: '여의도 사쿠라 핀 곳',
+        description: '봄',
+        postedAt: new Date('2026-03-07T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'e',
+        bloggerName: 'b5',
+        title: '여의도 드라이브',
+        description: '야경',
+        postedAt: new Date('2026-03-06T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'f',
+        bloggerName: 'b6',
+        title: '여의도 카페',
+        description: '디저트',
+        postedAt: new Date('2026-03-05T00:00:00Z'),
+      }),
+      makeBlog({
+        url: 'g',
+        bloggerName: 'b7',
+        title: '여의도 쇼핑',
+        description: '후기',
+        postedAt: new Date('2026-03-04T00:00:00Z'),
+      }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result).toHaveLength(5);
+    expect(result.map((i) => i.url)).toEqual(['a', 'd', 'b', 'c', 'e']);
+  });
+
+  it('빈 excludeKeywords 항목("")은 모든 항목을 제거하지 않는다', () => {
+    const localSpot: SpotContext = { ...spot, excludeKeywords: [''] };
+    const items = [makeBlog({ url: 'ok' })];
+    const result = filterBlogs(items, localSpot, now);
+    expect(result.map((i) => i.url)).toEqual(['ok']);
+  });
+
+  it('원본 객체를 변경하지 않는다 (순수 함수)', () => {
+    const original = makeBlog({ url: 'pure' });
+    const snapshot = { ...original };
+    filterBlogs([original], spot, now);
     expect(original).toEqual(snapshot);
     expect(original.relevanceScore).toBeUndefined();
   });
