@@ -1,11 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-type SupabaseChain = {
-  select: ReturnType<typeof vi.fn>;
-  eq: ReturnType<typeof vi.fn>;
-  update: ReturnType<typeof vi.fn>;
-};
-
 type SpotFixture = {
   id: string;
   name: string;
@@ -22,8 +16,6 @@ const mocks = vi.hoisted(() => ({
   getExternalApiEnv: vi.fn(),
   fetchShortForecast: vi.fn(),
   fetchSearchTrends: vi.fn(),
-  searchBlogs: vi.fn(),
-  searchYouTube: vi.fn(),
 }));
 
 vi.mock('@/lib/supabase/admin', () => ({
@@ -47,14 +39,6 @@ vi.mock('@/lib/external/naverDatalab', () => ({
   fetchSearchTrends: mocks.fetchSearchTrends,
 }));
 
-vi.mock('@/lib/external/naverSearch', () => ({
-  searchBlogs: mocks.searchBlogs,
-}));
-
-vi.mock('@/lib/external/youtube', () => ({
-  searchYouTube: mocks.searchYouTube,
-}));
-
 function buildRequest(authHeader?: string): Request {
   const headers = new Headers();
   if (authHeader !== undefined) headers.set('authorization', authHeader);
@@ -64,7 +48,13 @@ function buildRequest(authHeader?: string): Request {
   });
 }
 
-function buildSupabaseMock(spots: SpotFixture[]): {
+function buildSupabaseMock(
+  spots: SpotFixture[],
+  opts: {
+    videoRows?: Array<{ spot_id: string }>;
+    blogRows?: Array<{ spot_id: string }>;
+  } = {},
+): {
   from: ReturnType<typeof vi.fn>;
   updateMock: ReturnType<typeof vi.fn>;
   updateEqMock: ReturnType<typeof vi.fn>;
@@ -76,15 +66,33 @@ function buildSupabaseMock(spots: SpotFixture[]): {
     eq: vi.fn().mockResolvedValue({ data: spots, error: null }),
   };
 
-  const from = vi.fn((table: string): SupabaseChain => {
-    if (table !== 'spots') {
-      throw new Error(`Unexpected table: ${table}`);
+  const from = vi.fn((table: string) => {
+    if (table === 'spots') {
+      return {
+        select: vi.fn(() => selectChain),
+        eq: selectChain.eq,
+        update: updateMock,
+      };
     }
-    return {
-      select: vi.fn(() => selectChain),
-      eq: selectChain.eq,
-      update: updateMock,
-    };
+    if (table === 'spot_videos') {
+      return {
+        select: vi.fn(() => ({
+          in: vi
+            .fn()
+            .mockResolvedValue({ data: opts.videoRows ?? [], error: null }),
+        })),
+      };
+    }
+    if (table === 'spot_blogs') {
+      return {
+        select: vi.fn(() => ({
+          in: vi
+            .fn()
+            .mockResolvedValue({ data: opts.blogRows ?? [], error: null }),
+        })),
+      };
+    }
+    throw new Error(`Unexpected table: ${table}`);
   });
 
   return { from, updateMock, updateEqMock };
@@ -95,8 +103,6 @@ beforeEach(() => {
   mocks.getExternalApiEnv.mockReset();
   mocks.fetchShortForecast.mockReset();
   mocks.fetchSearchTrends.mockReset();
-  mocks.searchBlogs.mockReset();
-  mocks.searchYouTube.mockReset();
 
   mocks.getExternalApiEnv.mockReturnValue({
     naverClientId: 'cid',
@@ -152,7 +158,16 @@ describe('GET /api/cron/now-score', () => {
       },
     ];
 
-    const { from, updateMock, updateEqMock } = buildSupabaseMock(spots);
+    const videoRows = Array.from({ length: 5 }, () => ({
+      spot_id: 'spot-1',
+    }));
+    const blogRows = Array.from({ length: 12 }, () => ({
+      spot_id: 'spot-1',
+    }));
+    const { from, updateMock, updateEqMock } = buildSupabaseMock(spots, {
+      videoRows,
+      blogRows,
+    });
     mocks.createAdminSupabaseClient.mockReturnValue({ from });
 
     mocks.fetchShortForecast.mockResolvedValue({
@@ -193,28 +208,6 @@ describe('GET /api/cron/now-score', () => {
           data: [...recent, ...lastYear],
         }));
       },
-    );
-
-    mocks.searchBlogs.mockResolvedValue(
-      Array.from({ length: 12 }, (_, i) => ({
-        title: `blog-${i}`,
-        link: `https://b.example/${i}`,
-        description: 'd',
-        bloggerName: 'name',
-        postedAt: new Date('2026-04-15T00:00:00Z'),
-      })),
-    );
-
-    mocks.searchYouTube.mockResolvedValue(
-      Array.from({ length: 5 }, (_, i) => ({
-        videoId: `v${i}`,
-        title: 't',
-        description: 'd',
-        channelTitle: 'c',
-        channelId: `c${i}`,
-        thumbnailUrl: 'https://img',
-        publishedAt: new Date('2026-04-15T00:00:00Z'),
-      })),
     );
 
     const { GET } = await import('./route');
@@ -267,8 +260,6 @@ describe('GET /api/cron/now-score', () => {
       precipitationMm: 0,
     });
     mocks.fetchSearchTrends.mockRejectedValue(new Error('datalab fail'));
-    mocks.searchBlogs.mockResolvedValue([]);
-    mocks.searchYouTube.mockResolvedValue([]);
 
     const { GET } = await import('./route');
     const res = await GET(buildRequest('Bearer ok'));
@@ -283,7 +274,8 @@ describe('GET /api/cron/now-score', () => {
     expect(payload.bloom_score).toEqual(expect.any(Number));
     expect(payload.trend_score).toBeNull();
     expect(payload.yoy_score).toBeNull();
-    expect(payload.content_score).toEqual(expect.any(Number));
+    // 외부 호출 없이 DB 집계(0건)라 content_score는 0 (null이 아님)
+    expect(payload.content_score).toBe(0);
     expect(payload.now_score).toEqual(expect.any(Number));
   });
 
@@ -316,8 +308,6 @@ describe('GET /api/cron/now-score', () => {
         data: [{ period: '2026-04-01', ratio: 30 }],
       },
     ]);
-    mocks.searchBlogs.mockResolvedValue([]);
-    mocks.searchYouTube.mockResolvedValue([]);
 
     const { GET } = await import('./route');
     const res = await GET(buildRequest('Bearer ok'));

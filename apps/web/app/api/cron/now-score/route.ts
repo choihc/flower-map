@@ -8,8 +8,6 @@ import {
   type TrendGroup,
   type TrendResult,
 } from '@/lib/external/naverDatalab';
-import { searchBlogs } from '@/lib/external/naverSearch';
-import { searchYouTube } from '@/lib/external/youtube';
 import { calcBloomScore } from '@/lib/now-score/bloom';
 import { calcContentScore } from '@/lib/now-score/content';
 import { calcNowScore } from '@/lib/now-score/aggregate';
@@ -21,7 +19,6 @@ import type { SpotUpdate } from '@/lib/types';
 export const maxDuration = 300;
 
 const TREND_LOOKBACK_DAYS = 7;
-const CONTENT_LOOKBACK_DAYS = 7;
 const YOY_WINDOW_DAYS = 7;
 const TREND_GROUP_BATCH_SIZE = 5;
 const DAY_MS = 86400000;
@@ -93,10 +90,6 @@ function formatDate(date: Date): string {
   const m = (date.getUTCMonth() + 1).toString().padStart(2, '0');
   const d = date.getUTCDate().toString().padStart(2, '0');
   return `${y}-${m}-${d}`;
-}
-
-function buildSpotQuery(spot: SpotRecord): string {
-  return `${spot.name} ${spot.flowers.name_ko}`.trim();
 }
 
 function buildTrendGroup(spot: SpotRecord): TrendGroup {
@@ -236,45 +229,36 @@ async function collectYoyScores(
   return scores;
 }
 
-async function computeContentScore(
-  spot: SpotRecord,
-  env: {
-    naverClientId: string;
-    naverClientSecret: string;
-    youtubeApiKey: string;
-  },
-  now: Date,
-): Promise<number | null> {
-  const query = buildSpotQuery(spot);
-  const cutoff = new Date(now.getTime() - CONTENT_LOOKBACK_DAYS * DAY_MS);
+type CountClient = {
+  from: (table: string) => {
+    select: (columns: string) => {
+      in: (
+        column: string,
+        values: string[],
+      ) => Promise<{ data: Array<{ spot_id: string }> | null; error: unknown }>;
+    };
+  };
+};
 
-  try {
-    const [blogs, videos] = await Promise.all([
-      searchBlogs({
-        clientId: env.naverClientId,
-        clientSecret: env.naverClientSecret,
-        query,
-        sort: 'date',
-        display: 100,
-      }),
-      searchYouTube({
-        apiKey: env.youtubeApiKey,
-        query,
-        publishedAfter: cutoff,
-        maxResults: 50,
-      }),
-    ]);
-
-    const recentBlogCount = blogs.filter(
-      (b) => b.postedAt.getTime() >= cutoff.getTime(),
-    ).length;
-    const recentVideoCount = videos.length;
-
-    return calcContentScore(recentBlogCount, recentVideoCount);
-  } catch (err) {
-    console.error('now-score content failed', spot.id, err);
-    return null;
+async function collectContentCountMap(
+  supabase: CountClient,
+  table: 'spot_videos' | 'spot_blogs',
+  spotIds: string[],
+): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  if (spotIds.length === 0) return counts;
+  const { data, error } = await supabase
+    .from(table)
+    .select('spot_id')
+    .in('spot_id', spotIds);
+  if (error) {
+    console.error(`now-score count query failed for ${table}`, error);
+    return counts;
   }
+  for (const row of data ?? []) {
+    counts.set(row.spot_id, (counts.get(row.spot_id) ?? 0) + 1);
+  }
+  return counts;
 }
 
 export async function GET(req: Request) {
@@ -302,9 +286,20 @@ export async function GET(req: Request) {
   }
 
   const spots = (spotsData ?? []) as unknown as SpotRecord[];
+  const spotIds = spots.map((s) => s.id);
 
   const trendScores = await collectTrendScores(spots, env, now);
   const yoyScores = await collectYoyScores(spots, env, now);
+  const videoCounts = await collectContentCountMap(
+    supabase as unknown as CountClient,
+    'spot_videos',
+    spotIds,
+  );
+  const blogCounts = await collectContentCountMap(
+    supabase as unknown as CountClient,
+    'spot_blogs',
+    spotIds,
+  );
 
   let processed = 0;
   for (const spot of spots) {
@@ -337,7 +332,9 @@ export async function GET(req: Request) {
           : null;
 
       const trend = trendScores.get(spot.id) ?? null;
-      const content = await computeContentScore(spot, env, now);
+      const blogCount = blogCounts.get(spot.id) ?? 0;
+      const videoCount = videoCounts.get(spot.id) ?? 0;
+      const content = calcContentScore(blogCount, videoCount);
       const yoy = yoyScores.get(spot.id) ?? null;
 
       const nowScore = calcNowScore({ bloom, trend, content, yoy });
