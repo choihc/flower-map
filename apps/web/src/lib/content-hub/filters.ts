@@ -26,7 +26,7 @@ export interface SpotContext {
   excludeKeywords: string[];
 }
 
-const VIDEO_MIN_VIEW_COUNT = 1000;
+const VIDEO_MIN_VIEW_COUNT = 300;
 const VIDEO_MAX_RESULTS = 3;
 const BLOG_MAX_RESULTS = 5;
 const BLOG_FRESHNESS_DAYS = 365;
@@ -60,6 +60,18 @@ export function isAllowedBlogUrl(url: string): boolean {
     }
   }
   return false;
+}
+
+// 공백/전각공백을 제거해 표기 차이를 흡수한 포함 검사.
+// 예) "여의도 윤중로" ↔ "여의도윤중로" / "여의도 　 윤중로" 모두 매칭.
+function normalizeForMatch(value: string): string {
+  return value.replace(/\s+/g, '').replace(/\u3000+/g, '');
+}
+
+function includesNormalized(text: string, needle: string): boolean {
+  const n = normalizeForMatch(needle);
+  if (n.length === 0) return false;
+  return normalizeForMatch(text).includes(n);
 }
 
 function containsAny(text: string, keywords: readonly string[]): boolean {
@@ -101,7 +113,7 @@ export function filterVideos(items: readonly VideoItem[], spot: SpotContext): Vi
   for (const item of items) {
     const text = `${item.title} ${item.description}`;
 
-    if (!text.includes(spot.name)) continue;
+    if (!includesNormalized(text, spot.name)) continue;
     if (containsAny(text, spot.excludeKeywords)) continue;
     if (item.viewCount < VIDEO_MIN_VIEW_COUNT) continue;
 
@@ -136,7 +148,7 @@ export function filterBlogs(
 
   for (const item of items) {
     if (!isAllowedBlogUrl(item.url)) continue;
-    if (!item.title.includes(spot.name)) continue;
+    if (!includesNormalized(item.title, spot.name)) continue;
 
     const text = `${item.title} ${item.description}`;
     if (containsAny(text, spot.excludeKeywords)) continue;

@@ -20,7 +20,8 @@ import type { SpotBlogInsert, SpotVideoInsert } from '@/lib/types';
 
 export const maxDuration = 300;
 
-const LOOKBACK_DAYS = 180;
+// 봄꽃 같은 계절 콘텐츠는 1년 주기로 반복되므로 전년도 동기 영상까지 포함.
+const LOOKBACK_DAYS = 400;
 const DAY_MS = 86400000;
 const YOUTUBE_SEARCH_RESULTS = 20;
 const BLOG_SEARCH_DISPLAY = 20;

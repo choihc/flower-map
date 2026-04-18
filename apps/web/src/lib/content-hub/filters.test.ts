@@ -33,10 +33,20 @@ describe('filterVideos', () => {
     expect(result.map((i) => i.videoId)).toEqual(['v1']);
   });
 
-  it('viewCount 1000 미만 항목은 제거한다', () => {
+  it('명소명의 공백 표기 차이는 무시하고 매칭한다 ("여의도 윤중로" ↔ "여의도윤중로")', () => {
+    const longSpot = { ...spot, name: '여의도 윤중로' };
     const items = [
-      makeVideo({ videoId: 'v1', viewCount: 999 }),
-      makeVideo({ videoId: 'v2', viewCount: 1000 }),
+      makeVideo({ videoId: 'v1', channelId: 'ch-a', title: '여의도윤중로 벚꽃 산책' }),
+      makeVideo({ videoId: 'v2', channelId: 'ch-b', title: '여의도 　 윤중로 브이로그' }),
+    ];
+    const result = filterVideos(items, longSpot);
+    expect(result.map((i) => i.videoId).sort()).toEqual(['v1', 'v2']);
+  });
+
+  it('viewCount 300 미만 항목은 제거한다', () => {
+    const items = [
+      makeVideo({ videoId: 'v1', viewCount: 299 }),
+      makeVideo({ videoId: 'v2', viewCount: 300 }),
     ];
     const result = filterVideos(items, spot);
     expect(result.map((i) => i.videoId)).toEqual(['v2']);
