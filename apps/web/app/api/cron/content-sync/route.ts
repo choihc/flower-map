@@ -124,59 +124,72 @@ export async function GET(req: Request) {
       const query = `${spot.name} ${spot.flowers.name_ko}`.trim();
       const publishedAfter = new Date(Date.now() - LOOKBACK_DAYS * DAY_MS);
 
-      const rawVideos = await searchYouTube({
-        apiKey: env.youtubeApiKey,
-        query,
-        publishedAfter,
-        maxResults: YOUTUBE_SEARCH_RESULTS,
-      });
-      const stats = await collectVideoStats(
-        env.youtubeApiKey,
-        rawVideos.map((v) => v.videoId),
-      );
-      const videosWithStats: VideoItem[] = [];
-      for (const v of rawVideos) {
-        const vc = stats.get(v.videoId);
-        // stats 응답에 누락된 영상(null)은 필터 대상에서 탈락시킨다.
-        if (vc === null || vc === undefined) continue;
-        videosWithStats.push({ ...v, viewCount: vc });
+      // 유튜브 쿼터 초과 등으로 비디오 수집이 실패해도 블로그 수집은 계속하도록 try/catch를 분리한다.
+      let filteredVideos: VideoItem[] = [];
+      try {
+        const rawVideos = await searchYouTube({
+          apiKey: env.youtubeApiKey,
+          query,
+          publishedAfter,
+          maxResults: YOUTUBE_SEARCH_RESULTS,
+        });
+        const stats = await collectVideoStats(
+          env.youtubeApiKey,
+          rawVideos.map((v) => v.videoId),
+        );
+        const videosWithStats: VideoItem[] = [];
+        for (const v of rawVideos) {
+          const vc = stats.get(v.videoId);
+          // stats 응답에 누락된 영상(null)은 필터 대상에서 탈락시킨다.
+          if (vc === null || vc === undefined) continue;
+          videosWithStats.push({ ...v, viewCount: vc });
+        }
+        const { filtered, stats: videoStats } = filterVideosWithStats(
+          videosWithStats,
+          spotContext,
+        );
+        filteredVideos = filtered;
+        console.info(
+          `[content-sync] spot=${spot.id} src=${source} name="${spot.name}" videos raw=${rawVideos.length} withStats=${videosWithStats.length} kept=${filtered.length} rej{name:${videoStats.rejectedNoNameMatch},excl:${videoStats.rejectedExcludeKeyword},view:${videoStats.rejectedLowViewCount},dup:${videoStats.rejectedDuplicateChannel}} trimmed=${videoStats.trimmedToMax}`,
+        );
+      } catch (err) {
+        console.error('content-sync video fetch failed', spot.id, err);
       }
-      const { filtered: filteredVideos, stats: videoStats } = filterVideosWithStats(
-        videosWithStats,
-        spotContext,
-      );
-      console.info(
-        `[content-sync] spot=${spot.id} src=${source} name="${spot.name}" videos raw=${rawVideos.length} withStats=${videosWithStats.length} kept=${filteredVideos.length} rej{name:${videoStats.rejectedNoNameMatch},excl:${videoStats.rejectedExcludeKeyword},view:${videoStats.rejectedLowViewCount},dup:${videoStats.rejectedDuplicateChannel}} trimmed=${videoStats.trimmedToMax}`,
-      );
 
-      const [blogsBySim, blogsByDate] = await Promise.all([
-        searchBlogs({
-          clientId: env.naverClientId,
-          clientSecret: env.naverClientSecret,
-          query,
-          sort: 'sim',
-          display: BLOG_SEARCH_DISPLAY,
-        }),
-        searchBlogs({
-          clientId: env.naverClientId,
-          clientSecret: env.naverClientSecret,
-          query,
-          sort: 'date',
-          display: BLOG_SEARCH_DISPLAY,
-        }),
-      ]);
-      const dedupedByUrl = new Map<string, NaverBlogItem>();
-      for (const b of [...blogsBySim, ...blogsByDate]) {
-        if (!dedupedByUrl.has(b.link)) dedupedByUrl.set(b.link, b);
+      let filteredBlogs: BlogItem[] = [];
+      try {
+        const [blogsBySim, blogsByDate] = await Promise.all([
+          searchBlogs({
+            clientId: env.naverClientId,
+            clientSecret: env.naverClientSecret,
+            query,
+            sort: 'sim',
+            display: BLOG_SEARCH_DISPLAY,
+          }),
+          searchBlogs({
+            clientId: env.naverClientId,
+            clientSecret: env.naverClientSecret,
+            query,
+            sort: 'date',
+            display: BLOG_SEARCH_DISPLAY,
+          }),
+        ]);
+        const dedupedByUrl = new Map<string, NaverBlogItem>();
+        for (const b of [...blogsBySim, ...blogsByDate]) {
+          if (!dedupedByUrl.has(b.link)) dedupedByUrl.set(b.link, b);
+        }
+        const blogInputs = Array.from(dedupedByUrl.values()).map(mapBlogToFilterItem);
+        const { filtered, stats: blogStats } = filterBlogsWithStats(
+          blogInputs,
+          spotContext,
+        );
+        filteredBlogs = filtered;
+        console.info(
+          `[content-sync] spot=${spot.id} blogs raw=${blogInputs.length} kept=${filtered.length} rej{host:${blogStats.rejectedHost},name:${blogStats.rejectedNoNameMatch},excl:${blogStats.rejectedExcludeKeyword},stale:${blogStats.rejectedStale},dup:${blogStats.rejectedDuplicateBlogger}} trimmed=${blogStats.trimmedToMax}`,
+        );
+      } catch (err) {
+        console.error('content-sync blog fetch failed', spot.id, err);
       }
-      const blogInputs = Array.from(dedupedByUrl.values()).map(mapBlogToFilterItem);
-      const { filtered: filteredBlogs, stats: blogStats } = filterBlogsWithStats(
-        blogInputs,
-        spotContext,
-      );
-      console.info(
-        `[content-sync] spot=${spot.id} blogs raw=${blogInputs.length} kept=${filteredBlogs.length} rej{host:${blogStats.rejectedHost},name:${blogStats.rejectedNoNameMatch},excl:${blogStats.rejectedExcludeKeyword},stale:${blogStats.rejectedStale},dup:${blogStats.rejectedDuplicateBlogger}} trimmed=${blogStats.trimmedToMax}`,
-      );
 
       if (filteredVideos.length > 0) {
         const { error: deleteVideoError } = await supabase
