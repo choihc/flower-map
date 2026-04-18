@@ -118,18 +118,29 @@ function averageRatio(
   return sum / data.length;
 }
 
-async function collectTrendScores(
+async function collectTrendAndYoyScores(
   spots: readonly SpotRecord[],
   env: { naverClientId: string; naverClientSecret: string },
   now: Date,
-): Promise<Map<string, number | null>> {
-  const scores = new Map<string, number | null>();
-  if (spots.length === 0) return scores;
+): Promise<{
+  trend: Map<string, number | null>;
+  yoy: Map<string, number | null>;
+}> {
+  const trend = new Map<string, number | null>();
+  const yoy = new Map<string, number | null>();
+  if (spots.length === 0) return { trend, yoy };
 
-  const startDate = formatDate(
-    new Date(now.getTime() - TREND_LOOKBACK_DAYS * DAY_MS),
+  // 작년 7일부터 오늘까지 한 번에 조회하고, 내부에서 recent/lastYear 구간을 잘라 쓴다.
+  // 이렇게 하면 trend·yoy를 각각 호출하던 기존 2회가 1회로 줄어든다.
+  const recentEnd = now;
+  const recentStart = new Date(recentEnd.getTime() - TREND_LOOKBACK_DAYS * DAY_MS);
+  const oneYearAgoEnd = new Date(now.getTime() - 365 * DAY_MS);
+  const lastYearStart = new Date(
+    now.getTime() - (365 + YOY_WINDOW_DAYS) * DAY_MS,
   );
-  const endDate = formatDate(now);
+
+  const startDate = formatDate(lastYearStart);
+  const endDate = formatDate(recentEnd);
 
   const batches = chunk(spots, TREND_GROUP_BATCH_SIZE);
 
@@ -147,90 +158,44 @@ async function collectTrendScores(
       for (const spot of batch) {
         const r = byName.get(spot.id);
         if (!r) {
-          scores.set(spot.id, null);
+          trend.set(spot.id, null);
+          yoy.set(spot.id, null);
           continue;
         }
-        const avg = averageRatio(r.data);
-        scores.set(spot.id, calcTrendScore(avg));
-      }
-    } catch (err) {
-      console.error('now-score trend batch failed', err);
-      for (const spot of batch) {
-        scores.set(spot.id, null);
-      }
-    }
-  }
 
-  return scores;
-}
-
-async function collectYoyScores(
-  spots: readonly SpotRecord[],
-  env: { naverClientId: string; naverClientSecret: string },
-  now: Date,
-): Promise<Map<string, number | null>> {
-  const scores = new Map<string, number | null>();
-  if (spots.length === 0) return scores;
-
-  // 365일을 그대로 ms로 평행 이동. 윤년은 최대 1일 오차가 생기지만
-  // datalab은 주간 단위 집계이므로 허용 범위로 본다.
-  const recentEnd = now;
-  const recentStart = new Date(recentEnd.getTime() - YOY_WINDOW_DAYS * DAY_MS);
-  const oneYearAgoEnd = new Date(now.getTime() - 365 * DAY_MS);
-  const lastYearStart = new Date(
-    now.getTime() - (365 + YOY_WINDOW_DAYS) * DAY_MS,
-  );
-
-  const startDate = formatDate(lastYearStart);
-  const endDate = formatDate(recentEnd);
-
-  const batches = chunk(spots, TREND_GROUP_BATCH_SIZE);
-
-  for (const batch of batches) {
-    const groups = batch.map(buildTrendGroup);
-    try {
-      const results = await fetchSearchTrends({
-        clientId: env.naverClientId,
-        clientSecret: env.naverClientSecret,
-        startDate,
-        endDate,
-        groups,
-      });
-      const byName = new Map(results.map((r) => [r.groupName, r]));
-      for (const spot of batch) {
-        const r = byName.get(spot.id);
-        if (!r) {
-          scores.set(spot.id, null);
-          continue;
-        }
         const recentPoints = r.data.filter((d) => {
           const ts = new Date(`${d.period}T00:00:00Z`).getTime();
           return ts >= recentStart.getTime() && ts <= recentEnd.getTime();
         });
         const lastYearPoints = r.data.filter((d) => {
           const ts = new Date(`${d.period}T00:00:00Z`).getTime();
-          return (
-            ts >= lastYearStart.getTime() && ts <= oneYearAgoEnd.getTime()
-          );
+          return ts >= lastYearStart.getTime() && ts <= oneYearAgoEnd.getTime();
         });
+
+        trend.set(
+          spot.id,
+          recentPoints.length === 0 ? null : calcTrendScore(averageRatio(recentPoints)),
+        );
+
         if (recentPoints.length === 0 || lastYearPoints.length === 0) {
-          scores.set(spot.id, null);
-          continue;
+          yoy.set(spot.id, null);
+        } else {
+          yoy.set(
+            spot.id,
+            calcYoyScore(averageRatio(recentPoints), averageRatio(lastYearPoints)),
+          );
         }
-        const recentAvg = averageRatio(recentPoints);
-        const lastYearAvg = averageRatio(lastYearPoints);
-        const yoy = calcYoyScore(recentAvg, lastYearAvg);
-        scores.set(spot.id, yoy);
       }
     } catch (err) {
-      console.error('now-score yoy batch failed', err);
+      console.error('now-score datalab batch failed', err);
       for (const spot of batch) {
-        scores.set(spot.id, null);
+        trend.set(spot.id, null);
+        yoy.set(spot.id, null);
       }
     }
   }
 
-  return scores;
+  return { trend, yoy };
 }
 
 type CountClient = {
@@ -292,8 +257,11 @@ export async function GET(req: Request) {
   const spots = (spotsData ?? []) as unknown as SpotRecord[];
   const spotIds = spots.map((s) => s.id);
 
-  const trendScores = await collectTrendScores(spots, env, now);
-  const yoyScores = await collectYoyScores(spots, env, now);
+  const { trend: trendScores, yoy: yoyScores } = await collectTrendAndYoyScores(
+    spots,
+    env,
+    now,
+  );
   const videoCounts = await collectContentCountMap(
     supabase as unknown as CountClient,
     'spot_videos',
