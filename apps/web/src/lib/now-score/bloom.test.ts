@@ -75,6 +75,15 @@ describe('calcBloomScore', () => {
     expect(Number.isFinite(score)).toBe(true);
   });
 
+  it('startAt === endAt이고 now === startAt이면 100 (NaN 방지)', () => {
+    const same = new Date('2026-04-10T00:00:00Z');
+    const score = calcBloomScore(
+      makeInput({ now: same, startAt: same, endAt: same }),
+    );
+    expect(Number.isNaN(score)).toBe(false);
+    expect(score).toBe(100);
+  });
+
   it('종료 7일 후면 약 15 (30의 절반)', () => {
     const now = new Date(end.getTime() + 7 * DAY);
     const score = calcBloomScore(makeInput({ now, startAt: start, endAt: end }));

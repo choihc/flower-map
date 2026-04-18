@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { calcYoyScore } from './yoy';
 
 describe('calcYoyScore', () => {
-  it('작년 평균이 0이면 50 (중립)', () => {
-    expect(calcYoyScore(100, 0)).toBe(50);
+  it('작년 평균이 0이면 null (집계 대상에서 제외)', () => {
+    expect(calcYoyScore(100, 0)).toBeNull();
   });
 
-  it('작년 평균이 음수면 50 (중립)', () => {
-    expect(calcYoyScore(100, -5)).toBe(50);
+  it('작년 평균이 음수면 null (집계 대상에서 제외)', () => {
+    expect(calcYoyScore(100, -5)).toBeNull();
   });
 
   it('ratio=1이면 50', () => {

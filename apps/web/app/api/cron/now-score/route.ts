@@ -172,12 +172,13 @@ async function collectYoyScores(
   const scores = new Map<string, number | null>();
   if (spots.length === 0) return scores;
 
+  // 365일을 그대로 ms로 평행 이동. 윤년은 최대 1일 오차가 생기지만
+  // datalab은 주간 단위 집계이므로 허용 범위로 본다.
   const recentEnd = now;
   const recentStart = new Date(recentEnd.getTime() - YOY_WINDOW_DAYS * DAY_MS);
-  const oneYearAgo = new Date(now);
-  oneYearAgo.setUTCFullYear(oneYearAgo.getUTCFullYear() - 1);
+  const oneYearAgoEnd = new Date(now.getTime() - 365 * DAY_MS);
   const lastYearStart = new Date(
-    oneYearAgo.getTime() - YOY_WINDOW_DAYS * DAY_MS,
+    now.getTime() - (365 + YOY_WINDOW_DAYS) * DAY_MS,
   );
 
   const startDate = formatDate(lastYearStart);
@@ -209,7 +210,7 @@ async function collectYoyScores(
         const lastYearPoints = r.data.filter((d) => {
           const ts = new Date(`${d.period}T00:00:00Z`).getTime();
           return (
-            ts >= lastYearStart.getTime() && ts <= oneYearAgo.getTime()
+            ts >= lastYearStart.getTime() && ts <= oneYearAgoEnd.getTime()
           );
         });
         if (recentPoints.length === 0 || lastYearPoints.length === 0) {
@@ -218,7 +219,8 @@ async function collectYoyScores(
         }
         const recentAvg = averageRatio(recentPoints);
         const lastYearAvg = averageRatio(lastYearPoints);
-        scores.set(spot.id, calcYoyScore(recentAvg, lastYearAvg));
+        const yoy = calcYoyScore(recentAvg, lastYearAvg);
+        scores.set(spot.id, yoy);
       }
     } catch (err) {
       console.error('now-score yoy batch failed', err);

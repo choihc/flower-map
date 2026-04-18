@@ -20,8 +20,13 @@ export function calcBloomScore(input: BloomInput): number {
     base = 0;
   } else if (t < start) {
     base = 30 * (1 - (start - t) / (30 * DAY));
+  } else if (t === start && mid === start) {
+    // start === end의 축퇴 케이스 방어: 만개일을 바로 지정해 둔 것으로 간주
+    base = 100;
   } else if (t < mid) {
     base = 30 + 70 * ((t - start) / (mid - start));
+  } else if (t === mid) {
+    base = 100;
   } else if (t < end) {
     base = 100 - 70 * ((t - mid) / (end - mid));
   } else if (t < end + 14 * DAY) {
