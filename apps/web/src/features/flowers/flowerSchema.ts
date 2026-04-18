@@ -12,6 +12,7 @@ export const flowerSchema = z.object({
   sort_order: z.number().int().default(0),
   is_active: z.boolean().default(true),
   thumbnail_url: z.string().url().nullable().optional(),
+  aliases: z.array(z.string()).optional().default([]),
 });
 
 export type FlowerSchema = z.infer<typeof flowerSchema>;

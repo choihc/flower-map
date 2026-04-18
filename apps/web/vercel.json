@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/now-score", "schedule": "0 21 * * *" },
+    { "path": "/api/cron/content-sync", "schedule": "0 18 * * *" }
+  ]
+}

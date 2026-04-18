@@ -29,6 +29,8 @@ describe('FlowersPage', () => {
         season_end_month: 4,
         sort_order: 1,
         is_active: true,
+        thumbnail_url: null,
+        aliases: ['벗꽃', '사쿠라'],
         created_at: '2026-03-01T00:00:00.000Z',
         updated_at: '2026-03-02T00:00:00.000Z',
       },
@@ -42,6 +44,8 @@ describe('FlowersPage', () => {
         season_end_month: 4,
         sort_order: 2,
         is_active: false,
+        thumbnail_url: null,
+        aliases: [],
         created_at: '2026-03-03T00:00:00.000Z',
         updated_at: '2026-03-04T00:00:00.000Z',
       },
@@ -55,6 +59,8 @@ describe('FlowersPage', () => {
     expect(screen.getByRole('heading', { name: '기본 정보' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '시즌 정보' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '표시 설정' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '유의어(Aliases)' })).toBeInTheDocument();
+    expect(screen.getByLabelText('유의어 (쉼표 구분)')).toBeInTheDocument();
     expect(screen.getByText('벚꽃')).toBeInTheDocument();
     expect(screen.getByText('개나리')).toBeInTheDocument();
   });

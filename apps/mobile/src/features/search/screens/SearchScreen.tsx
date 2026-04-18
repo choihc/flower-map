@@ -30,15 +30,29 @@ import type { FlowerSpot } from '../../../shared/data/types';
 type AdMarker = { id: '__ad__'; type: 'ad' };
 type ListItem = FlowerSpot | AdMarker;
 
+type SortMode = 'recommended' | 'ending';
+
 function getCountdownValue(value?: string) {
   if (!value) return Number.MAX_SAFE_INTEGER;
   const match = value.match(/\d+/);
   return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
 }
 
+/**
+ * 추천순 정렬: now_score 내림차순, nowScore가 없는 명소는 맨 뒤로 보낸다.
+ */
+function compareByRecommendation(a: FlowerSpot, b: FlowerSpot): number {
+  const aHas = typeof a.nowScore === 'number';
+  const bHas = typeof b.nowScore === 'number';
+  if (!aHas && !bHas) return 0;
+  if (!aHas) return 1;
+  if (!bHas) return -1;
+  return (b.nowScore as number) - (a.nowScore as number);
+}
+
 function SpotRow({ spot, onPress }: { spot: FlowerSpot; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={styles.spotRow}>
+    <Pressable onPress={onPress} style={styles.spotRow} testID="search-list-row">
       {spot.thumbnailUrl || spot.flowerThumbnailUrl ? (
         <Image
           source={{ uri: (spot.thumbnailUrl || spot.flowerThumbnailUrl)! }}
@@ -48,7 +62,7 @@ function SpotRow({ spot, onPress }: { spot: FlowerSpot; onPress: () => void }) {
         <View style={styles.spotThumbnailPlaceholder} />
       )}
       <View style={styles.spotContent}>
-        <Text style={styles.spotTitle}>{spot.place}</Text>
+        <Text testID="search-list-row-place" style={styles.spotTitle}>{spot.place}</Text>
         <Text style={styles.spotMeta}>
           {spot.flower} · {spot.location}
         </Text>
@@ -64,7 +78,7 @@ export function SearchScreen() {
   const { query: initialQuery } = useLocalSearchParams<{ query?: string }>();
   const [query, setQuery] = useState(initialQuery ?? '');
   const [selectedFlower, setSelectedFlower] = useState('전체');
-  const [sortByEnding, setSortByEnding] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>('recommended');
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const { data: spots = [], isLoading, isError } = useQuery({
@@ -75,6 +89,17 @@ export function SearchScreen() {
   const flowerOptions = ['전체', ...deriveFlowerLabels(spots)];
 
   const trimmedQuery = query.trim();
+
+  // 정렬 함수 선택
+  const sortSpots = (list: FlowerSpot[]): FlowerSpot[] => {
+    if (sortMode === 'ending') {
+      return [...list].sort(
+        (a, b) => getCountdownValue(a.eventEndsIn) - getCountdownValue(b.eventEndsIn),
+      );
+    }
+    // 'recommended' (기본) — now_score 내림차순 (nulls last)
+    return [...list].sort(compareByRecommendation);
+  };
 
   // 검색 결과 (검색어 있을 때)
   const searchResults = useMemo<FlowerSpot[]>(() => {
@@ -90,26 +115,16 @@ export function SearchScreen() {
     if (selectedFlower !== '전체') {
       filtered = filtered.filter((s) => s.flower === selectedFlower);
     }
-    if (sortByEnding) {
-      filtered = [...filtered].sort(
-        (a, b) => getCountdownValue(a.eventEndsIn) - getCountdownValue(b.eventEndsIn),
-      );
-    }
-    return filtered;
-  }, [trimmedQuery, spots, selectedFlower, sortByEnding]);
+    return sortSpots(filtered);
+  }, [trimmedQuery, spots, selectedFlower, sortMode]);
 
   // 전체 리스트 (검색어 없을 때)
   const allSpots = useMemo<FlowerSpot[]>(() => {
-    let filtered = selectedFlower !== '전체'
+    const filtered = selectedFlower !== '전체'
       ? spots.filter((s) => s.flower === selectedFlower)
       : spots;
-    if (sortByEnding) {
-      filtered = [...filtered].sort(
-        (a, b) => getCountdownValue(a.eventEndsIn) - getCountdownValue(b.eventEndsIn),
-      );
-    }
-    return filtered;
-  }, [spots, selectedFlower, sortByEnding]);
+    return sortSpots(filtered);
+  }, [spots, selectedFlower, sortMode]);
 
   // FlatList 데이터 — 검색어 없으면 광고 마커 삽입
   const listData = useMemo<ListItem[]>(() => {
@@ -147,10 +162,32 @@ export function SearchScreen() {
           <Text style={styles.filterChevron}>▾</Text>
         </Pressable>
         <Pressable
-          onPress={() => setSortByEnding((prev) => !prev)}
-          style={[styles.filterChip, sortByEnding && styles.filterChipActive]}
+          testID="sort-chip-recommended"
+          data-active={sortMode === 'recommended' ? 'true' : 'false'}
+          onPress={() => setSortMode('recommended')}
+          style={[styles.filterChip, sortMode === 'recommended' && styles.filterChipActive]}
         >
-          <Text style={[styles.filterChipText, sortByEnding && styles.filterChipTextActive]}>
+          <Text
+            style={[
+              styles.filterChipText,
+              sortMode === 'recommended' && styles.filterChipTextActive,
+            ]}
+          >
+            추천순
+          </Text>
+        </Pressable>
+        <Pressable
+          testID="sort-chip-ending"
+          data-active={sortMode === 'ending' ? 'true' : 'false'}
+          onPress={() => setSortMode('ending')}
+          style={[styles.filterChip, sortMode === 'ending' && styles.filterChipActive]}
+        >
+          <Text
+            style={[
+              styles.filterChipText,
+              sortMode === 'ending' && styles.filterChipTextActive,
+            ]}
+          >
             종료 임박순
           </Text>
         </Pressable>

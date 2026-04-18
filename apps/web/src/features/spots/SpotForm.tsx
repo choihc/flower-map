@@ -56,6 +56,7 @@ export function SpotForm({ defaultValue, flowers, submitAction, spotId, initialP
         status: formData.get('status') === 'published' ? 'published' : 'draft',
         display_order: Number(formData.get('display_order') ?? 0),
         is_featured: formData.get('is_featured') === 'on',
+        exclude_keywords: parseCommaSeparated(formData.get('exclude_keywords')),
       }),
     );
 
@@ -345,6 +346,29 @@ export function SpotForm({ defaultValue, flowers, submitAction, spotId, initialP
         </p>
       </FormSection>
 
+      <Separator />
+
+      <FormSection
+        title="콘텐츠 제외 키워드"
+        description="이 명소의 유튜브·블로그 자동 수집 시 제외할 키워드를 쉼표로 구분해 입력합니다. 예: 식당, 맛집"
+      >
+        <div className="space-y-2">
+          <label htmlFor="spot-exclude-keywords" className="text-sm font-medium text-foreground">
+            제외 키워드 (쉼표 구분)
+          </label>
+          <Textarea
+            id="spot-exclude-keywords"
+            name="exclude_keywords"
+            defaultValue={(defaultValue?.exclude_keywords ?? []).join(', ')}
+            placeholder="식당, 맛집, 광고"
+            rows={2}
+          />
+          <p className="text-xs text-muted-foreground">
+            빈 값과 앞뒤 공백은 저장 시 자동으로 제거됩니다.
+          </p>
+        </div>
+      </FormSection>
+
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}
       {successMessage ? <p className="text-sm text-foreground">{successMessage}</p> : null}
       <div className="flex justify-end">
@@ -369,6 +393,17 @@ function getOptionalText(value: FormDataEntryValue | null) {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function parseCommaSeparated(value: FormDataEntryValue | null): string[] {
+  if (typeof value !== 'string') {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
 }
 
 function SpotPhotoManager({

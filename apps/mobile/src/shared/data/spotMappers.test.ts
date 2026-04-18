@@ -24,7 +24,7 @@ const baseRow = {
 
 describe('toFlowerSpot', () => {
   it('keeps the database id and exposes slug separately for route lookups', () => {
-    const result = toFlowerSpot(baseRow);
+    const result = toFlowerSpot(baseRow, new Date('2026-04-05T00:00:00Z'));
 
     expect(result.id).toBe('spot-1');
     expect(result.slug).toBe('yeouido-yunjung-ro');
@@ -56,6 +56,64 @@ describe('toFlowerSpot', () => {
     expect(withUrl.flowerThumbnailUrl).toBe('https://blob.example.com/flower-cherry.jpg');
   });
 
+  it('maps now_score 계열 필드가 모두 존재할 때 FlowerSpot에 매핑한다', () => {
+    const withScores = toFlowerSpot({
+      ...baseRow,
+      bloom_score: 82,
+      trend_score: 71,
+      content_score: 60,
+      yoy_score: 75,
+      now_score: 79,
+      now_score_at: '2026-04-17T03:00:00Z',
+    } as never);
+
+    expect(withScores.bloomScore).toBe(82);
+    expect(withScores.trendScore).toBe(71);
+    expect(withScores.yoyScore).toBe(75);
+    expect(withScores.nowScore).toBe(79);
+    expect(withScores.nowScoreAt).toBeInstanceOf(Date);
+    expect(withScores.nowScoreAt?.toISOString()).toBe('2026-04-17T03:00:00.000Z');
+  });
+
+  it('Supabase가 NUMERIC 값을 문자열로 반환해도 Number로 변환된다', () => {
+    // PostgREST가 NUMERIC(5,2)을 문자열 "79.50"로 직렬화할 수 있음에 대비.
+    const withStringScores = toFlowerSpot({
+      ...baseRow,
+      bloom_score: '82.00',
+      trend_score: '71.25',
+      yoy_score: '75.50',
+      now_score: '79.50',
+    } as never);
+
+    expect(withStringScores.bloomScore).toBe(82);
+    expect(withStringScores.trendScore).toBe(71.25);
+    expect(withStringScores.yoyScore).toBe(75.5);
+    expect(withStringScores.nowScore).toBe(79.5);
+    expect(typeof withStringScores.nowScore).toBe('number');
+  });
+
+  it('maps now_score 계열 필드가 null/누락이면 undefined로 둔다', () => {
+    const nullScores = toFlowerSpot({
+      ...baseRow,
+      bloom_score: null,
+      trend_score: null,
+      yoy_score: null,
+      now_score: null,
+      now_score_at: null,
+    } as never);
+
+    expect(nullScores.bloomScore).toBeUndefined();
+    expect(nullScores.trendScore).toBeUndefined();
+    expect(nullScores.yoyScore).toBeUndefined();
+    expect(nullScores.nowScore).toBeUndefined();
+    expect(nullScores.nowScoreAt).toBeUndefined();
+
+    const missingScores = toFlowerSpot(baseRow);
+    expect(missingScores.bloomScore).toBeUndefined();
+    expect(missingScores.nowScore).toBeUndefined();
+    expect(missingScores.nowScoreAt).toBeUndefined();
+  });
+
   it('derives fallback presentation labels from raw row data', () => {
     const result = toFlowerSpot(
       {
@@ -79,7 +137,7 @@ describe('toFlowerSpot', () => {
     );
 
     expect(result.badge).toBe('지금 방문 추천');
-    expect(result.bloomStatus).toBe('포토 스팟');
+    expect(result.bloomStatus).toBe('개화 중');
     expect(result.eventEndsIn).toBe('D-18');
     expect(result.tone).toBe('yellow');
   });

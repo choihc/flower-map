@@ -26,6 +26,7 @@ export const spotSchema = z
     source_note: z.string().trim().min(1).nullable().optional(),
     is_featured: z.boolean().default(false),
     display_order: z.number().int().default(0),
+    exclude_keywords: z.array(z.string()).optional().default([]),
   })
   .superRefine((value, ctx) => {
     if (value.bloom_start_at > value.bloom_end_at) {

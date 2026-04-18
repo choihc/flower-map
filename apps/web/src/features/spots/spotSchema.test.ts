@@ -88,4 +88,47 @@ describe('spotSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('accepts a spot payload with exclude_keywords', () => {
+    const result = spotSchema.safeParse({
+      flower_id: '550e8400-e29b-41d4-a716-446655440000',
+      slug: 'yeouido-yunjung-ro',
+      name: '여의도 윤중로',
+      region_primary: '서울/경기',
+      region_secondary: '서울 영등포구',
+      address: '서울특별시 영등포구 여의서로 일대',
+      latitude: 37.5259,
+      longitude: 126.9226,
+      description: '설명',
+      short_tip: '팁',
+      bloom_start_at: '2026-03-28',
+      bloom_end_at: '2026-04-10',
+      status: 'draft',
+      exclude_keywords: ['맛집', '식당'],
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.exclude_keywords).toEqual(['맛집', '식당']);
+  });
+
+  it('defaults exclude_keywords to an empty array when missing', () => {
+    const result = spotSchema.safeParse({
+      flower_id: '550e8400-e29b-41d4-a716-446655440000',
+      slug: 'yeouido-yunjung-ro',
+      name: '여의도 윤중로',
+      region_primary: '서울/경기',
+      region_secondary: '서울 영등포구',
+      address: '서울특별시 영등포구 여의서로 일대',
+      latitude: 37.5259,
+      longitude: 126.9226,
+      description: '설명',
+      short_tip: '팁',
+      bloom_start_at: '2026-03-28',
+      bloom_end_at: '2026-04-10',
+      status: 'draft',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.exclude_keywords).toEqual([]);
+  });
 });

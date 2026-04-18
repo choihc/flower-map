@@ -71,4 +71,45 @@ describe('flowerSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('accepts a flower payload with aliases', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      aliases: ['벗꽃', '사쿠라'],
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.aliases).toEqual(['벗꽃', '사쿠라']);
+  });
+
+  it('defaults aliases to an empty array when missing', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.aliases).toEqual([]);
+  });
+
+  it('accepts an empty aliases array explicitly', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      aliases: [],
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.aliases).toEqual([]);
+  });
 });

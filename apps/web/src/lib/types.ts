@@ -9,6 +9,7 @@ export type FlowerRow = {
   sort_order: number;
   is_active: boolean;
   thumbnail_url: string | null;
+  aliases: string[];
   created_at: string;
   updated_at: string;
 };
@@ -47,6 +48,13 @@ export type SpotRow = {
   source_note: string | null;
   is_featured: boolean;
   display_order: number;
+  bloom_score: number | null;
+  trend_score: number | null;
+  content_score: number | null;
+  yoy_score: number | null;
+  now_score: number | null;
+  now_score_at: string | null;
+  exclude_keywords: string[];
   created_at: string;
   updated_at: string;
 };
@@ -61,6 +69,7 @@ export type FlowerInsert = {
   sort_order?: number;
   is_active?: boolean;
   thumbnail_url?: string | null;
+  aliases?: string[];
   id?: string;
   created_at?: string;
   updated_at?: string;
@@ -92,6 +101,13 @@ export type SpotInsert = {
   source_note?: string | null;
   is_featured?: boolean;
   display_order?: number;
+  bloom_score?: number | null;
+  trend_score?: number | null;
+  content_score?: number | null;
+  yoy_score?: number | null;
+  now_score?: number | null;
+  now_score_at?: string | null;
+  exclude_keywords?: string[];
   id?: string;
   created_at?: string;
   updated_at?: string;
@@ -115,6 +131,56 @@ export type SpotPhotoInsert = {
   caption?: string | null;
   id?: string;
   created_at?: string;
+};
+
+export type SpotVideoRow = {
+  id: string;
+  spot_id: string;
+  video_id: string;
+  title: string;
+  channel_title: string | null;
+  thumbnail_url: string | null;
+  published_at: string | null;
+  view_count: number | null;
+  relevance_score: number | null;
+  fetched_at: string;
+};
+
+export type SpotVideoInsert = {
+  spot_id: string;
+  video_id: string;
+  title: string;
+  channel_title?: string | null;
+  thumbnail_url?: string | null;
+  published_at?: string | null;
+  view_count?: number | null;
+  relevance_score?: number | null;
+  id?: string;
+  fetched_at?: string;
+};
+
+export type SpotBlogRow = {
+  id: string;
+  spot_id: string;
+  url: string;
+  title: string;
+  description: string | null;
+  blogger_name: string | null;
+  posted_at: string | null;
+  relevance_score: number | null;
+  fetched_at: string;
+};
+
+export type SpotBlogInsert = {
+  spot_id: string;
+  url: string;
+  title: string;
+  description?: string | null;
+  blogger_name?: string | null;
+  posted_at?: string | null;
+  relevance_score?: number | null;
+  id?: string;
+  fetched_at?: string;
 };
 
 export type Database = {
@@ -146,6 +212,16 @@ export type Database = {
         Row: SpotPhotoRow;
         Insert: SpotPhotoInsert;
         Update: Partial<Omit<SpotPhotoInsert, 'id' | 'created_at'>>;
+      };
+      spot_videos: {
+        Row: SpotVideoRow;
+        Insert: SpotVideoInsert;
+        Update: Partial<Omit<SpotVideoInsert, 'id' | 'fetched_at'>>;
+      };
+      spot_blogs: {
+        Row: SpotBlogRow;
+        Insert: SpotBlogInsert;
+        Update: Partial<Omit<SpotBlogInsert, 'id' | 'fetched_at'>>;
       };
     };
   };

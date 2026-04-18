@@ -18,6 +18,7 @@ import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { LikeButton } from '../components/LikeButton';
 import { SpotPhotoGallery } from '../components/SpotPhotoGallery';
+import { SpotStoriesSection } from '../components/SpotStoriesSection';
 import { getPhotosBySpotId, photoKeys } from '../../../shared/data/photoRepository';
 
 type SpotDetailScreenProps = {
@@ -123,6 +124,8 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
           ));
         })()}
       </SectionCard>
+
+      <SpotStoriesSection slug={slug} />
     </ScreenShell>
   );
 }

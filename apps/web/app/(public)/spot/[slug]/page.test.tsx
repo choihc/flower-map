@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import SpotDetailPage from './page';
 import { getPublicSpotBySlug } from '@/lib/data/publicSpots';
@@ -23,6 +23,14 @@ vi.mock('@/lib/supabase/public-server', () => ({
 }));
 
 describe('SpotDetailPage', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-05T00:00:00Z'));
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('renders public spot details by slug', async () => {
     vi.mocked(createPublicServerSupabaseClient).mockReturnValue({} as never);
     vi.mocked(getPublicSpotBySlug).mockResolvedValue({

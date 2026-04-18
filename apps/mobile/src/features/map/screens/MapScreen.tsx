@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -33,6 +33,7 @@ import {
   requestAndGetLocation,
 } from '../../../shared/lib/location';
 import { SpotSummaryCard } from '../components/SpotSummaryCard';
+import { resolveMarkerStyle } from '../markerStyle';
 
 const defaultCamera = {
   latitude: 37.534,
@@ -69,6 +70,16 @@ function NativeMapCanvas({ spots, selectedSpotSlug, userCamera, onSelectSpot }: 
       }
     : undefined;
 
+  // 마커 스타일을 spot id 기준으로 캐싱해 재렌더 시 객체 재생성 비용과
+  // 하위 MarkerOverlay의 불필요한 prop diff를 줄인다.
+  const markerStyleById = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof resolveMarkerStyle>>();
+    for (const spot of spots) {
+      map.set(spot.id, resolveMarkerStyle(spot.nowScore));
+    }
+    return map;
+  }, [spots]);
+
   return (
     <NaverMapView
       animationDuration={700}
@@ -96,18 +107,20 @@ function NativeMapCanvas({ spots, selectedSpotSlug, userCamera, onSelectSpot }: 
     >
       {spots.map((spot) => {
         const isSelected = spot.slug === selectedSpotSlug;
+        const markerStyle =
+          markerStyleById.get(spot.id) ?? resolveMarkerStyle(spot.nowScore);
 
         return (
           <NaverMapMarkerOverlay
             key={spot.id}
             caption={{ text: spot.place }}
-            height={isSelected ? 40 : 34}
-            image={{ symbol: isSelected ? 'pink' : 'green' }}
+            height={isSelected ? 44 : markerStyle.height}
+            image={{ symbol: isSelected ? 'pink' : markerStyle.symbol }}
             isForceShowIcon={isSelected}
             latitude={spot.latitude}
             longitude={spot.longitude}
             onTap={() => onSelectSpot(spot.slug)}
-            width={isSelected ? 32 : 28}
+            width={isSelected ? 36 : markerStyle.width}
           />
         );
       })}
