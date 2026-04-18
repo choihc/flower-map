@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { mapWithConcurrency } from '@/lib/concurrency';
 import { verifyCronAuth } from '@/lib/cron/auth';
 import { getExternalApiEnv } from '@/lib/env';
 import { fetchShortForecast } from '@/lib/external/kma';
@@ -22,6 +23,7 @@ const TREND_LOOKBACK_DAYS = 7;
 const YOY_WINDOW_DAYS = 7;
 const TREND_GROUP_BATCH_SIZE = 5;
 const DAY_MS = 86400000;
+const SPOT_PROCESS_CONCURRENCY = 4;
 
 interface SpotRecord {
   id: string;
@@ -301,78 +303,82 @@ export async function GET(req: Request) {
     spotIds,
   );
 
-  let processed = 0;
-  for (const spot of spots) {
-    try {
-      const { nx, ny } = latLngToKmaGrid(spot.latitude, spot.longitude);
-
-      let tempC: number | null = null;
-      let precipitationMm = 0;
+  const processResults = await mapWithConcurrency(
+    spots,
+    SPOT_PROCESS_CONCURRENCY,
+    async (spot): Promise<boolean> => {
       try {
-        const forecast = await fetchShortForecast({
-          nx,
-          ny,
-          serviceKey: env.kmaServiceKey,
-        });
-        tempC = forecast.tempC;
-        precipitationMm = forecast.precipitationMm ?? 0;
-      } catch (err) {
-        console.error('now-score kma failed', spot.id, err);
-      }
+        const { nx, ny } = latLngToKmaGrid(spot.latitude, spot.longitude);
 
-      const bloom =
-        spot.bloom_start_at && spot.bloom_end_at
-          ? calcBloomScore({
-              now,
-              startAt: new Date(spot.bloom_start_at),
-              endAt: new Date(spot.bloom_end_at),
-              recentTempC: tempC,
-              recent7dRainMm: precipitationMm,
-            })
-          : null;
-
-      const trend = trendScores.get(spot.id) ?? null;
-      const blogCount = blogCounts.get(spot.id) ?? 0;
-      const videoCount = videoCounts.get(spot.id) ?? 0;
-      const content = calcContentScore(blogCount, videoCount);
-      const yoy = yoyScores.get(spot.id) ?? null;
-
-      const nowScore = calcNowScore({ bloom, trend, content, yoy });
-
-      const updatePayload: SpotUpdate = {
-        bloom_score: bloom,
-        trend_score: trend,
-        content_score: content,
-        yoy_score: yoy,
-        now_score: nowScore,
-        now_score_at: now.toISOString(),
-      };
-
-      const { error: updateError } = await (
-        supabase.from('spots') as unknown as {
-          update: (
-            values: SpotUpdate,
-          ) => {
-            eq: (
-              column: string,
-              value: string,
-            ) => Promise<{ error: unknown }>;
-          };
+        let tempC: number | null = null;
+        let precipitationMm = 0;
+        try {
+          const forecast = await fetchShortForecast({
+            nx,
+            ny,
+            serviceKey: env.kmaServiceKey,
+          });
+          tempC = forecast.tempC;
+          precipitationMm = forecast.precipitationMm ?? 0;
+        } catch (err) {
+          console.error('now-score kma failed', spot.id, err);
         }
-      )
-        .update(updatePayload)
-        .eq('id', spot.id);
 
-      if (updateError) {
-        console.error('now-score update failed', spot.id, updateError);
-        continue;
+        const bloom =
+          spot.bloom_start_at && spot.bloom_end_at
+            ? calcBloomScore({
+                now,
+                startAt: new Date(spot.bloom_start_at),
+                endAt: new Date(spot.bloom_end_at),
+                recentTempC: tempC,
+                recent7dRainMm: precipitationMm,
+              })
+            : null;
+
+        const trend = trendScores.get(spot.id) ?? null;
+        const blogCount = blogCounts.get(spot.id) ?? 0;
+        const videoCount = videoCounts.get(spot.id) ?? 0;
+        const content = calcContentScore(blogCount, videoCount);
+        const yoy = yoyScores.get(spot.id) ?? null;
+
+        const nowScore = calcNowScore({ bloom, trend, content, yoy });
+
+        const updatePayload: SpotUpdate = {
+          bloom_score: bloom,
+          trend_score: trend,
+          content_score: content,
+          yoy_score: yoy,
+          now_score: nowScore,
+          now_score_at: now.toISOString(),
+        };
+
+        const { error: updateError } = await (
+          supabase.from('spots') as unknown as {
+            update: (
+              values: SpotUpdate,
+            ) => {
+              eq: (
+                column: string,
+                value: string,
+              ) => Promise<{ error: unknown }>;
+            };
+          }
+        )
+          .update(updatePayload)
+          .eq('id', spot.id);
+
+        if (updateError) {
+          console.error('now-score update failed', spot.id, updateError);
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.error('now-score spot failed', spot.id, err);
+        return false;
       }
-
-      processed++;
-    } catch (err) {
-      console.error('now-score spot failed', spot.id, err);
-    }
-  }
+    },
+  );
+  const processed = processResults.filter(Boolean).length;
 
   return NextResponse.json({ ok: true, processed });
 }
