@@ -1,3 +1,5 @@
+import { fetchWithRetry } from './fetchWithRetry';
+
 export interface TrendGroup {
   groupName: string;
   keywords: string[];
@@ -41,7 +43,7 @@ export async function fetchSearchTrends(args: {
     );
   }
 
-  const response = await fetch(DATALAB_ENDPOINT, {
+  const response = await fetchWithRetry(DATALAB_ENDPOINT, {
     method: 'POST',
     headers: {
       'X-Naver-Client-Id': clientId,

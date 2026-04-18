@@ -1,3 +1,5 @@
+import { fetchWithRetry } from './fetchWithRetry';
+
 export interface ShortForecastResult {
   tempC: number | null;
   precipitationMm: number | null;
@@ -66,7 +68,7 @@ export async function fetchShortForecast(args: {
   });
 
   const url = `${KMA_ENDPOINT}?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await fetchWithRetry(url);
 
   if (!response.ok) {
     throw new Error(

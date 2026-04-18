@@ -1,3 +1,5 @@
+import { fetchWithRetry } from './fetchWithRetry';
+
 export interface BlogItem {
   title: string;
   link: string;
@@ -68,7 +70,7 @@ export async function searchBlogs(args: {
     sort,
   });
 
-  const response = await fetch(`${BLOG_ENDPOINT}?${params.toString()}`, {
+  const response = await fetchWithRetry(`${BLOG_ENDPOINT}?${params.toString()}`, {
     method: 'GET',
     headers: {
       'X-Naver-Client-Id': clientId,

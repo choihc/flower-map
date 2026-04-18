@@ -1,3 +1,5 @@
+import { fetchWithRetry } from './fetchWithRetry';
+
 export interface YouTubeVideo {
   videoId: string;
   title: string;
@@ -72,7 +74,7 @@ export async function searchYouTube(args: {
     key: apiKey,
   });
 
-  const response = await fetch(`${SEARCH_ENDPOINT}?${params.toString()}`);
+  const response = await fetchWithRetry(`${SEARCH_ENDPOINT}?${params.toString()}`);
 
   if (!response.ok) {
     throw new Error(
@@ -130,7 +132,7 @@ export async function getVideoStats(args: {
     key: apiKey,
   });
 
-  const response = await fetch(`${VIDEOS_ENDPOINT}?${params.toString()}`);
+  const response = await fetchWithRetry(`${VIDEOS_ENDPOINT}?${params.toString()}`);
 
   if (!response.ok) {
     throw new Error(

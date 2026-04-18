@@ -87,6 +87,7 @@ describe('fetchShortForecast', () => {
   });
 
   it('5xx 응답이 오면 예외를 throw 한다', async () => {
+    vi.useFakeTimers();
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -97,9 +98,11 @@ describe('fetchShortForecast', () => {
       }),
     );
 
-    await expect(
-      fetchShortForecast({ nx: 60, ny: 127, serviceKey: 'KEY' }),
-    ).rejects.toThrow(/KMA/);
+    const promise = fetchShortForecast({ nx: 60, ny: 127, serviceKey: 'KEY' });
+    const assertion = expect(promise).rejects.toThrow(/KMA/);
+    await vi.runAllTimersAsync();
+    await assertion;
+    vi.useRealTimers();
   });
 
   it('items가 비어있으면 null 값을 갖는 결과를 반환한다', async () => {
