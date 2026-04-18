@@ -60,7 +60,7 @@ async function collectVideoStats(
   return merged;
 }
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
   if (!verifyCronAuth(req)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

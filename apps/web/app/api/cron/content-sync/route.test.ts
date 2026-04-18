@@ -53,7 +53,7 @@ function buildRequest(authHeader?: string): Request {
   const headers = new Headers();
   if (authHeader !== undefined) headers.set('authorization', authHeader);
   return new Request('https://example.com/api/cron/content-sync', {
-    method: 'POST',
+    method: 'GET',
     headers,
   });
 }
@@ -108,15 +108,15 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe('POST /api/cron/content-sync', () => {
+describe('GET /api/cron/content-sync', () => {
   it('인증 실패 시 401을 반환하고 Supabase를 호출하지 않는다', async () => {
     vi.stubEnv('CRON_SECRET', 'ok');
     mocks.createAdminSupabaseClient.mockImplementation(() => {
       throw new Error('should not be called');
     });
 
-    const { POST } = await import('./route');
-    const res = await POST(buildRequest('Bearer wrong'));
+    const { GET } = await import('./route');
+    const res = await GET(buildRequest('Bearer wrong'));
 
     expect(res.status).toBe(401);
     expect(mocks.createAdminSupabaseClient).not.toHaveBeenCalled();
@@ -152,8 +152,8 @@ describe('POST /api/cron/content-sync', () => {
     mocks.searchYouTube.mockResolvedValue([]);
     mocks.getVideoStats.mockResolvedValue(new Map());
 
-    const { POST } = await import('./route');
-    const res = await POST(buildRequest('Bearer ok'));
+    const { GET } = await import('./route');
+    const res = await GET(buildRequest('Bearer ok'));
 
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -226,8 +226,8 @@ describe('POST /api/cron/content-sync', () => {
       ];
     });
 
-    const { POST } = await import('./route');
-    const res = await POST(buildRequest('Bearer ok'));
+    const { GET } = await import('./route');
+    const res = await GET(buildRequest('Bearer ok'));
 
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -294,8 +294,8 @@ describe('POST /api/cron/content-sync', () => {
     mocks.getVideoStats.mockResolvedValue(new Map());
     mocks.searchBlogs.mockResolvedValue([]);
 
-    const { POST } = await import('./route');
-    const res = await POST(buildRequest('Bearer ok'));
+    const { GET } = await import('./route');
+    const res = await GET(buildRequest('Bearer ok'));
 
     expect(res.status).toBe(200);
     const body = await res.json();
