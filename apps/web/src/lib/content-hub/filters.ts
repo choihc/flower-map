@@ -34,6 +34,34 @@ const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 const RELEVANCE_BASE = 0.5;
 const RELEVANCE_FLOWER_BONUS = 0.2;
 
+export const ALLOWED_BLOG_HOSTS = [
+  'blog.naver.com',
+  'm.blog.naver.com',
+  'post.naver.com',
+  'tistory.com',
+  'brunch.co.kr',
+] as const;
+
+export function isAllowedBlogUrl(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return false;
+  }
+  const host = parsed.hostname.toLowerCase();
+  for (const allowed of ALLOWED_BLOG_HOSTS) {
+    if (host === allowed) return true;
+    if (allowed === 'tistory.com' && host.endsWith('.tistory.com')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function containsAny(text: string, keywords: readonly string[]): boolean {
   return keywords.some((k) => k && text.includes(k));
 }
@@ -100,6 +128,7 @@ export function filterBlogs(
   const scored: BlogItem[] = [];
 
   for (const item of items) {
+    if (!isAllowedBlogUrl(item.url)) continue;
     if (!item.title.includes(spot.name)) continue;
 
     const text = `${item.title} ${item.description}`;

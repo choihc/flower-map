@@ -160,14 +160,20 @@ describe('filterVideos', () => {
   });
 });
 
+function blogUrlOf(id: string): string {
+  if (id.startsWith('http')) return id;
+  return `https://blog.naver.com/tester/${encodeURIComponent(id)}`;
+}
+
 function makeBlog(overrides: Partial<BlogItem> = {}): BlogItem {
+  const { url, ...rest } = overrides;
   return {
-    url: 'https://blog.example.com/default',
+    url: url ? blogUrlOf(url) : 'https://blog.naver.com/tester/default',
     title: '여의도 벚꽃 다녀왔어요',
     description: '여의도 벚꽃 구경',
     bloggerName: '기본블로거',
     postedAt: new Date('2026-04-01T00:00:00Z'),
-    ...overrides,
+    ...rest,
   };
 }
 
@@ -180,7 +186,7 @@ describe('filterBlogs', () => {
       makeBlog({ url: 'u2', title: '남산 벚꽃 탐방' }),
     ];
     const result = filterBlogs(items, spot, now);
-    expect(result.map((i) => i.url)).toEqual(['u1']);
+    expect(result.map((i) => i.url)).toEqual([blogUrlOf('u1')]);
   });
 
   it('12개월(365일)을 초과한 postedAt은 제거한다', () => {
@@ -195,7 +201,7 @@ describe('filterBlogs', () => {
       }),
     ];
     const result = filterBlogs(items, spot, now);
-    expect(result.map((i) => i.url)).toEqual(['just-in']);
+    expect(result.map((i) => i.url)).toEqual([blogUrlOf('just-in')]);
   });
 
   it('동일 bloggerName은 최신 1개만 유지한다', () => {
@@ -213,7 +219,7 @@ describe('filterBlogs', () => {
     ];
     const result = filterBlogs(items, spot, now);
     expect(result).toHaveLength(1);
-    expect(result[0].url).toBe('new');
+    expect(result[0].url).toBe(blogUrlOf('new'));
   });
 
   it('꽃 유의어 포함 시 relevanceScore는 0.7이다', () => {
@@ -249,7 +255,7 @@ describe('filterBlogs', () => {
       makeBlog({ url: 'ok' }),
     ];
     const result = filterBlogs(items, spot, now);
-    expect(result.map((i) => i.url)).toEqual(['ok']);
+    expect(result.map((i) => i.url)).toEqual([blogUrlOf('ok')]);
   });
 
   it('7개 중 최대 5개만 반환하며 relevance DESC, postedAt DESC 순으로 정렬된다', () => {
@@ -306,14 +312,42 @@ describe('filterBlogs', () => {
     ];
     const result = filterBlogs(items, spot, now);
     expect(result).toHaveLength(5);
-    expect(result.map((i) => i.url)).toEqual(['a', 'd', 'b', 'c', 'e']);
+    expect(result.map((i) => i.url)).toEqual(
+      ['a', 'd', 'b', 'c', 'e'].map(blogUrlOf),
+    );
   });
 
   it('빈 excludeKeywords 항목("")은 모든 항목을 제거하지 않는다', () => {
     const localSpot: SpotContext = { ...spot, excludeKeywords: [''] };
     const items = [makeBlog({ url: 'ok' })];
     const result = filterBlogs(items, localSpot, now);
-    expect(result.map((i) => i.url)).toEqual(['ok']);
+    expect(result.map((i) => i.url)).toEqual([blogUrlOf('ok')]);
+  });
+
+  it('허용되지 않은 호스트(evil.com)는 제거된다', () => {
+    const items = [
+      makeBlog({ url: 'https://evil.com/post/1' }),
+      makeBlog({ url: 'https://blog.naver.com/ok/1' }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result.map((i) => i.url)).toEqual(['https://blog.naver.com/ok/1']);
+  });
+
+  it('tistory 서브도메인은 허용된다', () => {
+    const items = [
+      makeBlog({ url: 'https://foo.tistory.com/123' }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result.map((i) => i.url)).toEqual(['https://foo.tistory.com/123']);
+  });
+
+  it('malformed URL은 제거된다', () => {
+    const items = [
+      { ...makeBlog({ url: 'ok' }), url: 'not-a-url' } as BlogItem,
+      makeBlog({ url: 'ok2' }),
+    ];
+    const result = filterBlogs(items, spot, now);
+    expect(result.map((i) => i.url)).toEqual([blogUrlOf('ok2')]);
   });
 
   it('원본 객체를 변경하지 않는다 (순수 함수)', () => {

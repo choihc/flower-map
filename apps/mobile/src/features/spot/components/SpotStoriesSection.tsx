@@ -16,14 +16,47 @@ function formatKoreanDate(date: Date): string {
   return `${y}.${m}.${d}`;
 }
 
+const ALLOWED_BLOG_HOSTS = [
+  'blog.naver.com',
+  'm.blog.naver.com',
+  'post.naver.com',
+  'tistory.com',
+  'brunch.co.kr',
+] as const;
+
+function isAllowedBlogHost(host: string): boolean {
+  const lower = host.toLowerCase();
+  for (const allowed of ALLOWED_BLOG_HOSTS) {
+    if (lower === allowed) return true;
+    if (allowed === 'tistory.com' && lower.endsWith('.tistory.com')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * 외부 링크를 열기 전 스킴을 화이트리스트 검증한다.
  * `javascript:`, `file:` 등 악의적 스킴으로 임의 코드를 실행하는 것을 방지한다.
+ * `kind === 'blog'`인 경우 호스트도 허용 목록과 대조해 차단한다.
  */
-function openExternalLink(url: string) {
+function openExternalLink(url: string, kind: 'blog' | 'video' = 'video') {
   if (!/^https?:\/\//i.test(url)) {
     console.warn('차단된 URL 스킴:', url);
     return;
+  }
+  if (kind === 'blog') {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      console.warn('차단된 URL(파싱 실패):', url);
+      return;
+    }
+    if (!isAllowedBlogHost(parsed.hostname)) {
+      console.warn('차단된 블로그 호스트:', parsed.hostname);
+      return;
+    }
   }
   Linking.openURL(url).catch((err) => console.warn('openURL 실패', err));
 }
@@ -77,7 +110,7 @@ function VideoCard({ video }: { video: SpotVideo }) {
     <Pressable
       testID="story-video"
       onPress={() => {
-        openExternalLink(`https://youtu.be/${video.videoId}`);
+        openExternalLink(`https://youtu.be/${video.videoId}`, 'video');
       }}
       style={styles.videoCard}
     >
@@ -97,7 +130,7 @@ function BlogRow({ blog }: { blog: SpotBlog }) {
     <Pressable
       testID="story-blog"
       onPress={() => {
-        openExternalLink(blog.url);
+        openExternalLink(blog.url, 'blog');
       }}
       style={styles.blogRow}
     >
