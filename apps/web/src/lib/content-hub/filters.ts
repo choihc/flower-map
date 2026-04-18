@@ -74,6 +74,42 @@ function includesNormalized(text: string, needle: string): boolean {
   return normalizeForMatch(text).includes(n);
 }
 
+// 명소명을 토큰(단어) 기반으로 매칭한다. 유튜버·블로거는 공식명 전체를 쓰지 않고
+// 핵심 토큰만 쓰는 경우가 많기 때문에, 절반 이상(ceil(t/2)) 토큰이 등장하면 통과.
+// 괄호 내용(예: "매헌시민의숲 (양재 시민의숲)")은 별칭으로 분리해 본명/별칭 중
+// 어느 한쪽만 매칭되어도 인정한다.
+function tokenizeName(part: string): string[] {
+  return part
+    .split(/[\s·,\-/·]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 2);
+}
+
+export function matchSpotName(text: string, spotName: string): boolean {
+  const normText = normalizeForMatch(text);
+
+  const aliases: string[] = [];
+  const parenRe = /\(([^)]+)\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = parenRe.exec(spotName)) !== null) {
+    aliases.push(m[1].trim());
+  }
+  const main = spotName.replace(/\([^)]*\)/g, '').trim();
+  const variants = [main, ...aliases].filter((s) => s.length > 0);
+
+  for (const variant of variants) {
+    const tokens = tokenizeName(variant);
+    if (tokens.length === 0) continue;
+    const required = Math.max(1, Math.ceil(tokens.length / 2));
+    let hit = 0;
+    for (const t of tokens) {
+      if (normText.includes(normalizeForMatch(t))) hit++;
+      if (hit >= required) return true;
+    }
+  }
+  return false;
+}
+
 function containsAny(text: string, keywords: readonly string[]): boolean {
   const normalizedText = text.toLowerCase();
   return keywords.some((k) => {
@@ -135,7 +171,7 @@ export function filterVideosWithStats(
   for (const item of items) {
     const text = `${item.title} ${item.description}`;
 
-    if (!includesNormalized(text, spot.name)) {
+    if (!matchSpotName(text, spot.name)) {
       stats.rejectedNoNameMatch++;
       continue;
     }
@@ -212,7 +248,7 @@ export function filterBlogsWithStats(
       stats.rejectedHost++;
       continue;
     }
-    if (!includesNormalized(item.title, spot.name)) {
+    if (!matchSpotName(item.title, spot.name)) {
       stats.rejectedNoNameMatch++;
       continue;
     }

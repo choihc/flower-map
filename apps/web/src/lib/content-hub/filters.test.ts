@@ -43,6 +43,33 @@ describe('filterVideos', () => {
     expect(result.map((i) => i.videoId).sort()).toEqual(['v1', 'v2']);
   });
 
+  it('3토큰 명소는 절반(2개) 토큰만 매칭되어도 통과한다', () => {
+    const longSpot = { ...spot, name: '창원 진해 군항제' };
+    const items = [
+      makeVideo({ videoId: 'pass', channelId: 'c-pass', title: '진해 군항제 벚꽃 2026' }),
+      makeVideo({ videoId: 'fail', channelId: 'c-fail', title: '창원 여행 브이로그' }),
+    ];
+    const result = filterVideos(items, longSpot);
+    expect(result.map((i) => i.videoId)).toEqual(['pass']);
+  });
+
+  it('괄호 별칭도 매칭 대상이 된다 ("매헌시민의숲 (양재 시민의숲)")', () => {
+    const aliasSpot = { ...spot, name: '매헌시민의숲 (양재 시민의숲)' };
+    const items = [
+      makeVideo({ videoId: 'alias', channelId: 'ch-a', title: '양재 시민의숲 벚꽃 산책' }),
+      makeVideo({ videoId: 'main', channelId: 'ch-b', title: '매헌시민의숲 2026' }),
+    ];
+    const result = filterVideos(items, aliasSpot);
+    expect(result.map((i) => i.videoId).sort()).toEqual(['alias', 'main']);
+  });
+
+  it('2토큰 명소는 한 토큰만 일치해도 통과한다 ("경주 불국사" → "불국사 관람")', () => {
+    const twoSpot = { ...spot, name: '경주 불국사' };
+    const items = [makeVideo({ videoId: 'keep', title: '불국사 관람 브이로그' })];
+    const result = filterVideos(items, twoSpot);
+    expect(result).toHaveLength(1);
+  });
+
   it('viewCount 300 미만 항목은 제거한다', () => {
     const items = [
       makeVideo({ videoId: 'v1', viewCount: 299 }),
