@@ -140,20 +140,19 @@ export async function GET(req: Request) {
         spotContext,
       );
 
-      const { error: deleteVideoError } = await supabase
-        .from('spot_videos')
-        .delete()
-        .eq('spot_id', spot.id);
-      if (deleteVideoError) {
-        console.error(
-          'content-sync delete videos failed',
-          spot.id,
-          deleteVideoError,
-        );
-        continue;
-      }
-
       if (filteredVideos.length > 0) {
+        const { error: deleteVideoError } = await supabase
+          .from('spot_videos')
+          .delete()
+          .eq('spot_id', spot.id);
+        if (deleteVideoError) {
+          console.error(
+            'content-sync delete videos failed',
+            spot.id,
+            deleteVideoError,
+          );
+          continue;
+        }
         const videoRows: SpotVideoInsert[] = filteredVideos.map((v) => ({
           spot_id: spot.id,
           video_id: v.videoId,
@@ -179,22 +178,25 @@ export async function GET(req: Request) {
           );
           continue;
         }
-      }
-
-      const { error: deleteBlogError } = await supabase
-        .from('spot_blogs')
-        .delete()
-        .eq('spot_id', spot.id);
-      if (deleteBlogError) {
-        console.error(
-          'content-sync delete blogs failed',
-          spot.id,
-          deleteBlogError,
+      } else {
+        console.warn(
+          `[content-sync] spot=${spot.id} videos 0건, 기존 데이터 유지`,
         );
-        continue;
       }
 
       if (filteredBlogs.length > 0) {
+        const { error: deleteBlogError } = await supabase
+          .from('spot_blogs')
+          .delete()
+          .eq('spot_id', spot.id);
+        if (deleteBlogError) {
+          console.error(
+            'content-sync delete blogs failed',
+            spot.id,
+            deleteBlogError,
+          );
+          continue;
+        }
         const blogRows: SpotBlogInsert[] = filteredBlogs.map((b) => ({
           spot_id: spot.id,
           url: b.url,
@@ -219,6 +221,10 @@ export async function GET(req: Request) {
           );
           continue;
         }
+      } else {
+        console.warn(
+          `[content-sync] spot=${spot.id} blogs 0건, 기존 데이터 유지`,
+        );
       }
 
       processed++;

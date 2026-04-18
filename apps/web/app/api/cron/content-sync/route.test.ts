@@ -161,17 +161,48 @@ describe('GET /api/cron/content-sync', () => {
     expect(body.shard).toBe(aaaaShard);
 
     // aaaa만 처리되어야 함 (bbbb 샤드가 다를 수 있으므로 조건 확인)
+    // 외부 검색 결과가 0건이므로 delete/insert는 호출되지 않음(기존 데이터 유지)
     const bbbbShard = shardIndex('bbbb');
     if (aaaaShard === bbbbShard) {
       expect(body.processed).toBe(2);
-      expect(videoDeleteEq).toHaveBeenCalledTimes(2);
-      expect(blogDeleteEq).toHaveBeenCalledTimes(2);
     } else {
       expect(body.processed).toBe(1);
       expect(body.totalCandidates).toBe(1);
-      expect(videoDeleteEq).toHaveBeenCalledTimes(1);
-      expect(videoDeleteEq).toHaveBeenCalledWith('spot_id', 'aaaa');
     }
+    expect(videoDeleteEq).not.toHaveBeenCalled();
+    expect(blogDeleteEq).not.toHaveBeenCalled();
+  });
+
+  it('외부 검색 결과가 0건이면 delete/insert를 호출하지 않고 기존 데이터를 유지한다', async () => {
+    vi.stubEnv('CRON_SECRET', 'ok');
+
+    const { shardIndex } = await import('@/lib/cron/shard');
+    const spot: SpotFixture = {
+      id: 'spot-empty',
+      name: '빈결과',
+      exclude_keywords: [],
+      flowers: { name_ko: '벚꽃', aliases: [] },
+    };
+    mocks.todayShard.mockReturnValue(shardIndex(spot.id));
+
+    const { from, videoDeleteEq, videoInsert, blogDeleteEq, blogInsert } =
+      buildSupabaseMock([spot]);
+    mocks.createAdminSupabaseClient.mockReturnValue({ from });
+
+    mocks.searchYouTube.mockResolvedValue([]);
+    mocks.getVideoStats.mockResolvedValue(new Map());
+    mocks.searchBlogs.mockResolvedValue([]);
+
+    const { GET } = await import('./route');
+    const res = await GET(buildRequest('Bearer ok'));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.processed).toBe(1);
+    expect(videoDeleteEq).not.toHaveBeenCalled();
+    expect(videoInsert).not.toHaveBeenCalled();
+    expect(blogDeleteEq).not.toHaveBeenCalled();
+    expect(blogInsert).not.toHaveBeenCalled();
   });
 
   it('명소에 수집된 비디오/블로그가 있으면 기존 삭제 후 insert한다', async () => {
@@ -208,7 +239,7 @@ describe('GET /api/cron/content-sync', () => {
         return [
           {
             title: '남산 벚꽃',
-            link: 'https://blog.example/a',
+            link: 'https://blog.naver.com/blogger1/a',
             description: '남산 벚꽃 좋아요',
             bloggerName: 'blogger1',
             postedAt: new Date('2026-04-10T00:00:00Z'),
@@ -218,7 +249,7 @@ describe('GET /api/cron/content-sync', () => {
       return [
         {
           title: '남산 벚꽃 date',
-          link: 'https://blog.example/b',
+          link: 'https://blog.naver.com/blogger2/b',
           description: '남산 벚꽃 후기',
           bloggerName: 'blogger2',
           postedAt: new Date('2026-04-12T00:00:00Z'),
