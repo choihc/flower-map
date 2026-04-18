@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -70,6 +70,16 @@ function NativeMapCanvas({ spots, selectedSpotSlug, userCamera, onSelectSpot }: 
       }
     : undefined;
 
+  // 마커 스타일을 spot id 기준으로 캐싱해 재렌더 시 객체 재생성 비용과
+  // 하위 MarkerOverlay의 불필요한 prop diff를 줄인다.
+  const markerStyleById = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof resolveMarkerStyle>>();
+    for (const spot of spots) {
+      map.set(spot.id, resolveMarkerStyle(spot.nowScore));
+    }
+    return map;
+  }, [spots]);
+
   return (
     <NaverMapView
       animationDuration={700}
@@ -97,7 +107,8 @@ function NativeMapCanvas({ spots, selectedSpotSlug, userCamera, onSelectSpot }: 
     >
       {spots.map((spot) => {
         const isSelected = spot.slug === selectedSpotSlug;
-        const markerStyle = resolveMarkerStyle(spot.nowScore);
+        const markerStyle =
+          markerStyleById.get(spot.id) ?? resolveMarkerStyle(spot.nowScore);
 
         return (
           <NaverMapMarkerOverlay

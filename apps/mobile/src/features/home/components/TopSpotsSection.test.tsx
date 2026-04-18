@@ -90,11 +90,23 @@ describe('TopSpotsSection', () => {
     expect(getAllByTestId('top-spots-skeleton').length).toBeGreaterThan(0);
   });
 
-  it('데이터가 비어 있으면 섹션 자체를 렌더하지 않는다', () => {
+  it('데이터가 비어 있으면 "추천 집계 준비 중" 안내를 표시한다', () => {
     (useQuery as any).mockReturnValue({ data: [], isLoading: false });
-    const { queryByTestId, queryByText } = render(<TopSpotsSection />);
+    const { getByText, getByTestId } = render(<TopSpotsSection />);
 
-    expect(queryByTestId('top-spots-section')).toBeNull();
-    expect(queryByText('오늘의 TOP 10')).toBeNull();
+    expect(getByTestId('top-spots-section')).toBeTruthy();
+    expect(getByText('오늘의 TOP 10')).toBeTruthy();
+    expect(getByText('추천 집계 준비 중')).toBeTruthy();
+  });
+
+  it('에러 상태에서는 "추천을 불러오지 못했어요" 안내를 표시한다', () => {
+    (useQuery as any).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: new Error('boom'),
+    });
+    const { getByText } = render(<TopSpotsSection />);
+
+    expect(getByText('추천을 불러오지 못했어요')).toBeTruthy();
   });
 });

@@ -65,6 +65,7 @@ export function SpotStoriesSection({ slug }: SpotStoriesSectionProps) {
   const { data, isLoading } = useQuery({
     queryKey: spotKeys.content(slug),
     queryFn: () => getSpotContent(slug),
+    staleTime: 1000 * 60 * 30,
   });
 
   if (isLoading) return null;

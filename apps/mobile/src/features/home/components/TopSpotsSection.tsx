@@ -12,9 +12,10 @@ const TOP_COUNT = 10;
 
 export function TopSpotsSection() {
   const router = useRouter();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: spotKeys.top(TOP_COUNT),
     queryFn: () => getTopSpots(TOP_COUNT),
+    staleTime: 1000 * 60 * 30,
   });
 
   if (isLoading) {
@@ -34,7 +35,19 @@ export function TopSpotsSection() {
 
   const spots = data ?? [];
   if (spots.length === 0) {
-    return null;
+    return (
+      <View testID="top-spots-section" style={styles.container}>
+        <SectionHeading />
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>
+            {error ? '추천을 불러오지 못했어요' : '추천 집계 준비 중'}
+          </Text>
+          <Text style={styles.emptyMeta}>
+            잠시 후 다시 확인해주세요.
+          </Text>
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -116,6 +129,21 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 24,
     marginHorizontal: -20,
+  },
+  emptyMeta: {
+    color: colors.textMuted,
+    fontSize: 13,
+    marginTop: 4,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+  },
+  emptyText: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '600',
   },
   heading: {
     alignItems: 'flex-end',
