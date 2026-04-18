@@ -46,6 +46,15 @@ describe('shardIndex', () => {
     expect(result).toBeGreaterThanOrEqual(0);
     expect(result).toBeLessThan(7);
   });
+
+  it('임의 입력 1000개에 대해 결과는 항상 [0, totalShards) 범위다 (음수 인덱스 회귀 방지)', () => {
+    for (let i = 0; i < 1000; i++) {
+      const id = `spot-${i}-${Math.random().toString(36).slice(2)}`;
+      const idx = shardIndex(id);
+      expect(idx).toBeGreaterThanOrEqual(0);
+      expect(idx).toBeLessThan(7);
+    }
+  });
 });
 
 describe('todayShard', () => {

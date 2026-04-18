@@ -128,12 +128,11 @@ describe('getVideoStats', () => {
     expect(calledUrl).toContain('key=YT_KEY');
   });
 
-  it('viewCount가 누락되거나 숫자가 아니면 0으로 처리한다', async () => {
+  it('응답에는 있지만 viewCount가 누락되거나 숫자가 아니면 0으로 처리한다', async () => {
     const payload = {
       items: [
         { id: 'a', statistics: {} },
         { id: 'b', statistics: { viewCount: 'not-a-number' } },
-        { id: 'c' },
       ],
     };
 
@@ -148,12 +147,34 @@ describe('getVideoStats', () => {
 
     const result = await getVideoStats({
       apiKey: 'YT_KEY',
-      videoIds: ['a', 'b', 'c'],
+      videoIds: ['a', 'b'],
     });
 
     expect(result.get('a')).toBe(0);
     expect(result.get('b')).toBe(0);
-    expect(result.get('c')).toBe(0);
+  });
+
+  it('응답 자체에 videoId가 누락되면 null을 반환해 상위에서 필터할 수 있게 한다', async () => {
+    const payload = {
+      items: [{ id: 'a', statistics: { viewCount: '10' } }],
+    };
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => payload,
+      }),
+    );
+
+    const result = await getVideoStats({
+      apiKey: 'YT_KEY',
+      videoIds: ['a', 'missing'],
+    });
+
+    expect(result.get('a')).toBe(10);
+    expect(result.get('missing')).toBeNull();
   });
 
   it('videoIds 길이가 50을 초과하면 사전 검증에서 throw 한다', async () => {

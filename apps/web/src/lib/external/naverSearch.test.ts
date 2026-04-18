@@ -111,6 +111,68 @@ describe('searchBlogs', () => {
     expect(result).toEqual([]);
   });
 
+  it('HTML 엔티티(&quot;, &amp;, &lt;, &gt;, &#39;, &nbsp;)를 디코드한다', async () => {
+    const payload = {
+      items: [
+        {
+          title: 'Tom &amp; Jerry &lt;봄&gt;',
+          link: 'https://blog.naver.com/x',
+          description: '&quot;예쁜&quot; 벚꽃&nbsp;명소&#39;s',
+          bloggername: 'x',
+          bloggerlink: 'https://blog.naver.com/x',
+          postdate: '20260414',
+        },
+      ],
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => payload }),
+    );
+
+    const result = await searchBlogs({
+      clientId: 'C',
+      clientSecret: 'C',
+      query: 'q',
+    });
+    expect(result[0].title).toBe('Tom & Jerry <봄>');
+    expect(result[0].description).toBe('"예쁜" 벚꽃 명소\'s');
+  });
+
+  it('postdate가 invalid한 항목은 결과에서 제외한다', async () => {
+    const payload = {
+      items: [
+        {
+          title: 'bad',
+          link: 'https://blog.naver.com/x',
+          description: 'x',
+          bloggername: 'x',
+          bloggerlink: 'https://blog.naver.com/x',
+          postdate: 'abcd',
+        },
+        {
+          title: 'ok',
+          link: 'https://blog.naver.com/y',
+          description: 'x',
+          bloggername: 'y',
+          bloggerlink: 'https://blog.naver.com/y',
+          postdate: '20260414',
+        },
+      ],
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => payload }),
+    );
+
+    const result = await searchBlogs({
+      clientId: 'C',
+      clientSecret: 'C',
+      query: 'q',
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('ok');
+  });
+
   it('4xx 응답이 오면 예외를 throw 한다', async () => {
     vi.stubGlobal(
       'fetch',

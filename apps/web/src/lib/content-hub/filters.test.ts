@@ -324,6 +324,25 @@ describe('filterBlogs', () => {
     expect(result.map((i) => i.url)).toEqual([blogUrlOf('ok')]);
   });
 
+  it('전각공백만 있는 excludeKeywords는 무시된다', () => {
+    const localSpot: SpotContext = { ...spot, excludeKeywords: ['\u3000'] };
+    const items = [makeBlog({ url: 'ok' })];
+    const result = filterBlogs(items, localSpot, now);
+    expect(result.map((i) => i.url)).toEqual([blogUrlOf('ok')]);
+  });
+
+  it('제외 키워드는 대소문자 무시로 매칭된다', () => {
+    const localSpot: SpotContext = { ...spot, excludeKeywords: ['SALE'] };
+    const items = [
+      makeBlog({
+        url: 'ad',
+        title: '여의도 벚꽃 sale 포스팅',
+      }),
+    ];
+    const result = filterBlogs(items, localSpot, now);
+    expect(result).toHaveLength(0);
+  });
+
   it('허용되지 않은 호스트(evil.com)는 제거된다', () => {
     const items = [
       makeBlog({ url: 'https://evil.com/post/1' }),

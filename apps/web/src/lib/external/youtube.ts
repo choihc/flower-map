@@ -110,7 +110,7 @@ export async function searchYouTube(args: {
 export async function getVideoStats(args: {
   apiKey: string;
   videoIds: string[];
-}): Promise<Map<string, number>> {
+}): Promise<Map<string, number | null>> {
   const { apiKey, videoIds } = args;
 
   if (videoIds.length > MAX_VIDEO_IDS_PER_REQUEST) {
@@ -119,7 +119,7 @@ export async function getVideoStats(args: {
     );
   }
 
-  const result = new Map<string, number>();
+  const result = new Map<string, number | null>();
   if (videoIds.length === 0) {
     return result;
   }
@@ -152,7 +152,10 @@ export async function getVideoStats(args: {
   }
 
   for (const id of videoIds) {
-    result.set(id, responseMap.get(id) ?? 0);
+    // 응답에 누락된 videoId는 "알 수 없음"(null)로 표시해 상위에서 필터
+    // 탈락/로그 선택이 가능하도록 한다. 기존처럼 0으로 채우면 정상
+    // 0뷰 영상과 구분이 불가능했다.
+    result.set(id, responseMap.has(id) ? (responseMap.get(id) as number) : null);
   }
 
   return result;

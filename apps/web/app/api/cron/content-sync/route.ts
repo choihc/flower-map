@@ -46,8 +46,8 @@ function mapBlogToFilterItem(raw: NaverBlogItem): BlogItem {
 async function collectVideoStats(
   apiKey: string,
   videoIds: string[],
-): Promise<Map<string, number>> {
-  const merged = new Map<string, number>();
+): Promise<Map<string, number | null>> {
+  const merged = new Map<string, number | null>();
   if (videoIds.length === 0) return merged;
 
   for (let i = 0; i < videoIds.length; i += YOUTUBE_STATS_BATCH_SIZE) {
@@ -109,10 +109,13 @@ export async function GET(req: Request) {
         env.youtubeApiKey,
         rawVideos.map((v) => v.videoId),
       );
-      const videosWithStats: VideoItem[] = rawVideos.map((v) => ({
-        ...v,
-        viewCount: stats.get(v.videoId) ?? 0,
-      }));
+      const videosWithStats: VideoItem[] = [];
+      for (const v of rawVideos) {
+        const vc = stats.get(v.videoId);
+        // stats 응답에 누락된 영상(null)은 필터 대상에서 탈락시킨다.
+        if (vc === null || vc === undefined) continue;
+        videosWithStats.push({ ...v, viewCount: vc });
+      }
       const filteredVideos = filterVideos(videosWithStats, spotContext);
 
       const [blogsBySim, blogsByDate] = await Promise.all([

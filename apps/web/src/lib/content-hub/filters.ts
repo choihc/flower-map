@@ -63,7 +63,14 @@ export function isAllowedBlogUrl(url: string): boolean {
 }
 
 function containsAny(text: string, keywords: readonly string[]): boolean {
-  return keywords.some((k) => k && text.includes(k));
+  const normalizedText = text.toLowerCase();
+  return keywords.some((k) => {
+    if (typeof k !== 'string') return false;
+    // 빈 문자열과 전각공백(U+3000)만 포함된 키워드는 무의미하므로 제외
+    const trimmed = k.replace(/\u3000/g, '').trim();
+    if (trimmed.length === 0) return false;
+    return normalizedText.includes(trimmed.toLowerCase());
+  });
 }
 
 function computeRelevance(text: string, spot: SpotContext): number {
