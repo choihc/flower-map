@@ -107,15 +107,46 @@ function dedupeByLatest<T>(
   return Array.from(latestByKey.values());
 }
 
-export function filterVideos(items: readonly VideoItem[], spot: SpotContext): VideoItem[] {
+export interface VideoFilterStats {
+  input: number;
+  rejectedNoNameMatch: number;
+  rejectedExcludeKeyword: number;
+  rejectedLowViewCount: number;
+  rejectedDuplicateChannel: number;
+  trimmedToMax: number;
+  output: number;
+}
+
+export function filterVideosWithStats(
+  items: readonly VideoItem[],
+  spot: SpotContext,
+): { filtered: VideoItem[]; stats: VideoFilterStats } {
+  const stats: VideoFilterStats = {
+    input: items.length,
+    rejectedNoNameMatch: 0,
+    rejectedExcludeKeyword: 0,
+    rejectedLowViewCount: 0,
+    rejectedDuplicateChannel: 0,
+    trimmedToMax: 0,
+    output: 0,
+  };
   const scored: VideoItem[] = [];
 
   for (const item of items) {
     const text = `${item.title} ${item.description}`;
 
-    if (!includesNormalized(text, spot.name)) continue;
-    if (containsAny(text, spot.excludeKeywords)) continue;
-    if (item.viewCount < VIDEO_MIN_VIEW_COUNT) continue;
+    if (!includesNormalized(text, spot.name)) {
+      stats.rejectedNoNameMatch++;
+      continue;
+    }
+    if (containsAny(text, spot.excludeKeywords)) {
+      stats.rejectedExcludeKeyword++;
+      continue;
+    }
+    if (item.viewCount < VIDEO_MIN_VIEW_COUNT) {
+      stats.rejectedLowViewCount++;
+      continue;
+    }
 
     scored.push({
       ...item,
@@ -128,6 +159,7 @@ export function filterVideos(items: readonly VideoItem[], spot: SpotContext): Vi
     (v) => v.channelId,
     (v) => v.publishedAt,
   );
+  stats.rejectedDuplicateChannel = scored.length - deduped.length;
 
   deduped.sort((a, b) => {
     const scoreDiff = (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0);
@@ -135,25 +167,66 @@ export function filterVideos(items: readonly VideoItem[], spot: SpotContext): Vi
     return b.publishedAt.getTime() - a.publishedAt.getTime();
   });
 
-  return deduped.slice(0, VIDEO_MAX_RESULTS);
+  const filtered = deduped.slice(0, VIDEO_MAX_RESULTS);
+  stats.trimmedToMax = deduped.length - filtered.length;
+  stats.output = filtered.length;
+
+  return { filtered, stats };
 }
 
-export function filterBlogs(
+export function filterVideos(items: readonly VideoItem[], spot: SpotContext): VideoItem[] {
+  return filterVideosWithStats(items, spot).filtered;
+}
+
+export interface BlogFilterStats {
+  input: number;
+  rejectedHost: number;
+  rejectedNoNameMatch: number;
+  rejectedExcludeKeyword: number;
+  rejectedStale: number;
+  rejectedDuplicateBlogger: number;
+  trimmedToMax: number;
+  output: number;
+}
+
+export function filterBlogsWithStats(
   items: readonly BlogItem[],
   spot: SpotContext,
   now: Date = new Date(),
-): BlogItem[] {
+): { filtered: BlogItem[]; stats: BlogFilterStats } {
+  const stats: BlogFilterStats = {
+    input: items.length,
+    rejectedHost: 0,
+    rejectedNoNameMatch: 0,
+    rejectedExcludeKeyword: 0,
+    rejectedStale: 0,
+    rejectedDuplicateBlogger: 0,
+    trimmedToMax: 0,
+    output: 0,
+  };
   const freshnessCutoff = now.getTime() - BLOG_FRESHNESS_DAYS * MILLIS_PER_DAY;
   const scored: BlogItem[] = [];
 
   for (const item of items) {
-    if (!isAllowedBlogUrl(item.url)) continue;
-    if (!includesNormalized(item.title, spot.name)) continue;
+    if (!isAllowedBlogUrl(item.url)) {
+      stats.rejectedHost++;
+      continue;
+    }
+    if (!includesNormalized(item.title, spot.name)) {
+      stats.rejectedNoNameMatch++;
+      continue;
+    }
 
     const text = `${item.title} ${item.description}`;
-    if (containsAny(text, spot.excludeKeywords)) continue;
+    if (containsAny(text, spot.excludeKeywords)) {
+      stats.rejectedExcludeKeyword++;
+      continue;
+    }
 
-    if (item.postedAt.getTime() < freshnessCutoff) continue;
+    if (item.postedAt.getTime() < freshnessCutoff) {
+      stats.rejectedStale++;
+      continue;
+    }
 
     scored.push({
       ...item,
@@ -166,6 +239,7 @@ export function filterBlogs(
     (b) => b.bloggerName,
     (b) => b.postedAt,
   );
+  stats.rejectedDuplicateBlogger = scored.length - deduped.length;
 
   deduped.sort((a, b) => {
     const scoreDiff = (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0);
@@ -173,5 +247,16 @@ export function filterBlogs(
     return b.postedAt.getTime() - a.postedAt.getTime();
   });
 
-  return deduped.slice(0, BLOG_MAX_RESULTS);
+  const filtered = deduped.slice(0, BLOG_MAX_RESULTS);
+  stats.trimmedToMax = deduped.length - filtered.length;
+  stats.output = filtered.length;
+  return { filtered, stats };
+}
+
+export function filterBlogs(
+  items: readonly BlogItem[],
+  spot: SpotContext,
+  now: Date = new Date(),
+): BlogItem[] {
+  return filterBlogsWithStats(items, spot, now).filtered;
 }

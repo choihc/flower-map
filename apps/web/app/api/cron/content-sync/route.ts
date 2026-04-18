@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/cron/auth';
 import { shardIndex, todayShard } from '@/lib/cron/shard';
 import {
-  filterBlogs,
-  filterVideos,
+  filterVideosWithStats,
+  filterBlogsWithStats,
   type BlogItem,
   type SpotContext,
   type VideoItem,
@@ -117,7 +117,13 @@ export async function GET(req: Request) {
         if (vc === null || vc === undefined) continue;
         videosWithStats.push({ ...v, viewCount: vc });
       }
-      const filteredVideos = filterVideos(videosWithStats, spotContext);
+      const { filtered: filteredVideos, stats: videoStats } = filterVideosWithStats(
+        videosWithStats,
+        spotContext,
+      );
+      console.info(
+        `[content-sync] spot=${spot.id} name="${spot.name}" videos raw=${rawVideos.length} withStats=${videosWithStats.length} kept=${filteredVideos.length} rej{name:${videoStats.rejectedNoNameMatch},excl:${videoStats.rejectedExcludeKeyword},view:${videoStats.rejectedLowViewCount},dup:${videoStats.rejectedDuplicateChannel}} trimmed=${videoStats.trimmedToMax}`,
+      );
 
       const [blogsBySim, blogsByDate] = await Promise.all([
         searchBlogs({
@@ -139,9 +145,13 @@ export async function GET(req: Request) {
       for (const b of [...blogsBySim, ...blogsByDate]) {
         if (!dedupedByUrl.has(b.link)) dedupedByUrl.set(b.link, b);
       }
-      const filteredBlogs = filterBlogs(
-        Array.from(dedupedByUrl.values()).map(mapBlogToFilterItem),
+      const blogInputs = Array.from(dedupedByUrl.values()).map(mapBlogToFilterItem);
+      const { filtered: filteredBlogs, stats: blogStats } = filterBlogsWithStats(
+        blogInputs,
         spotContext,
+      );
+      console.info(
+        `[content-sync] spot=${spot.id} blogs raw=${blogInputs.length} kept=${filteredBlogs.length} rej{host:${blogStats.rejectedHost},name:${blogStats.rejectedNoNameMatch},excl:${blogStats.rejectedExcludeKeyword},stale:${blogStats.rejectedStale},dup:${blogStats.rejectedDuplicateBlogger}} trimmed=${blogStats.trimmedToMax}`,
       );
 
       if (filteredVideos.length > 0) {
