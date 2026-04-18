@@ -77,8 +77,9 @@ export async function searchYouTube(args: {
   const response = await fetchWithRetry(`${SEARCH_ENDPOINT}?${params.toString()}`);
 
   if (!response.ok) {
+    const body = await response.text().catch(() => '');
     throw new Error(
-      `YouTube search request failed with status ${response.status}`,
+      `YouTube search request failed with status ${response.status}: ${body.slice(0, 500)}`,
     );
   }
 
@@ -135,8 +136,9 @@ export async function getVideoStats(args: {
   const response = await fetchWithRetry(`${VIDEOS_ENDPOINT}?${params.toString()}`);
 
   if (!response.ok) {
+    const body = await response.text().catch(() => '');
     throw new Error(
-      `YouTube video stats request failed with status ${response.status}`,
+      `YouTube video stats request failed with status ${response.status}: ${body.slice(0, 500)}`,
     );
   }
 
