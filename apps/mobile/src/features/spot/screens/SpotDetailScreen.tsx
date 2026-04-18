@@ -78,6 +78,8 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
         secondaryButton={{ label: '지도에서 보기', onPress: () => router.push({ pathname: '/map', params: { spotSlug: slug } }) }}
       />
 
+      <SpotStoriesSection slug={slug} />
+
       <SpotPhotoGallery photos={photos} />
 
       <LikeButton spotId={spot.id} />
@@ -124,8 +126,6 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
           ));
         })()}
       </SectionCard>
-
-      <SpotStoriesSection slug={slug} />
     </ScreenShell>
   );
 }

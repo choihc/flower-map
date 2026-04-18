@@ -31,8 +31,11 @@ interface SpotRecord {
   id: string;
   name: string;
   exclude_keywords: string[] | null;
+  now_score: number | string | null;
   flowers: { name_ko: string; aliases: string[] | null };
 }
+
+const TOP_SCORE_ALWAYS_INCLUDE = 10;
 
 function mapBlogToFilterItem(raw: NaverBlogItem): BlogItem {
   return {
@@ -73,7 +76,7 @@ export async function GET(req: Request) {
   const { data: spotsData, error } = await supabase
     .from('spots')
     .select(
-      'id, name, exclude_keywords, flowers!inner(name_ko, aliases)',
+      'id, name, exclude_keywords, now_score, flowers!inner(name_ko, aliases)',
     )
     .eq('status', 'published');
 
@@ -86,10 +89,31 @@ export async function GET(req: Request) {
   }
 
   const allSpots = (spotsData ?? []) as unknown as SpotRecord[];
-  const spotsToday = allSpots.filter((s) => shardIndex(s.id) === shard);
+  const shardSpots = allSpots.filter((s) => shardIndex(s.id) === shard);
+
+  // now_score 상위 N개는 샤드와 무관하게 매일 갱신해 랭킹 정확도를 유지한다.
+  const topSpots = allSpots
+    .filter((s) => s.now_score !== null && s.now_score !== undefined)
+    .sort((a, b) => Number(b.now_score ?? 0) - Number(a.now_score ?? 0))
+    .slice(0, TOP_SCORE_ALWAYS_INCLUDE);
+  const topIds = new Set(topSpots.map((s) => s.id));
+  const shardIds = new Set(shardSpots.map((s) => s.id));
+
+  const spotsToday = [
+    ...shardSpots,
+    ...topSpots.filter((s) => !shardIds.has(s.id)),
+  ];
+  console.info(
+    `[content-sync] shard=${shard} shardSpots=${shardSpots.length} topSpots=${topSpots.length} total=${spotsToday.length}`,
+  );
 
   let processed = 0;
   for (const spot of spotsToday) {
+    const source = shardIds.has(spot.id)
+      ? topIds.has(spot.id)
+        ? 'shard+top'
+        : 'shard'
+      : 'top';
     try {
       const spotContext: SpotContext = {
         name: spot.name,
@@ -122,7 +146,7 @@ export async function GET(req: Request) {
         spotContext,
       );
       console.info(
-        `[content-sync] spot=${spot.id} name="${spot.name}" videos raw=${rawVideos.length} withStats=${videosWithStats.length} kept=${filteredVideos.length} rej{name:${videoStats.rejectedNoNameMatch},excl:${videoStats.rejectedExcludeKeyword},view:${videoStats.rejectedLowViewCount},dup:${videoStats.rejectedDuplicateChannel}} trimmed=${videoStats.trimmedToMax}`,
+        `[content-sync] spot=${spot.id} src=${source} name="${spot.name}" videos raw=${rawVideos.length} withStats=${videosWithStats.length} kept=${filteredVideos.length} rej{name:${videoStats.rejectedNoNameMatch},excl:${videoStats.rejectedExcludeKeyword},view:${videoStats.rejectedLowViewCount},dup:${videoStats.rejectedDuplicateChannel}} trimmed=${videoStats.trimmedToMax}`,
       );
 
       const [blogsBySim, blogsByDate] = await Promise.all([
