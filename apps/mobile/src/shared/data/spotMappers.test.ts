@@ -24,7 +24,7 @@ const baseRow = {
 
 describe('toFlowerSpot', () => {
   it('keeps the database id and exposes slug separately for route lookups', () => {
-    const result = toFlowerSpot(baseRow);
+    const result = toFlowerSpot(baseRow, new Date('2026-04-05T00:00:00Z'));
 
     expect(result.id).toBe('spot-1');
     expect(result.slug).toBe('yeouido-yunjung-ro');
@@ -137,7 +137,7 @@ describe('toFlowerSpot', () => {
     );
 
     expect(result.badge).toBe('지금 방문 추천');
-    expect(result.bloomStatus).toBe('포토 스팟');
+    expect(result.bloomStatus).toBe('개화 중');
     expect(result.eventEndsIn).toBe('D-18');
     expect(result.tone).toBe('yellow');
   });
