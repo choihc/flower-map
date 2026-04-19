@@ -24,6 +24,12 @@ const YOY_WINDOW_DAYS = 7;
 const TREND_GROUP_BATCH_SIZE = 5;
 const DAY_MS = 86400000;
 const SPOT_PROCESS_CONCURRENCY = 4;
+// Datalab burst throttle 완화를 위해 배치 간 짧게 대기.
+const DATALAB_BATCH_INTERVAL_MS = 200;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 interface SpotRecord {
   id: string;
@@ -141,30 +147,31 @@ async function collectTrendAndYoyScores(
 
   const batches = chunk(spots, TREND_GROUP_BATCH_SIZE);
 
-  for (const batch of batches) {
+  for (let i = 0; i < batches.length; i++) {
+    if (i > 0) await sleep(DATALAB_BATCH_INTERVAL_MS);
+    const batch = batches[i];
     const groups = batch.map(buildTrendGroup);
-    const [recentResults, lastYearResults] = await Promise.all([
-      fetchSearchTrends({
-        clientId: env.naverClientId,
-        clientSecret: env.naverClientSecret,
-        startDate: formatDate(recentStart),
-        endDate: formatDate(recentEnd),
-        groups,
-      }).catch((err: unknown) => {
-        console.error('now-score datalab recent batch failed', err);
-        return null;
-      }),
-      fetchSearchTrends({
-        clientId: env.naverClientId,
-        clientSecret: env.naverClientSecret,
-        startDate: formatDate(lastYearStart),
-        endDate: formatDate(oneYearAgoEnd),
-        groups,
-      }).catch((err: unknown) => {
-        console.error('now-score datalab lastYear batch failed', err);
-        return null;
-      }),
-    ]);
+    // 네이버 측 동시 호출 부담을 줄이기 위해 순차 호출.
+    const recentResults = await fetchSearchTrends({
+      clientId: env.naverClientId,
+      clientSecret: env.naverClientSecret,
+      startDate: formatDate(recentStart),
+      endDate: formatDate(recentEnd),
+      groups,
+    }).catch((err: unknown) => {
+      console.error('now-score datalab recent batch failed', err);
+      return null;
+    });
+    const lastYearResults = await fetchSearchTrends({
+      clientId: env.naverClientId,
+      clientSecret: env.naverClientSecret,
+      startDate: formatDate(lastYearStart),
+      endDate: formatDate(oneYearAgoEnd),
+      groups,
+    }).catch((err: unknown) => {
+      console.error('now-score datalab lastYear batch failed', err);
+      return null;
+    });
 
     const recentByName = new Map(
       (recentResults ?? []).map((r: TrendResult) => [r.groupName, r]),

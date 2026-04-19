@@ -59,8 +59,8 @@ export async function fetchSearchTrends(args: {
         keywordGroups: groups,
       }),
     },
-    // Datalab은 372일 × 5 그룹 조회가 느린 경우가 있어 기본보다 넉넉한 타임아웃 사용.
-    { timeoutMs: 30_000 },
+    // Datalab은 캐시 미스/네이버 측 throttle 시 지연이 크므로 넉넉한 타임아웃 사용.
+    { timeoutMs: 45_000 },
   );
 
   if (!response.ok) {
