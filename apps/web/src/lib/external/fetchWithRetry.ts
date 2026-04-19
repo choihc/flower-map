@@ -37,6 +37,10 @@ function isRetryableError(err: unknown): boolean {
   const code = getErrorCode(err);
   if (code && RETRYABLE_ERROR_CODES.has(code)) return true;
   if (err instanceof TypeError && err.message === 'fetch failed') return true;
+  // AbortController 타임아웃은 DOMException('AbortError')로 던져진다. 재시도 대상 포함.
+  if (err && typeof err === 'object' && (err as { name?: string }).name === 'AbortError') {
+    return true;
+  }
   return false;
 }
 

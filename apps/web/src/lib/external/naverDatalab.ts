@@ -43,20 +43,25 @@ export async function fetchSearchTrends(args: {
     );
   }
 
-  const response = await fetchWithRetry(DATALAB_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'X-Naver-Client-Id': clientId,
-      'X-Naver-Client-Secret': clientSecret,
-      'Content-Type': 'application/json',
+  const response = await fetchWithRetry(
+    DATALAB_ENDPOINT,
+    {
+      method: 'POST',
+      headers: {
+        'X-Naver-Client-Id': clientId,
+        'X-Naver-Client-Secret': clientSecret,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        startDate,
+        endDate,
+        timeUnit: 'date',
+        keywordGroups: groups,
+      }),
     },
-    body: JSON.stringify({
-      startDate,
-      endDate,
-      timeUnit: 'date',
-      keywordGroups: groups,
-    }),
-  });
+    // Datalab은 372일 × 5 그룹 조회가 느린 경우가 있어 기본보다 넉넉한 타임아웃 사용.
+    { timeoutMs: 30_000 },
+  );
 
   if (!response.ok) {
     throw new Error(
