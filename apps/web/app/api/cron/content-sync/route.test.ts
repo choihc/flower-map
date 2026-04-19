@@ -284,7 +284,7 @@ describe('GET /api/cron/content-sync', () => {
     expect(blogRows[0].spot_id).toBe('spot-x');
   });
 
-  it('외부 API 오류가 난 명소는 건너뛰고 다른 명소는 계속 처리한다', async () => {
+  it('비디오 수집이 실패해도 블로그 경로는 계속 진행하고 다른 명소도 처리한다', async () => {
     vi.stubEnv('CRON_SECRET', 'ok');
 
     const { shardIndex } = await import('@/lib/cron/shard');
@@ -331,13 +331,14 @@ describe('GET /api/cron/content-sync', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
 
-    // spotA가 처리 대상이었다면 실패(카운트 0)이고 spotB는 샤드 일치 여부에 따라 결정
+    // 비디오/블로그 try/catch가 분리되어 있어 A의 YouTube 실패가 블로그 경로를 막지 않고,
+    // 결과적으로 A도 processed에 포함된다. B는 샤드 일치 여부에 따라 포함.
     if (commonShard === bShard) {
-      expect(body.processed).toBe(1); // A는 실패, B 성공
+      expect(body.processed).toBe(2);
     } else {
-      expect(body.processed).toBe(0);
+      expect(body.processed).toBe(1);
     }
-    // 실패해도 videoInsert은 성공 명소에서만 호출(리스트가 비었기에 아예 호출 안 됨)
+    // 둘 다 블로그/비디오 결과가 비었기 때문에 videoInsert은 호출되지 않음.
     expect(videoInsert).not.toHaveBeenCalled();
   });
 });

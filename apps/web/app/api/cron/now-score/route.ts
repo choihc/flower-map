@@ -130,8 +130,8 @@ async function collectTrendAndYoyScores(
   const yoy = new Map<string, number | null>();
   if (spots.length === 0) return { trend, yoy };
 
-  // 작년 7일부터 오늘까지 한 번에 조회하고, 내부에서 recent/lastYear 구간을 잘라 쓴다.
-  // 이렇게 하면 trend·yoy를 각각 호출하던 기존 2회가 1회로 줄어든다.
+  // 372일 연속 구간을 한 번에 가져오면 응답이 무거워 타임아웃이 잦았다.
+  // 최근 7일과 작년 동기 7일만 따로 요청해 응답 크기를 ~358일치 분량만큼 줄인다.
   const recentEnd = now;
   const recentStart = new Date(recentEnd.getTime() - TREND_LOOKBACK_DAYS * DAY_MS);
   const oneYearAgoEnd = new Date(now.getTime() - 365 * DAY_MS);
@@ -139,58 +139,56 @@ async function collectTrendAndYoyScores(
     now.getTime() - (365 + YOY_WINDOW_DAYS) * DAY_MS,
   );
 
-  const startDate = formatDate(lastYearStart);
-  const endDate = formatDate(recentEnd);
-
   const batches = chunk(spots, TREND_GROUP_BATCH_SIZE);
 
   for (const batch of batches) {
     const groups = batch.map(buildTrendGroup);
-    try {
-      const results: TrendResult[] = await fetchSearchTrends({
+    const [recentResults, lastYearResults] = await Promise.all([
+      fetchSearchTrends({
         clientId: env.naverClientId,
         clientSecret: env.naverClientSecret,
-        startDate,
-        endDate,
+        startDate: formatDate(recentStart),
+        endDate: formatDate(recentEnd),
         groups,
-      });
-      const byName = new Map(results.map((r) => [r.groupName, r]));
-      for (const spot of batch) {
-        const r = byName.get(spot.id);
-        if (!r) {
-          trend.set(spot.id, null);
-          yoy.set(spot.id, null);
-          continue;
-        }
+      }).catch((err: unknown) => {
+        console.error('now-score datalab recent batch failed', err);
+        return null;
+      }),
+      fetchSearchTrends({
+        clientId: env.naverClientId,
+        clientSecret: env.naverClientSecret,
+        startDate: formatDate(lastYearStart),
+        endDate: formatDate(oneYearAgoEnd),
+        groups,
+      }).catch((err: unknown) => {
+        console.error('now-score datalab lastYear batch failed', err);
+        return null;
+      }),
+    ]);
 
-        const recentPoints = r.data.filter((d) => {
-          const ts = new Date(`${d.period}T00:00:00Z`).getTime();
-          return ts >= recentStart.getTime() && ts <= recentEnd.getTime();
-        });
-        const lastYearPoints = r.data.filter((d) => {
-          const ts = new Date(`${d.period}T00:00:00Z`).getTime();
-          return ts >= lastYearStart.getTime() && ts <= oneYearAgoEnd.getTime();
-        });
+    const recentByName = new Map(
+      (recentResults ?? []).map((r: TrendResult) => [r.groupName, r]),
+    );
+    const lastYearByName = new Map(
+      (lastYearResults ?? []).map((r: TrendResult) => [r.groupName, r]),
+    );
 
-        trend.set(
-          spot.id,
-          recentPoints.length === 0 ? null : calcTrendScore(averageRatio(recentPoints)),
-        );
+    for (const spot of batch) {
+      const recentData = recentByName.get(spot.id)?.data ?? [];
+      const lastYearData = lastYearByName.get(spot.id)?.data ?? [];
 
-        if (recentPoints.length === 0 || lastYearPoints.length === 0) {
-          yoy.set(spot.id, null);
-        } else {
-          yoy.set(
-            spot.id,
-            calcYoyScore(averageRatio(recentPoints), averageRatio(lastYearPoints)),
-          );
-        }
-      }
-    } catch (err) {
-      console.error('now-score datalab batch failed', err);
-      for (const spot of batch) {
-        trend.set(spot.id, null);
+      trend.set(
+        spot.id,
+        recentData.length === 0 ? null : calcTrendScore(averageRatio(recentData)),
+      );
+
+      if (recentData.length === 0 || lastYearData.length === 0) {
         yoy.set(spot.id, null);
+      } else {
+        yoy.set(
+          spot.id,
+          calcYoyScore(averageRatio(recentData), averageRatio(lastYearData)),
+        );
       }
     }
   }
