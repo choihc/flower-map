@@ -223,7 +223,7 @@ describe('spotRepository', () => {
     expect(recorded.order.some(([col]) => col === 'now_score')).toBe(true);
   });
 
-  it('getSpotContent은 videos 3개·blogs 5개 이하로 Date 객체를 포함해 반환한다', async () => {
+  it('getSpotContent은 videos 6개·blogs 5개 이하로 Date 객체를 포함해 반환한다', async () => {
     resetCallsFor('spots');
     resetCallsFor('spot_videos');
     resetCallsFor('spot_blogs');
@@ -232,7 +232,7 @@ describe('spotRepository', () => {
 
     const content = await getSpotContent('yeouido-yunjung-ro');
 
-    expect(content.videos.length).toBeLessThanOrEqual(3);
+    expect(content.videos.length).toBeLessThanOrEqual(6);
     expect(content.blogs.length).toBeLessThanOrEqual(5);
 
     expect(content.videos[0]?.videoId).toBe('vid-1');

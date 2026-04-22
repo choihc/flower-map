@@ -1,4 +1,4 @@
-import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import { getSpotContent, spotKeys } from '../../../shared/data/spotRepository';
@@ -84,11 +84,16 @@ export function SpotStoriesSection({ slug }: SpotStoriesSectionProps) {
       {videos.length > 0 && (
         <View style={styles.subsection}>
           <Text style={styles.subsectionTitle}>영상</Text>
-          <View style={styles.videoList}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.videoScroll}
+            contentContainerStyle={styles.videoScrollContent}
+          >
             {videos.map((video) => (
               <VideoCard key={video.videoId} video={video} />
             ))}
-          </View>
+          </ScrollView>
         </View>
       )}
 
@@ -191,20 +196,22 @@ const styles = StyleSheet.create({
   },
   videoCard: {
     gap: 4,
-    width: 160,
+    width: 200,
   },
   videoChannel: {
     color: colors.textMuted,
     fontSize: 12,
   },
-  videoList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  videoScroll: {
+    marginHorizontal: -18,
+  },
+  videoScrollContent: {
     gap: 12,
+    paddingHorizontal: 18,
   },
   videoThumbnail: {
     borderRadius: 10,
-    height: 90,
+    height: 112,
     width: '100%',
   },
   videoTitle: {

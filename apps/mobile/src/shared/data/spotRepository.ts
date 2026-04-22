@@ -91,7 +91,7 @@ export async function getSpotContent(
       .eq('spot_id', spotId)
       .order('relevance_score', { ascending: false, nullsFirst: false })
       .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(3),
+      .limit(6),
     supabase
       .from('spot_blogs')
       .select('url, title, blogger_name, posted_at')
@@ -107,7 +107,7 @@ export async function getSpotContent(
   // 날짜가 없는 row는 품질이 낮은 데이터로 간주해 결과에서 제외한다.
   const videos: SpotVideo[] = ((videoRes.data ?? []) as SpotVideoRow[])
     .filter((row) => row.published_at != null)
-    .slice(0, 3)
+    .slice(0, 6)
     .map((row) => ({
       videoId: row.video_id,
       title: row.title,
