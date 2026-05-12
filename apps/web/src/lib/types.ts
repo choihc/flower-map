@@ -183,6 +183,76 @@ export type SpotBlogInsert = {
   fetched_at?: string;
 };
 
+export type StayType = 'city' | 'resort' | 'poolvilla' | 'onsen' | 'kids';
+export type StayStatus = 'draft' | 'published';
+export type StaySourceType = 'manual_json';
+
+export type StayRow = {
+  id: string;
+  slug: string;
+  name: string;
+  region_primary: string;
+  region_secondary: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  stay_type: StayType;
+  season_tags: string[];
+  season_window_start: string | null;
+  season_window_end: string | null;
+  short_tagline: string;
+  description: string;
+  recommendation_points: string[];
+  thumbnail_url: string | null;
+  booking_query_override: string | null;
+  naver_rating_score: number | null;
+  naver_rating_url: string | null;
+  google_rating_score: number | null;
+  google_rating_url: string | null;
+  rating_captured_at: string | null;
+  source_type: StaySourceType;
+  source_note: string | null;
+  status: StayStatus;
+  is_featured: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StayInsert = {
+  slug: string;
+  name: string;
+  region_primary: string;
+  region_secondary: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  stay_type: StayType;
+  season_tags?: string[];
+  season_window_start?: string | null;
+  season_window_end?: string | null;
+  short_tagline: string;
+  description: string;
+  recommendation_points?: string[];
+  thumbnail_url?: string | null;
+  booking_query_override?: string | null;
+  naver_rating_score?: number | null;
+  naver_rating_url?: string | null;
+  google_rating_score?: number | null;
+  google_rating_url?: string | null;
+  rating_captured_at?: string | null;
+  source_type?: StaySourceType;
+  source_note?: string | null;
+  status?: StayStatus;
+  is_featured?: boolean;
+  display_order?: number;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type StayUpdate = Partial<Omit<StayInsert, 'id' | 'created_at' | 'updated_at'>>;
+
 export type Database = {
   public: {
     Tables: {
@@ -222,6 +292,11 @@ export type Database = {
         Row: SpotBlogRow;
         Insert: SpotBlogInsert;
         Update: Partial<Omit<SpotBlogInsert, 'id' | 'fetched_at'>>;
+      };
+      stays: {
+        Row: StayRow;
+        Insert: StayInsert;
+        Update: StayUpdate;
       };
     };
   };

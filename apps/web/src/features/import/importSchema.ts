@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { flowerSchema } from '../flowers/flowerSchema';
 import { spotSchema } from '../spots/spotSchema';
+import { staySchema } from '../stays/staySchema';
 
 const { flower_id: _flowerId, ...importedSpotShape } = spotSchema.shape;
 
@@ -44,6 +45,15 @@ export const importPayloadSchema = z.union([
     flower_slug: z.string().trim().min(2).regex(/^[a-z0-9-]+$/),
     spot: importedSpotSchema,
   }),
+  z.object({
+    stay: staySchema,
+  }),
 ]);
 
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
+
+/** stay 분기를 제외한 spot/flower 도메인 payload. */
+export type SpotImportPayload = Exclude<ImportPayload, { stay: unknown }>;
+
+/** stay 단건 등록 payload. */
+export type StayImportPayload = Extract<ImportPayload, { stay: unknown }>;

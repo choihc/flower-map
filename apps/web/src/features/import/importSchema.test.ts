@@ -112,6 +112,38 @@ describe('importPayloadSchema', () => {
     expect(result.data.spot.photos[0].url).toBe('https://example.com/photo1.jpg');
   });
 
+  it('accepts a stay payload', () => {
+    const result = importPayloadSchema.safeParse({
+      stay: {
+        slug: 'hotel-naru-magok',
+        name: '호텔 나루 서울 마곡',
+        region_primary: '서울',
+        region_secondary: '강서',
+        address: '서울 강서구 마곡중앙8로 38',
+        latitude: 37.56,
+        longitude: 126.82,
+        stay_type: 'city',
+        short_tagline: '도심 한강뷰 호텔',
+        description: '인피니티풀과 스카이라운지에서 한강 야경을 즐길 수 있어요.',
+      },
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected parse success');
+    if (!('stay' in result.data)) throw new Error('Expected stay payload');
+    expect(result.data.stay.status).toBe('draft');
+    expect(result.data.stay.is_featured).toBe(false);
+  });
+
+  it('rejects a stay payload missing required fields', () => {
+    const result = importPayloadSchema.safeParse({
+      stay: {
+        slug: 'incomplete',
+        name: '미완성',
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+
   it('defaults photos to empty array when omitted', () => {
     const result = importPayloadSchema.safeParse({
       flower_slug: 'cherry-blossom',
