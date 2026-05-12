@@ -2,7 +2,6 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Stay, StayRating } from '../../../shared/data/types';
 import { colors } from '../../../shared/theme/colors';
-import { isValidCoordinate } from '../lib/coordinate';
 import { formatStayTypeBadge } from '../lib/stayType';
 
 export type StayCardProps = {
@@ -10,6 +9,7 @@ export type StayCardProps = {
   onPress: () => void;
   onPressDirections: () => void;
   onPressBook: () => void;
+  directionsDisabled?: boolean;
 };
 
 const TAG_TONE_BG = [colors.surfaceGreen, colors.softPink, colors.softYellow];
@@ -28,10 +28,15 @@ function pickTopRating(stay: Stay): StayRating | null {
   return candidates.reduce((a, b) => (a.score >= b.score ? a : b));
 }
 
-export function StayCard({ stay, onPress, onPressDirections, onPressBook }: StayCardProps) {
+export function StayCard({
+  stay,
+  onPress,
+  onPressDirections,
+  onPressBook,
+  directionsDisabled = false,
+}: StayCardProps) {
   const tags = stay.seasonTags.slice(0, 3);
   const rating = pickTopRating(stay);
-  const coordinateValid = isValidCoordinate(stay.latitude, stay.longitude);
 
   return (
     <Pressable testID="stay-card" onPress={onPress} style={styles.card}>
@@ -82,13 +87,10 @@ export function StayCard({ stay, onPress, onPressDirections, onPressBook }: Stay
       <View style={styles.ctaRow}>
         <Pressable
           testID="stay-card-directions"
-          accessibilityState={{ disabled: !coordinateValid }}
-          aria-disabled={!coordinateValid}
-          onPress={() => {
-            if (!coordinateValid) return;
-            onPressDirections();
-          }}
-          style={[styles.ctaSecondary, !coordinateValid ? styles.ctaDisabled : null]}
+          accessibilityState={{ disabled: directionsDisabled }}
+          aria-disabled={directionsDisabled}
+          onPress={onPressDirections}
+          style={[styles.ctaSecondary, directionsDisabled ? styles.ctaDisabled : null]}
         >
           <Text style={styles.ctaSecondaryText}>길찾기</Text>
         </Pressable>

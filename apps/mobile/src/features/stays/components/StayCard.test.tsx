@@ -179,12 +179,12 @@ describe('StayCard', () => {
     expect(queryByTestId('stay-card-rating')).toBeNull();
   });
 
-  it('좌표가 invalid하면 길찾기 버튼이 disabled 처리된다', () => {
-    const stay: Stay = { ...baseStay, latitude: NaN, longitude: NaN };
+  it('directionsDisabled prop이 true면 길찾기 버튼이 disabled 처리되고 onPress는 부모로 위임된다', () => {
     const onPressDirections = vi.fn();
     const { getByTestId } = render(
       <StayCard
-        stay={stay}
+        stay={baseStay}
+        directionsDisabled
         onPress={vi.fn()}
         onPressDirections={onPressDirections}
         onPressBook={vi.fn()}
@@ -193,7 +193,20 @@ describe('StayCard', () => {
     const btn = asEl(getByTestId('stay-card-directions'));
     expect(btn.getAttribute('aria-disabled')).toBe('true');
     btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(onPressDirections).not.toHaveBeenCalled();
+    expect(onPressDirections).toHaveBeenCalledTimes(1);
+  });
+
+  it('directionsDisabled prop이 없으면 길찾기 버튼이 활성화된다', () => {
+    const { getByTestId } = render(
+      <StayCard
+        stay={baseStay}
+        onPress={vi.fn()}
+        onPressDirections={vi.fn()}
+        onPressBook={vi.fn()}
+      />,
+    );
+    const btn = asEl(getByTestId('stay-card-directions'));
+    expect(btn.getAttribute('aria-disabled')).toBe('false');
   });
 
   it('길찾기 / 예약 CTA onPress 콜백이 호출된다', () => {

@@ -72,13 +72,17 @@ export function StoriesSection({
     return null;
   }
 
+  const hasVideos = videos.length > 0;
+  const hasBlogs = blogs.length > 0;
+  const showSubsectionTitles = hasVideos && hasBlogs;
+
   return (
     <View testID={testID} style={styles.section}>
       <Text style={styles.title}>{sectionTitle}</Text>
 
-      {videos.length > 0 && (
+      {hasVideos && (
         <View style={styles.subsection}>
-          <Text style={styles.subsectionTitle}>영상</Text>
+          {showSubsectionTitles ? <Text style={styles.subsectionTitle}>영상</Text> : null}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -92,9 +96,9 @@ export function StoriesSection({
         </View>
       )}
 
-      {blogs.length > 0 && (
+      {hasBlogs && (
         <View style={styles.subsection}>
-          <Text style={styles.subsectionTitle}>블로그 리뷰</Text>
+          {showSubsectionTitles ? <Text style={styles.subsectionTitle}>블로그 리뷰</Text> : null}
           <View style={styles.blogList}>
             {blogs.map((blog) => (
               <BlogRow key={blog.url} blog={blog} />

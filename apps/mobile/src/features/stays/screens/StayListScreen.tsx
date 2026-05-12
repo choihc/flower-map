@@ -3,13 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository';
+import { isValidCoordinate } from '../../../shared/lib/coordinate';
+import { DIRECTIONS_DISABLED_MESSAGE, openNaverNavigation } from '../../../shared/lib/naverMap';
+import { showToast } from '../../../shared/lib/toast';
 import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { colors } from '../../../shared/theme/colors';
-import { openNaverNavigation } from '../../../shared/lib/naverMap';
 import { StayCard } from '../components/StayCard';
-import { isValidCoordinate } from '../lib/coordinate';
 import { openNaverHotelSearch } from '../lib/naverHotel';
 
 export function StayListScreen() {
@@ -42,26 +43,33 @@ export function StayListScreen() {
       <View style={styles.intro}>
         <Text style={styles.introText}>{stays.length}곳을 큐레이션했어요</Text>
       </View>
-      {stays.map((stay, idx) => (
-        <View key={stay.id}>
-          <StayCard
-            stay={stay}
-            onPress={() => router.push(`/stays/${stay.slug}` as never)}
-            onPressDirections={() => {
-              if (!isValidCoordinate(stay.latitude, stay.longitude)) return;
-              openNaverNavigation({
-                latitude: stay.latitude,
-                longitude: stay.longitude,
-                name: stay.name,
-              });
-            }}
-            onPressBook={() =>
-              openNaverHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
-            }
-          />
-          {(idx + 1) % 3 === 0 && idx < stays.length - 1 ? <NativeSpotAd /> : null}
-        </View>
-      ))}
+      {stays.map((stay, idx) => {
+        const directionsDisabled = !isValidCoordinate(stay.latitude, stay.longitude);
+        return (
+          <View key={stay.id}>
+            <StayCard
+              stay={stay}
+              directionsDisabled={directionsDisabled}
+              onPress={() => router.push(`/stays/${stay.slug}` as never)}
+              onPressDirections={() => {
+                if (directionsDisabled) {
+                  showToast(DIRECTIONS_DISABLED_MESSAGE);
+                  return;
+                }
+                openNaverNavigation({
+                  latitude: stay.latitude,
+                  longitude: stay.longitude,
+                  name: stay.name,
+                });
+              }}
+              onPressBook={() =>
+                openNaverHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
+              }
+            />
+            {(idx + 1) % 3 === 0 && idx < stays.length - 1 ? <NativeSpotAd /> : null}
+          </View>
+        );
+      })}
     </ScreenShell>
   );
 }
