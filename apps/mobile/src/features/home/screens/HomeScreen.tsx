@@ -4,6 +4,10 @@ import { AppState, type AppStateStatus, Dimensions, ImageBackground, Linking, Na
 import { useQuery } from '@tanstack/react-query';
 
 import {
+  getActiveHomeCurationSlots,
+  homeCurationKeys,
+} from '../../../shared/data/homeCurationRepository';
+import {
   deriveFlowerLabels,
   deriveRegionSummaries,
   getPublishedSpots,
@@ -22,7 +26,10 @@ import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
+import { SeasonCurationSlot } from '../components/SeasonCurationSlot';
 import { TopSpotsSection } from '../components/TopSpotsSection';
+
+const HOME_STATIC_STALE_MS = 1000 * 60 * 30;
 
 export function HomeScreen() {
   const router = useRouter();
@@ -31,6 +38,19 @@ export function HomeScreen() {
     queryFn: getPublishedSpots,
   });
   if (error) console.error('[HomeScreen] spots query error:', error);
+
+  const {
+    data: curationSlotsRaw = [],
+    error: curationError,
+  } = useQuery({
+    queryKey: homeCurationKeys.active,
+    queryFn: getActiveHomeCurationSlots,
+    staleTime: HOME_STATIC_STALE_MS,
+  });
+  if (curationError) console.error('[HomeScreen] curation query error:', curationError);
+  const curationSlots = curationSlotsRaw.filter(
+    (slot) => slot.title.trim().length > 0 && slot.ctaLabel.trim().length > 0,
+  );
   const flowerLabels = deriveFlowerLabels(featuredSpots);
   const regionSummaries = deriveRegionSummaries(featuredSpots);
   const [selectedFlower, setSelectedFlower] = useState<string>('전체');
@@ -192,6 +212,14 @@ export function HomeScreen() {
       </View>
 
       <TopSpotsSection />
+
+      {curationSlots.length > 0 ? (
+        <View style={styles.curationSection}>
+          {curationSlots.map((slot) => (
+            <SeasonCurationSlot key={slot.id} slot={slot} />
+          ))}
+        </View>
+      ) : null}
 
       {locationState === 'granted' && nearbySpots.length > 0 ? (
         <>
@@ -423,6 +451,9 @@ function SpotPreview({
 }
 
 const styles = StyleSheet.create({
+  curationSection: {
+    marginBottom: 4,
+  },
   heroCarouselWrapper: {
     marginHorizontal: -20,
     marginBottom: 2,
