@@ -183,9 +183,34 @@ export type SpotBlogInsert = {
   fetched_at?: string;
 };
 
-export type StayType = 'city' | 'resort' | 'poolvilla' | 'onsen' | 'kids';
+export type StayType = 'city' | 'resort' | 'poolvilla' | 'onsen' | 'kids' | 'ocean' | 'island';
 export type StayStatus = 'draft' | 'published';
 export type StaySourceType = 'manual_json';
+
+export type StayVideoInsert = {
+  stay_id: string;
+  video_id: string;
+  title: string;
+  channel_title?: string | null;
+  thumbnail_url?: string | null;
+  published_at?: string | null;
+  view_count?: number | null;
+  relevance_score?: number | null;
+  id?: string;
+  fetched_at?: string;
+};
+
+export type StayBlogInsert = {
+  stay_id: string;
+  url: string;
+  title: string;
+  description?: string | null;
+  blogger_name?: string | null;
+  posted_at?: string | null;
+  relevance_score?: number | null;
+  id?: string;
+  fetched_at?: string;
+};
 
 export type StayRow = {
   id: string;

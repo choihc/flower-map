@@ -16,7 +16,12 @@ import {
 } from '@/lib/external/naverSearch';
 import { getVideoStats, searchYouTube } from '@/lib/external/youtube';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
-import type { SpotBlogInsert, SpotVideoInsert } from '@/lib/types';
+import type {
+  SpotBlogInsert,
+  SpotVideoInsert,
+  StayBlogInsert,
+  StayVideoInsert,
+} from '@/lib/types';
 
 export const maxDuration = 300;
 
@@ -284,10 +289,191 @@ export async function GET(req: Request) {
     }
   }
 
+  const stayResult = await syncStays(supabase, env, shard);
+
   return NextResponse.json({
     ok: true,
     shard,
     processed,
     totalCandidates: spotsToday.length,
+    stays: stayResult,
   });
+}
+
+interface StayRecord {
+  id: string;
+  name: string;
+}
+
+const STAY_CONTEXT_FLOWER = '호캉스';
+const STAY_CONTEXT_ALIASES = ['호텔'] as const;
+
+async function syncStays(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  env: ReturnType<typeof getExternalApiEnv>,
+  shard: number,
+): Promise<{ processed: number; totalCandidates: number }> {
+  const { data: staysData, error: staysError } = await (supabase
+    .from('stays') as any)
+    .select('id, name')
+    .eq('status', 'published');
+
+  if (staysError) {
+    console.error('content-sync stays query failed', staysError);
+    return { processed: 0, totalCandidates: 0 };
+  }
+
+  const allStays = (staysData ?? []) as unknown as StayRecord[];
+  const staysToday = allStays.filter((s) => shardIndex(s.id) === shard);
+  console.info(
+    `[content-sync] stays shard=${shard} candidates=${staysToday.length} (total published=${allStays.length})`,
+  );
+
+  let processed = 0;
+  for (const stay of staysToday) {
+    try {
+      const stayContext: SpotContext = {
+        name: stay.name,
+        flower: STAY_CONTEXT_FLOWER,
+        aliases: [...STAY_CONTEXT_ALIASES],
+        excludeKeywords: [],
+      };
+      const query = `${stay.name} 호캉스`.trim();
+      const publishedAfter = new Date(Date.now() - LOOKBACK_DAYS * DAY_MS);
+
+      let filteredVideos: VideoItem[] = [];
+      try {
+        const rawVideos = await searchYouTube({
+          apiKey: env.youtubeApiKey,
+          query,
+          publishedAfter,
+          maxResults: YOUTUBE_SEARCH_RESULTS,
+        });
+        const stats = await collectVideoStats(
+          env.youtubeApiKey,
+          rawVideos.map((v) => v.videoId),
+        );
+        const videosWithStats: VideoItem[] = [];
+        for (const v of rawVideos) {
+          const vc = stats.get(v.videoId);
+          if (vc === null || vc === undefined) continue;
+          videosWithStats.push({ ...v, viewCount: vc });
+        }
+        const { filtered, stats: videoStats } = filterVideosWithStats(
+          videosWithStats,
+          stayContext,
+        );
+        filteredVideos = filtered;
+        console.info(
+          `[content-sync] stay=${stay.id} name="${stay.name}" videos raw=${rawVideos.length} withStats=${videosWithStats.length} kept=${filtered.length} rej{name:${videoStats.rejectedNoNameMatch},excl:${videoStats.rejectedExcludeKeyword},view:${videoStats.rejectedLowViewCount},dup:${videoStats.rejectedDuplicateChannel}} trimmed=${videoStats.trimmedToMax}`,
+        );
+      } catch (err) {
+        console.error('content-sync stay video fetch failed', stay.id, err);
+      }
+
+      let filteredBlogs: BlogItem[] = [];
+      try {
+        const [blogsBySim, blogsByDate] = await Promise.all([
+          searchBlogs({
+            clientId: env.naverClientId,
+            clientSecret: env.naverClientSecret,
+            query,
+            sort: 'sim',
+            display: BLOG_SEARCH_DISPLAY,
+          }),
+          searchBlogs({
+            clientId: env.naverClientId,
+            clientSecret: env.naverClientSecret,
+            query,
+            sort: 'date',
+            display: BLOG_SEARCH_DISPLAY,
+          }),
+        ]);
+        const dedupedByUrl = new Map<string, NaverBlogItem>();
+        for (const b of [...blogsBySim, ...blogsByDate]) {
+          if (!dedupedByUrl.has(b.link)) dedupedByUrl.set(b.link, b);
+        }
+        const blogInputs = Array.from(dedupedByUrl.values()).map(mapBlogToFilterItem);
+        const { filtered, stats: blogStats } = filterBlogsWithStats(
+          blogInputs,
+          stayContext,
+        );
+        filteredBlogs = filtered;
+        console.info(
+          `[content-sync] stay=${stay.id} blogs raw=${blogInputs.length} kept=${filtered.length} rej{host:${blogStats.rejectedHost},name:${blogStats.rejectedNoNameMatch},excl:${blogStats.rejectedExcludeKeyword},stale:${blogStats.rejectedStale},dup:${blogStats.rejectedDuplicateBlogger}} trimmed=${blogStats.trimmedToMax}`,
+        );
+      } catch (err) {
+        console.error('content-sync stay blog fetch failed', stay.id, err);
+      }
+
+      if (filteredVideos.length > 0) {
+        const { error: deleteVideoError } = await supabase
+          .from('stay_videos')
+          .delete()
+          .eq('stay_id', stay.id);
+        if (deleteVideoError) {
+          console.error('content-sync delete stay_videos failed', stay.id, deleteVideoError);
+          continue;
+        }
+        const videoRows: StayVideoInsert[] = filteredVideos.map((v) => ({
+          stay_id: stay.id,
+          video_id: v.videoId,
+          title: v.title,
+          channel_title: v.channelTitle,
+          thumbnail_url: v.thumbnailUrl,
+          published_at: v.publishedAt.toISOString(),
+          view_count: v.viewCount,
+          relevance_score: v.relevanceScore ?? null,
+        }));
+        const { error: insertVideoError } = await (
+          supabase.from('stay_videos') as unknown as {
+            insert: (values: StayVideoInsert[]) => Promise<{ error: unknown }>;
+          }
+        ).insert(videoRows);
+        if (insertVideoError) {
+          console.error('content-sync insert stay_videos failed', stay.id, insertVideoError);
+          continue;
+        }
+      } else {
+        console.warn(`[content-sync] stay=${stay.id} videos 0건, 기존 데이터 유지`);
+      }
+
+      if (filteredBlogs.length > 0) {
+        const { error: deleteBlogError } = await supabase
+          .from('stay_blogs')
+          .delete()
+          .eq('stay_id', stay.id);
+        if (deleteBlogError) {
+          console.error('content-sync delete stay_blogs failed', stay.id, deleteBlogError);
+          continue;
+        }
+        const blogRows: StayBlogInsert[] = filteredBlogs.map((b) => ({
+          stay_id: stay.id,
+          url: b.url,
+          title: b.title,
+          description: b.description,
+          blogger_name: b.bloggerName,
+          posted_at: b.postedAt.toISOString(),
+          relevance_score: b.relevanceScore ?? null,
+        }));
+        const { error: insertBlogError } = await (
+          supabase.from('stay_blogs') as unknown as {
+            insert: (values: StayBlogInsert[]) => Promise<{ error: unknown }>;
+          }
+        ).insert(blogRows);
+        if (insertBlogError) {
+          console.error('content-sync insert stay_blogs failed', stay.id, insertBlogError);
+          continue;
+        }
+      } else {
+        console.warn(`[content-sync] stay=${stay.id} blogs 0건, 기존 데이터 유지`);
+      }
+
+      processed++;
+    } catch (err) {
+      console.error('content-sync stay failed', stay.id, err);
+    }
+  }
+
+  return { processed, totalCandidates: staysToday.length };
 }

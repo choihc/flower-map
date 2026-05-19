@@ -7,6 +7,7 @@ const primaryNavItems = [
   { href: '/admin', label: '대시보드' },
   { href: '/admin/flowers', label: '꽃 관리' },
   { href: '/admin/spots', label: '명소 관리' },
+  { href: '/admin/stays', label: '호텔 관리' },
   { href: '/admin/spots/import', label: 'JSON 등록' },
   { href: '/admin/suggestions', label: '추천 접수' },
   { href: '/admin/notifications', label: '알림 발송' },

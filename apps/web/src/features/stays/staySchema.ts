@@ -12,7 +12,7 @@ const httpsOnlyUrlSchema = z
     message: 'URL은 http(s) 스킴만 허용됩니다',
   });
 
-const stayTypeSchema = z.enum(['city', 'resort', 'poolvilla', 'onsen', 'kids']);
+const stayTypeSchema = z.enum(['city', 'resort', 'poolvilla', 'onsen', 'kids', 'ocean', 'island']);
 
 const ratingScoreSchema = z.number().min(0).max(5);
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type FormatEntry = {
-  id: 'flower-with-spots' | 'spot-on-existing-flower' | 'stay';
+  id: 'flower-with-spots' | 'spot-on-existing-flower' | 'stay' | 'stays-bulk';
   title: string;
   hint: string;
   snippet: string;
@@ -69,7 +69,7 @@ const FORMATS: readonly FormatEntry[] = [
   {
     id: 'stay',
     title: '3) 호텔(호캉스) 단건 등록',
-    hint: '신규 호텔이면 INSERT, 같은 slug가 이미 있으면 UPDATE됩니다. recommendation_points는 최대 10개. 평점이 있으면 score-url 쌍과 rating_captured_at이 모두 필요합니다. ⚠️ 예시 JSON의 cdn.example.com / place/12345 / cid=12345 같은 placeholder URL/ID는 반드시 실제 값으로 교체하세요.',
+    hint: '신규 호텔이면 INSERT, 같은 slug가 이미 있으면 UPDATE됩니다. stay_type 허용값: city / resort / poolvilla / onsen / kids / ocean / island. recommendation_points는 최대 10개. 평점이 있으면 score-url 쌍과 rating_captured_at이 모두 필요합니다. ⚠️ 예시 JSON의 cdn.example.com / place/12345 / cid=12345 같은 placeholder URL/ID는 반드시 실제 값으로 교체하세요.',
     snippet: `{
   "stay": {
     "slug": "hotel-naru-magok",
@@ -99,6 +99,55 @@ const FORMATS: readonly FormatEntry[] = [
     "is_featured": true,
     "display_order": 10
   }
+}`,
+  },
+  {
+    id: 'stays-bulk',
+    title: '4) 호텔(호캉스) 복수 일괄 등록',
+    hint: '한 번에 여러 호텔을 등록합니다. 부분 실패 허용 — 성공한 호텔은 저장되고 실패한 호텔만 결과 패널에 오류로 표시됩니다. 동일 payload 내 slug 중복은 검증 단계에서 차단됩니다. 평점/URL/booking_query_override/thumbnail_url 등 옵션 필드는 3번 카드 예시 참고. ⚠️ 슬러그·위경도·주소 등은 반드시 실제 값으로 교체하세요.',
+    snippet: `{
+  "stays": [
+    {
+      "slug": "hotel-naru-magok",
+      "name": "호텔 나루 서울 마곡",
+      "region_primary": "서울",
+      "region_secondary": "강서",
+      "address": "서울 강서구 마곡중앙8로 38",
+      "latitude": 37.563,
+      "longitude": 126.824,
+      "stay_type": "city",
+      "season_tags": ["가족", "한강뷰"],
+      "short_tagline": "도심에서 즐기는 인피니티풀과 한강 야경",
+      "description": "한강뷰가 일품인 도심형 호텔.",
+      "recommendation_points": [
+        "인피니티풀에서 보는 한강 일몰",
+        "키즈 어메니티 무료 제공"
+      ],
+      "status": "draft",
+      "is_featured": true,
+      "display_order": 10
+    },
+    {
+      "slug": "soneva-jeju",
+      "name": "소네바 제주",
+      "region_primary": "제주",
+      "region_secondary": "서귀포",
+      "address": "제주 서귀포시 안덕면 산록남로 727",
+      "latitude": 33.301,
+      "longitude": 126.395,
+      "stay_type": "resort",
+      "season_tags": ["프라이빗풀", "오션뷰"],
+      "short_tagline": "고요한 제주 남쪽 해안의 풀빌라 리조트",
+      "description": "한라산과 바다를 한 번에 담는 럭셔리 리조트.",
+      "recommendation_points": [
+        "객실마다 프라이빗풀 제공",
+        "조식 다이닝의 시즌 한정 메뉴"
+      ],
+      "status": "draft",
+      "is_featured": false,
+      "display_order": 20
+    }
+  ]
 }`,
   },
 ] as const;
@@ -134,7 +183,7 @@ export function ImportFormatGuide() {
       <CardHeader className="px-6 py-6">
         <CardTitle>지원 포맷</CardTitle>
         <CardDescription>
-          허용되는 JSON 포맷 3종을 확인하세요. 예시 JSON을 복사해 AI에게 "이 포맷대로 [목표] 데이터 만들어줘"라고 요청하면 됩니다.
+          허용되는 JSON 포맷 4종을 확인하세요. 예시 JSON을 복사해 AI에게 "이 포맷대로 [목표] 데이터 만들어줘"라고 요청하면 됩니다.
           최상위가 배열인 JSON은 허용되지 않습니다.
         </CardDescription>
       </CardHeader>

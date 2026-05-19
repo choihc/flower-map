@@ -14,7 +14,8 @@ import type { ValidationSummary } from './ImportConsole';
 import {
   importPayloadSchema,
   type SpotImportPayload,
-  type StayImportPayload,
+  type StayBulkImportPayload,
+  type StaySingleImportPayload,
 } from './importSchema';
 import { planImportWrite } from './planImportWrite';
 
@@ -44,6 +45,10 @@ export async function saveImportPayloadAction(payload: string): Promise<Validati
 
     if ('stay' in parsed.data) {
       return await saveStay(writeClient, parsed.data.stay);
+    }
+
+    if ('stays' in parsed.data) {
+      return await saveStaysBulk(writeClient, parsed.data.stays);
     }
 
     const spotPayload: SpotImportPayload = parsed.data;
@@ -95,12 +100,35 @@ export async function saveImportPayloadAction(payload: string): Promise<Validati
 
 async function saveStay(
   client: SupabaseClient<Database>,
-  stay: StayImportPayload['stay'],
+  stay: StaySingleImportPayload['stay'],
 ): Promise<ValidationSummary> {
   const { isNew } = await upsertStayBySlug(client, stay);
   // TODO(stays-admin): /admin/stays 페이지 신설 시 revalidatePath 추가
   revalidatePath('/admin/spots/import');
   return { created: isNew ? 1 : 0, updated: isNew ? 0 : 1, errors: [] };
+}
+
+async function saveStaysBulk(
+  client: SupabaseClient<Database>,
+  stays: StayBulkImportPayload['stays'],
+): Promise<ValidationSummary> {
+  let created = 0;
+  let updated = 0;
+  const errors: string[] = [];
+
+  // 부분 실패를 허용 — 성공한 row는 commit, 실패 row만 errors로 보고.
+  for (const stay of stays) {
+    try {
+      const { isNew } = await upsertStayBySlug(client, stay);
+      if (isNew) created += 1;
+      else updated += 1;
+    } catch (error) {
+      errors.push(`[${stay.slug}] ${getErrorMessage(error)}`);
+    }
+  }
+
+  revalidatePath('/admin/spots/import');
+  return { created, updated, errors };
 }
 
 async function resolveFlowerId(

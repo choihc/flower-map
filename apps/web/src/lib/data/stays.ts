@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import type { Database, StayInsert, StayRow, StayUpdate } from '@/lib/types';
+import type { Database, StayInsert, StayRow, StayStatus, StayUpdate } from '@/lib/types';
 
 type StayWriteDraft = Omit<StayInsert, 'id' | 'created_at' | 'updated_at'>;
 
@@ -32,6 +32,60 @@ export function buildStayWriteInput(input: StayWriteDraft): StayInsert {
     is_featured: input.is_featured ?? false,
     display_order: input.display_order ?? 0,
   };
+}
+
+export async function listStays(client: SupabaseClient<Database>): Promise<StayRow[]> {
+  const { data, error } = await (client.from('stays') as any)
+    .select('*')
+    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error != null) throw error;
+  return data as StayRow[];
+}
+
+export async function bulkUpdateStayStatus(
+  client: SupabaseClient<Database>,
+  ids: string[],
+  status: StayStatus,
+): Promise<StayRow[]> {
+  if (ids.length === 0) return [];
+
+  const { data, error } = await (client.from('stays') as any)
+    .update({ status })
+    .in('id', ids)
+    .select();
+
+  if (error != null) throw error;
+  return data as StayRow[];
+}
+
+export async function findStayById(
+  client: SupabaseClient<Database>,
+  id: string,
+): Promise<StayRow | null> {
+  const { data, error } = await ((client.from('stays') as any)
+    .select('*')
+    .eq('id', id)
+    .maybeSingle() as Promise<{ data: StayRow | null; error: Error | null }>);
+
+  if (error != null) throw error;
+  return data;
+}
+
+export async function updateStayThumbnail(
+  client: SupabaseClient<Database>,
+  id: string,
+  thumbnailUrl: string | null,
+): Promise<StayRow> {
+  const { data, error } = await (client.from('stays') as any)
+    .update({ thumbnail_url: thumbnailUrl })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error != null) throw error;
+  return data as StayRow;
 }
 
 export async function findStayBySlug(

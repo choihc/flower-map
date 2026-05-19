@@ -119,9 +119,10 @@ export function ImportConsole({ existingSpotSlugs = [], onValidate, importAction
               <Separator />
               {saveSummary ? (
                 <div className="space-y-2">
-                  {saveSummary.errors.length === 0 ? (
+                  {saveSummary.created + saveSummary.updated > 0 ? (
                     <p className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground">
-                      저장 완료: 신규 {saveSummary.created}건, 업데이트 {saveSummary.updated}건
+                      {saveSummary.errors.length === 0 ? '저장 완료' : '부분 성공'}: 신규 {saveSummary.created}건, 업데이트 {saveSummary.updated}건
+                      {saveSummary.errors.length > 0 ? `, 실패 ${saveSummary.errors.length}건` : ''}
                     </p>
                   ) : null}
                   {saveSummary.errors.map((error) => (
@@ -181,6 +182,13 @@ async function validateImportPayload(payload: string, existingSpotSlugs: string[
   if ('stay' in parsed.data) {
     // 호텔 단건 등록 — slug 중복은 서버에서 update로 흡수되므로 클라이언트는 항상 신규로 카운트.
     return { created: 1, updated: 0, errors: [] };
+  }
+
+  if ('stays' in parsed.data) {
+    // 호텔 복수 등록 — 검증 단계에서는 DB 조회를 하지 않으므로 전부 신규로 카운트.
+    // 실제 신규/업데이트 분기는 서버의 upsertStayBySlug에서 결정되며, 결과는 저장 결과 패널에 반영됨.
+    // 동일 payload 내 slug 중복은 zod superRefine이 사전 차단.
+    return { created: parsed.data.stays.length, updated: 0, errors: [] };
   }
 
   const existingRows = existingSpotSlugs.map((slug) => ({ slug }));

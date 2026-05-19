@@ -15,6 +15,7 @@ describe('AdminSidebar', () => {
     expect(within(mainNav).getByRole('link', { name: '대시보드' })).toHaveAttribute('href', '/admin');
     expect(within(mainNav).getByRole('link', { name: '꽃 관리' })).toHaveAttribute('href', '/admin/flowers');
     expect(within(mainNav).getByRole('link', { name: '명소 관리' })).toHaveAttribute('href', '/admin/spots');
+    expect(within(mainNav).getByRole('link', { name: '호텔 관리' })).toHaveAttribute('href', '/admin/stays');
     expect(within(mainNav).getByRole('link', { name: 'JSON 등록' })).toHaveAttribute('href', '/admin/spots/import');
     expect(within(mainNav).getByRole('link', { name: '알림 발송' })).toHaveAttribute('href', '/admin/notifications');
     expect(within(mainNav).getByRole('link', { name: '설정' })).toHaveAttribute('href', '/admin/settings');

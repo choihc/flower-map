@@ -40,6 +40,7 @@ describe('DashboardHome', () => {
 
     expect(screen.getByRole('link', { name: /꽃 관리/ })).toHaveAttribute('href', '/admin/flowers');
     expect(screen.getByRole('link', { name: /명소 관리/ })).toHaveAttribute('href', '/admin/spots');
+    expect(screen.getByRole('link', { name: /호텔 관리/ })).toHaveAttribute('href', '/admin/stays');
     expect(screen.getByRole('link', { name: /JSON 등록/ })).toHaveAttribute('href', '/admin/spots/import');
 
     expect(screen.getByRole('row', { name: /여의도 윤중로.*검토 중/ })).toBeInTheDocument();
