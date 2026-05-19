@@ -11,6 +11,7 @@ const primaryNavItems = [
   { href: '/admin/spots/import', label: 'JSON 등록' },
   { href: '/admin/suggestions', label: '추천 접수' },
   { href: '/admin/notifications', label: '알림 발송' },
+  { href: '/admin/store-assets', label: '스토어 스크린샷' },
   { href: '/admin/settings', label: '설정' },
 ];
 
