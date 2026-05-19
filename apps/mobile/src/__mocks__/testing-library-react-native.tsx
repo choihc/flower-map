@@ -108,6 +108,40 @@ export function render(ui: React.ReactElement): RenderResult {
   };
 }
 
+// renderHook utility — minimal subset for vitest jsdom
+export function renderHook<T>(callback: () => T): {
+  result: { current: T };
+  unmount: () => void;
+  rerender: () => void;
+} {
+  const result = { current: undefined as unknown as T };
+  function Wrapper() {
+    result.current = callback();
+    return null;
+  }
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  let root: ReturnType<typeof ReactDOM.createRoot>;
+  act(() => {
+    root = ReactDOM.createRoot(container);
+    root.render(React.createElement(Wrapper));
+  });
+  return {
+    result,
+    rerender: () => {
+      act(() => {
+        root.render(React.createElement(Wrapper));
+      });
+    },
+    unmount: () => {
+      act(() => {
+        root.unmount();
+      });
+      document.body.removeChild(container);
+    },
+  };
+}
+
 // fireEvent utility
 export const fireEvent = {
   changeText: (element: HTMLElement, value: string) => {

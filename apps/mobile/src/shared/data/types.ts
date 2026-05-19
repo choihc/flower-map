@@ -76,7 +76,7 @@ export type PublishedSpotRow = {
   now_score_at?: string | null;
 };
 
-export type StayType = 'city' | 'resort' | 'poolvilla' | 'onsen' | 'kids';
+export type StayType = 'city' | 'resort' | 'poolvilla' | 'onsen' | 'kids' | 'ocean' | 'island';
 
 export type StayRating = {
   score: number;

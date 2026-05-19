@@ -140,6 +140,15 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
         />
       ) : null}
 
+      {blogs.length > 0 ? (
+        <StoriesSection
+          sectionTitle="블로그 후기"
+          videos={[]}
+          blogs={blogs}
+          testID="stay-stories-blogs"
+        />
+      ) : null}
+
       {stay.recommendationPoints.length > 0 ? (
         <SectionCard title="추천 포인트">
           {stay.recommendationPoints.map((point, idx) => (
@@ -201,15 +210,6 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
         <SectionCard title="소개">
           <Text style={styles.bodyText}>{stay.description}</Text>
         </SectionCard>
-      ) : null}
-
-      {blogs.length > 0 ? (
-        <StoriesSection
-          sectionTitle="블로그 후기"
-          videos={[]}
-          blogs={blogs}
-          testID="stay-stories-blogs"
-        />
       ) : null}
     </ScreenShell>
   );

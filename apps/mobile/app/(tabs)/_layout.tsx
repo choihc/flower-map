@@ -3,10 +3,14 @@ import { Tabs } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { StaysTabIndicator } from '../../src/features/stays/components/StaysTabIndicator';
+import { useFeatureSeen } from '../../src/shared/lib/useFeatureSeen';
 import { colors } from '../../src/shared/theme/colors';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { seen: staysSeen } = useFeatureSeen('stays');
+  const showStaysDot = staysSeen === false;
 
   return (
     <Tabs
@@ -65,29 +69,31 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="saved"
+        name="stays"
         options={{
-          title: '저장',
+          title: '호캉스',
+          tabBarAccessibilityLabel: showStaysDot ? '호캉스, 새 기능' : '호캉스',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconFrame, focused ? styles.iconFrameActive : null]}>
               <Ionicons
                 color={focused ? colors.primary : color}
-                name={focused ? 'heart' : 'heart-outline'}
+                name={focused ? 'bed' : 'bed-outline'}
                 size={20}
               />
+              <StaysTabIndicator seen={staysSeen} />
             </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="me"
+        name="more"
         options={{
-          title: '내 정보',
+          title: '더보기',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconFrame, focused ? styles.iconFrameActive : null]}>
               <Ionicons
                 color={focused ? colors.primary : color}
-                name={focused ? 'person' : 'person-outline'}
+                name={focused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline'}
                 size={20}
               />
             </View>

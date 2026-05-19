@@ -119,6 +119,12 @@ const Keyboard = {
   addListener: () => ({ remove: () => {} }),
 };
 
+// AccessibilityInfo mock
+const AccessibilityInfo = {
+  isReduceMotionEnabled: async () => false,
+  addEventListener: () => ({ remove: () => {} }),
+};
+
 // Animated mock
 const Animated = {
   Value: class {
@@ -140,6 +146,7 @@ const Animated = {
 };
 
 export {
+  AccessibilityInfo,
   ActivityIndicator,
   Alert,
   Animated,

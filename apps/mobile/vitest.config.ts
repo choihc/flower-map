@@ -20,6 +20,10 @@ export default defineConfig({
         './src/__mocks__/react-native-safe-area-context.ts',
         import.meta.url,
       ).pathname,
+      '@expo/vector-icons': new URL(
+        './src/__mocks__/expo-vector-icons.tsx',
+        import.meta.url,
+      ).pathname,
     },
     environmentMatchGlobs: [
       ['src/shared/ui/**/*.test.tsx', 'jsdom'],

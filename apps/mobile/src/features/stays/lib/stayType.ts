@@ -11,6 +11,8 @@ const STAY_TYPE_LABELS: Record<StayType, StayTypeLabel> = {
   poolvilla: { ko: '풀빌라', emoji: '🏝' },
   onsen: { ko: '온천', emoji: '♨️' },
   kids: { ko: '키즈', emoji: '🧸' },
+  ocean: { ko: '오션뷰', emoji: '🌊' },
+  island: { ko: '아일랜드', emoji: '🌴' },
 };
 
 const FALLBACK_LABEL: StayTypeLabel = { ko: '호텔', emoji: '🏨' };

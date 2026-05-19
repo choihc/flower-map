@@ -28,6 +28,9 @@ import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { SeasonCurationSlot } from '../components/SeasonCurationSlot';
 import { TopSpotsSection } from '../components/TopSpotsSection';
+import { StaysDiscoveryCard } from '../components/StaysDiscoveryCard';
+import { isStaysRoute, STAYS_ROUTE } from '../../stays/routes';
+import { useFeatureSeen } from '../../../shared/lib/useFeatureSeen';
 
 const HOME_STATIC_STALE_MS = 1000 * 60 * 30;
 
@@ -54,6 +57,17 @@ export function HomeScreen() {
   const flowerLabels = deriveFlowerLabels(featuredSpots);
   const regionSummaries = deriveRegionSummaries(featuredSpots);
   const [selectedFlower, setSelectedFlower] = useState<string>('전체');
+
+  const { seen: staysSeen, markSeen: markStaysSeen } = useFeatureSeen('stays');
+  const hasActiveStaysCuration = curationSlots.some((s) => isStaysRoute(s.ctaRoute));
+  const showStaysDiscovery = staysSeen === false && !hasActiveStaysCuration;
+  const handleStaysCardPress = useCallback(() => {
+    void markStaysSeen();
+    router.push(STAYS_ROUTE);
+  }, [markStaysSeen, router]);
+  const handleStaysCardDismiss = useCallback(() => {
+    void markStaysSeen();
+  }, [markStaysSeen]);
 
   type LocationState = 'idle' | 'loading' | 'granted' | 'denied';
   const [locationState, setLocationState] = useState<LocationState>('idle');
@@ -219,6 +233,10 @@ export function HomeScreen() {
             <SeasonCurationSlot key={slot.id} slot={slot} />
           ))}
         </View>
+      ) : null}
+
+      {showStaysDiscovery ? (
+        <StaysDiscoveryCard onPress={handleStaysCardPress} onDismiss={handleStaysCardDismiss} />
       ) : null}
 
       {locationState === 'granted' && nearbySpots.length > 0 ? (
