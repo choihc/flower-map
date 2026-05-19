@@ -24,10 +24,6 @@ vi.mock('expo-router', () => ({
 vi.mock('../../stays/lib/affiliateHotel', () => ({
   openAgodaHotelSearch: vi.fn(),
 }));
-vi.mock('../../../shared/lib/naverMap', () => ({
-  openNaverNavigation: vi.fn(),
-  DIRECTIONS_DISABLED_MESSAGE: '지도 정보 준비 중이에요',
-}));
 
 import { getPublishedStays } from '../../../shared/data/stayRepository';
 import { getTopSpots } from '../../../shared/data/spotRepository';

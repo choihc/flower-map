@@ -29,7 +29,7 @@ function pickTopRating(stay: Stay): StayRating | null {
 export function StayCard({ stay, onPress, onPressBook, boostBadge }: StayCardProps) {
   const tags = stay.seasonTags.slice(0, 2);
   const rating = pickTopRating(stay);
-  const showBoost = boostBadge != null && boostBadge.label.length > 0;
+  const boostLabel = boostBadge?.label ?? '';
 
   return (
     <Pressable testID="stay-card" onPress={onPress} style={styles.card}>
@@ -63,9 +63,9 @@ export function StayCard({ stay, onPress, onPressBook, boostBadge }: StayCardPro
           {stay.regionPrimary} · {stay.regionSecondary}
         </Text>
 
-        {showBoost ? (
+        {boostLabel ? (
           <Text testID="stay-card-boost-badge" style={styles.boost} numberOfLines={1}>
-            🌸 {boostBadge!.label}
+            🌸 {boostLabel}
           </Text>
         ) : null}
 
