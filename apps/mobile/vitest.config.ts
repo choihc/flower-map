@@ -24,6 +24,7 @@ export default defineConfig({
         './src/__mocks__/expo-vector-icons.tsx',
         import.meta.url,
       ).pathname,
+      'expo-router': new URL('./src/__mocks__/expo-router.ts', import.meta.url).pathname,
     },
     environmentMatchGlobs: [
       ['src/shared/ui/**/*.test.tsx', 'jsdom'],

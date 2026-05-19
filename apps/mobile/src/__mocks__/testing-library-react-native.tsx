@@ -3,12 +3,20 @@ import React from 'react';
 import { act } from 'react';
 import ReactDOM from 'react-dom/client';
 
+type TestElement = HTMLElement & {
+  props: {
+    children?: unknown;
+    style?: unknown;
+    [key: string]: unknown;
+  };
+};
+
 type RenderResult = {
   getByText: (text: string) => HTMLElement;
   queryByText: (text: string) => HTMLElement | null;
-  getByTestId: (testId: string) => HTMLElement;
-  queryByTestId: (testId: string) => HTMLElement | null;
-  getAllByTestId: (testId: string) => HTMLElement[];
+  getByTestId: (testId: string) => TestElement;
+  queryByTestId: (testId: string) => TestElement | null;
+  getAllByTestId: (testId: string) => TestElement[];
   getByPlaceholderText: (placeholder: string) => HTMLElement;
   unmount: () => void;
   container: HTMLElement;
@@ -63,24 +71,51 @@ export function render(ui: React.ReactElement): RenderResult {
     }
   }
 
-  function getByTestId(testId: string): HTMLElement {
+  function getReactProps(el: HTMLElement): Record<string, unknown> {
+    const fiberKey = Object.keys(el).find(
+      (k) => k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance'),
+    );
+    if (!fiberKey) return {};
+    // Walk UP the fiber tree to find the first fiber whose props.testID matches
+    const targetTestId = el.getAttribute('data-testid');
+    let fiber: any = (el as any)[fiberKey];
+    while (fiber) {
+      const p = fiber.pendingProps ?? fiber.memoizedProps;
+      if (p && typeof p === 'object' && p.testID === targetTestId) {
+        return p as Record<string, unknown>;
+      }
+      fiber = fiber.return;
+    }
+    // Fallback: return the immediate fiber's props
+    fiber = (el as any)[fiberKey];
+    const p = fiber?.pendingProps ?? fiber?.memoizedProps;
+    return (p && typeof p === 'object' ? p : {}) as Record<string, unknown>;
+  }
+
+  function wrapElement(el: HTMLElement): TestElement {
+    const props = getReactProps(el);
+    return Object.assign(el, { props }) as TestElement;
+  }
+
+  function getByTestId(testId: string): TestElement {
     const el = container.querySelector(`[data-testid="${testId}"]`);
     if (!el) {
       throw new Error(`Unable to find element with testId: "${testId}"`);
     }
-    return el as HTMLElement;
+    return wrapElement(el as HTMLElement);
   }
 
-  function queryByTestId(testId: string): HTMLElement | null {
-    return (container.querySelector(`[data-testid="${testId}"]`) as HTMLElement) ?? null;
+  function queryByTestId(testId: string): TestElement | null {
+    const el = container.querySelector(`[data-testid="${testId}"]`) as HTMLElement | null;
+    return el ? wrapElement(el) : null;
   }
 
-  function getAllByTestId(testId: string): HTMLElement[] {
+  function getAllByTestId(testId: string): TestElement[] {
     const els = Array.from(container.querySelectorAll(`[data-testid="${testId}"]`)) as HTMLElement[];
     if (els.length === 0) {
       throw new Error(`Unable to find any element with testId: "${testId}"`);
     }
-    return els;
+    return els.map(wrapElement);
   }
 
   function getByPlaceholderText(placeholder: string): HTMLElement {

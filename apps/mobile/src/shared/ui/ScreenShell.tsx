@@ -11,11 +11,12 @@ type ScreenShellProps = {
   title: string;
   subtitle?: string;
   titleColor?: string;
+  titleText?: string;
   showBack?: boolean;
   children?: ReactNode;
 };
 
-export function ScreenShell({ title, subtitle, titleColor, showBack, children }: ScreenShellProps) {
+export function ScreenShell({ title, subtitle, titleColor, titleText, showBack, children }: ScreenShellProps) {
   const router = useRouter();
 
   return (
@@ -27,7 +28,19 @@ export function ScreenShell({ title, subtitle, titleColor, showBack, children }:
           </Pressable>
         )}
         <View style={styles.header}>
-          <Image source={titleImage} style={styles.titleImage} />
+          {titleText ? (
+            <Text
+              testID="screen-shell-title-text"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              style={[styles.titleText, titleColor ? { color: titleColor } : null]}
+            >
+              {titleText}
+            </Text>
+          ) : (
+            <Image testID="screen-shell-title-image" source={titleImage} style={styles.titleImage} />
+          )}
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
         {children}
@@ -71,5 +84,12 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: 'contain',
     width: 150,
+  },
+  titleText: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    textAlign: 'center',
   },
 });
