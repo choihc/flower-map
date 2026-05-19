@@ -30,6 +30,7 @@ function makeStay(o: Partial<Stay> & { id: string; latitude: number; longitude: 
     seasonWindowStart: null, seasonWindowEnd: null,
     shortTagline: '', description: '', recommendationPoints: [],
     thumbnailUrl: null, bookingQueryOverride: null,
+    agodaHotelId: null,
     naverRating: null, googleRating: null, ratingCapturedAt: null,
     isFeatured: false, displayOrder: 0,
     ...o,

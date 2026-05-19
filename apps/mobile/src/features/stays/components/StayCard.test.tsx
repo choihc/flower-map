@@ -24,6 +24,7 @@ const baseStay: Stay = {
   shortTagline: '인천 앞바다와 야경을 동시에',
   description: '인천 앞바다와 야경을 동시에 누리는 도심 호텔이에요.',
   recommendationPoints: [],
+  agodaHotelId: null,
   thumbnailUrl: null,
   bookingQueryOverride: null,
   naverRating: null,

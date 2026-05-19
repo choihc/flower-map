@@ -30,6 +30,7 @@ export function toStay(row: StayRow): Stay {
     shortTagline: row.short_tagline,
     description: row.description,
     recommendationPoints: row.recommendation_points ?? [],
+    agodaHotelId: row.agoda_hotel_id ?? null,
     thumbnailUrl: row.thumbnail_url,
     bookingQueryOverride: row.booking_query_override,
     naverRating: toStayRating(row.naver_rating_score, row.naver_rating_url),

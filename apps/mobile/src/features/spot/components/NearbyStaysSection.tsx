@@ -60,7 +60,11 @@ export function NearbyStaysSection({ spot }: Props) {
             boostBadge={{ label: formatProximity(distanceKm, '이 명소') }}
             onPress={() => router.push(staysDetailPath(stay.slug))}
             onPressBook={() =>
-              openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
+              openAgodaHotelSearch({
+                name: stay.name,
+                queryOverride: stay.bookingQueryOverride,
+                agodaHotelId: stay.agodaHotelId,
+              })
             }
           />
         ))}

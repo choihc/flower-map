@@ -44,7 +44,11 @@ export function HocanceTop5Section() {
               boostBadge={boostBadge}
               onPress={() => router.push(staysDetailPath(stay.slug))}
               onPressBook={() =>
-                openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
+                openAgodaHotelSearch({
+                  name: stay.name,
+                  queryOverride: stay.bookingQueryOverride,
+                  agodaHotelId: stay.agodaHotelId,
+                })
               }
             />
           );

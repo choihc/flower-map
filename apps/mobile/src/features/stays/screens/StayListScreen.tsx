@@ -46,7 +46,11 @@ export function StayListScreen() {
             stay={stay}
             onPress={() => router.push(`/stays/${stay.slug}` as never)}
             onPressBook={() =>
-              openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
+              openAgodaHotelSearch({
+                name: stay.name,
+                queryOverride: stay.bookingQueryOverride,
+                agodaHotelId: stay.agodaHotelId,
+              })
             }
           />
           {(idx + 1) % 3 === 0 && idx < stays.length - 1 ? <NativeSpotAd /> : null}

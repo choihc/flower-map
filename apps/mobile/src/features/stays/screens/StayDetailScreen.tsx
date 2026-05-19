@@ -111,7 +111,11 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   };
 
   const handleBook = () => {
-    openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride });
+    openAgodaHotelSearch({
+      name: stay.name,
+      queryOverride: stay.bookingQueryOverride,
+      agodaHotelId: stay.agodaHotelId,
+    });
   };
 
   return (
