@@ -40,6 +40,7 @@ export const staySchema = z
     recommendation_points: z.array(z.string().trim().min(1)).max(10).optional().default([]),
     thumbnail_url: httpsOnlyUrlSchema.nullable().optional(),
     booking_query_override: z.string().trim().min(1).nullable().optional(),
+    agoda_hotel_id: z.string().trim().min(1).nullable().optional(),
     naver_rating_score: ratingScoreSchema.nullable().optional(),
     naver_rating_url: httpsOnlyUrlSchema.nullable().optional(),
     google_rating_score: ratingScoreSchema.nullable().optional(),

@@ -69,7 +69,7 @@ const FORMATS: readonly FormatEntry[] = [
   {
     id: 'stay',
     title: '3) 호텔(호캉스) 단건 등록',
-    hint: '신규 호텔이면 INSERT, 같은 slug가 이미 있으면 UPDATE됩니다. stay_type 허용값: city / resort / poolvilla / onsen / kids / ocean / island. recommendation_points는 최대 10개. 평점이 있으면 score-url 쌍과 rating_captured_at이 모두 필요합니다. ⚠️ 예시 JSON의 cdn.example.com / place/12345 / cid=12345 같은 placeholder URL/ID는 반드시 실제 값으로 교체하세요.',
+    hint: '신규 호텔이면 INSERT, 같은 slug가 이미 있으면 UPDATE됩니다. stay_type 허용값: city / resort / poolvilla / onsen / kids / ocean / island. recommendation_points는 최대 10개. 평점이 있으면 score-url 쌍과 rating_captured_at이 모두 필요합니다. ⚠️ 예시 JSON의 cdn.example.com / place/12345 / cid=12345 / agoda_hotel_id 같은 placeholder URL/ID는 반드시 실제 값으로 교체하세요. agoda_hotel_id는 호텔 페이지로 직접 진입하기 위한 Agoda 호텔 식별자(hid)로, Agoda Partners 백오피스에서 조회 가능합니다. 없으면 호텔명 검색으로 fallback됩니다.',
     snippet: `{
   "stay": {
     "slug": "hotel-naru-magok",
@@ -90,6 +90,7 @@ const FORMATS: readonly FormatEntry[] = [
     ],
     "thumbnail_url": "https://cdn.example.com/stays/naru-magok-hero.jpg",
     "booking_query_override": "호텔 나루 서울 숙박",
+    "agoda_hotel_id": "12345678",
     "naver_rating_score": 4.6,
     "naver_rating_url": "https://m.place.naver.com/place/12345/home",
     "google_rating_score": 4.4,
@@ -104,7 +105,7 @@ const FORMATS: readonly FormatEntry[] = [
   {
     id: 'stays-bulk',
     title: '4) 호텔(호캉스) 복수 일괄 등록',
-    hint: '한 번에 여러 호텔을 등록합니다. 부분 실패 허용 — 성공한 호텔은 저장되고 실패한 호텔만 결과 패널에 오류로 표시됩니다. 동일 payload 내 slug 중복은 검증 단계에서 차단됩니다. 평점/URL/booking_query_override/thumbnail_url 등 옵션 필드는 3번 카드 예시 참고. ⚠️ 슬러그·위경도·주소 등은 반드시 실제 값으로 교체하세요.',
+    hint: '한 번에 여러 호텔을 등록합니다. 부분 실패 허용 — 성공한 호텔은 저장되고 실패한 호텔만 결과 패널에 오류로 표시됩니다. 동일 payload 내 slug 중복은 검증 단계에서 차단됩니다. 평점/URL/booking_query_override/thumbnail_url/agoda_hotel_id 등 옵션 필드는 3번 카드 예시 참고. agoda_hotel_id를 입력하면 호텔 페이지로 직접 진입 (없으면 호텔명 검색 fallback). ⚠️ 슬러그·위경도·주소 등은 반드시 실제 값으로 교체하세요.',
     snippet: `{
   "stays": [
     {
@@ -119,6 +120,7 @@ const FORMATS: readonly FormatEntry[] = [
       "season_tags": ["가족", "한강뷰"],
       "short_tagline": "도심에서 즐기는 인피니티풀과 한강 야경",
       "description": "한강뷰가 일품인 도심형 호텔.",
+      "agoda_hotel_id": "12345678",
       "recommendation_points": [
         "인피니티풀에서 보는 한강 일몰",
         "키즈 어메니티 무료 제공"
