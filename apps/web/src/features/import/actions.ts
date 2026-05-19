@@ -6,11 +6,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createFlower } from '@/lib/data/flowers';
 import { createSpot, updateSpot } from '@/lib/data/spots';
 import { replaceSpotPhotos } from '@/lib/data/spotPhotos';
+import { upsertStayBySlug } from '@/lib/data/stays';
 import type { Database, FlowerRow, SpotRow } from '@/lib/types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 import type { ValidationSummary } from './ImportConsole';
-import { importPayloadSchema } from './importSchema';
+import {
+  importPayloadSchema,
+  type SpotImportPayload,
+  type StayBulkImportPayload,
+  type StaySingleImportPayload,
+} from './importSchema';
 import { planImportWrite } from './planImportWrite';
 
 export async function saveImportPayloadAction(payload: string): Promise<ValidationSummary> {
@@ -36,11 +42,21 @@ export async function saveImportPayloadAction(payload: string): Promise<Validati
   try {
     const supabase = await createServerSupabaseClient();
     const writeClient = supabase as unknown as SupabaseClient<Database>;
-    const flowerId = await resolveFlowerId(supabase, parsed.data);
-    const incomingSpots = 'spot' in parsed.data ? [parsed.data.spot] : parsed.data.spots;
+
+    if ('stay' in parsed.data) {
+      return await saveStay(writeClient, parsed.data.stay);
+    }
+
+    if ('stays' in parsed.data) {
+      return await saveStaysBulk(writeClient, parsed.data.stays);
+    }
+
+    const spotPayload: SpotImportPayload = parsed.data;
+    const flowerId = await resolveFlowerId(supabase, spotPayload);
+    const incomingSpots = 'spot' in spotPayload ? [spotPayload.spot] : spotPayload.spots;
     const incomingSlugs = incomingSpots.map((spot) => spot.slug);
     const existingSpots = await listSpotIdentitiesBySlugs(supabase, incomingSlugs);
-    const plan = planImportWrite(parsed.data, { flowerId, existingSpots });
+    const plan = planImportWrite(spotPayload, { flowerId, existingSpots });
 
     if (plan.errors.length > 0) {
       return { created: 0, updated: 0, errors: plan.errors };
@@ -82,9 +98,42 @@ export async function saveImportPayloadAction(payload: string): Promise<Validati
   }
 }
 
+async function saveStay(
+  client: SupabaseClient<Database>,
+  stay: StaySingleImportPayload['stay'],
+): Promise<ValidationSummary> {
+  const { isNew } = await upsertStayBySlug(client, stay);
+  // TODO(stays-admin): /admin/stays 페이지 신설 시 revalidatePath 추가
+  revalidatePath('/admin/spots/import');
+  return { created: isNew ? 1 : 0, updated: isNew ? 0 : 1, errors: [] };
+}
+
+async function saveStaysBulk(
+  client: SupabaseClient<Database>,
+  stays: StayBulkImportPayload['stays'],
+): Promise<ValidationSummary> {
+  let created = 0;
+  let updated = 0;
+  const errors: string[] = [];
+
+  // 부분 실패를 허용 — 성공한 row는 commit, 실패 row만 errors로 보고.
+  for (const stay of stays) {
+    try {
+      const { isNew } = await upsertStayBySlug(client, stay);
+      if (isNew) created += 1;
+      else updated += 1;
+    } catch (error) {
+      errors.push(`[${stay.slug}] ${getErrorMessage(error)}`);
+    }
+  }
+
+  revalidatePath('/admin/spots/import');
+  return { created, updated, errors };
+}
+
 async function resolveFlowerId(
   client: Awaited<ReturnType<typeof createServerSupabaseClient>>,
-  payload: Parameters<typeof planImportWrite>[0],
+  payload: SpotImportPayload,
 ) {
   if ('spot' in payload) {
     const flower = await findFlowerBySlug(client, payload.flower_slug);

@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>호캉스 어디? — 디자인 결정 시안</title>
+<style>
+  :root {
+    --primary: #6BBF72;
+    --secondary: #F26D85;
+    --text: #243127;
+    --textMuted: #6E7672;
+    --canvas: #F8F2EB;
+    --surfaceGreen: #E8F4E2;
+    --softPink: #FCE4E9;
+    --softYellow: #FFF1C9;
+    --cardSun: #FFE9C2;
+    --border: #E6DED2;
+    /* NEW tokens */
+    --surfaceInk: #F1ECE6;
+    --inkDeep: #1F2933;
+    --accentGold: #C8A86A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #EFE9DF; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 1240px; margin: 0 auto; padding: 56px 24px 120px; }
+  h1 { font-size: 34px; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 22px; margin: 56px 0 6px; letter-spacing: -0.3px; }
+  h2 .num { display: inline-block; width: 32px; height: 32px; border-radius: 999px; background: var(--inkDeep); color: #fff; font-size: 14px; text-align: center; line-height: 32px; margin-right: 10px; vertical-align: 2px; }
+  .sub { color: var(--textMuted); font-size: 14px; margin: 0 0 24px; }
+  .lead { color: var(--textMuted); font-size: 15px; line-height: 24px; margin: 0 0 32px; max-width: 760px; }
+  .row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  .col { flex: 1 1 360px; }
+  .note { color: var(--textMuted); font-size: 13px; line-height: 20px; margin-top: 10px; }
+  .badge-line { display: inline-block; background: var(--inkDeep); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.3px; }
+
+  /* ── Mobile frame ─────────────────────────────────── */
+  .phone {
+    width: 360px; height: auto; background: var(--canvas);
+    border-radius: 40px; padding: 14px 12px 24px; position: relative;
+    box-shadow: 0 30px 60px rgba(31,41,51,.18), 0 8px 18px rgba(31,41,51,.10);
+    border: 1px solid #d9d1c4;
+  }
+  .phone .notch { width: 110px; height: 22px; background: #1c1c1e; border-radius: 0 0 16px 16px; margin: -14px auto 8px; }
+  .screen { background: var(--canvas); border-radius: 28px; padding: 14px 16px 20px; }
+  .screen .topbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px 12px; font-size: 13px; color: var(--textMuted); }
+  .screen .topbar .back { width: 28px; height: 28px; border-radius: 999px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.06); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; color: var(--text); }
+  .greeting { padding: 4px 4px 12px; }
+  .greeting .hi { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
+  .greeting .sub2 { font-size: 13px; color: var(--textMuted); margin-top: 4px; }
+
+  /* ── Tokens grid ──────────────────────────────────── */
+  .tokens { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 14px; }
+  .token { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+  .token .sw { height: 56px; border-radius: 12px; border: 1px solid rgba(0,0,0,.06); margin-bottom: 10px; }
+  .token .name { font-size: 13px; font-weight: 700; }
+  .token .hex { font-size: 12px; color: var(--textMuted); margin-top: 2px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .token.new::after { content: "NEW"; display: inline-block; font-size: 10px; font-weight: 800; color: #fff; background: var(--inkDeep); padding: 3px 8px; border-radius: 999px; margin-left: 8px; vertical-align: 2px; letter-spacing: 0.4px; }
+
+  /* ── Generic cards ────────────────────────────────── */
+  .stay-card {
+    background: #fff; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 4px 14px rgba(31,41,51,.06), 0 1px 2px rgba(31,41,51,.05);
+    margin-bottom: 14px;
+  }
+  .hero {
+    position: relative; height: 200px;
+    background-size: cover; background-position: center;
+  }
+  .hero.h-naru { background-image:
+      linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.55) 100%),
+      linear-gradient(135deg, #2c3e50, #4a6572 60%, #c9a96e); }
+  .hero.h-hyatt { background-image:
+      linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.55) 100%),
+      linear-gradient(135deg, #1a2a3a, #2f4858 55%, #6b7f99); }
+  .hero.h-villa { background-image:
+      linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.45) 100%),
+      linear-gradient(135deg, #3a6b5b, #82b29a 60%, #d8b384); }
+  .hero.h-flower { background-image:
+      linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.35) 100%),
+      linear-gradient(135deg, #f7c4d2 0%, #f48fb1 40%, #6BBF72 100%); }
+  .hero .type-badge {
+    position: absolute; top: 12px; left: 12px;
+    background: rgba(31,41,51,.92); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+    padding: 6px 10px; border-radius: 999px;
+  }
+  .hero .rating-chip {
+    position: absolute; bottom: 12px; right: 12px;
+    background: rgba(255,255,255,.94); color: var(--inkDeep);
+    font-size: 12px; font-weight: 700;
+    padding: 5px 10px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .hero .rating-chip .star { color: var(--accentGold); }
+
+  .stay-card .body { padding: 14px 16px 16px; }
+  .stay-card .title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+  .stay-card .region { font-size: 13px; color: var(--textMuted); margin-top: 2px; }
+  .stay-card .tags { display: flex; gap: 6px; margin: 10px 0 10px; flex-wrap: wrap; }
+  .stay-card .tag { font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 999px; color: var(--text); }
+  .stay-card .tag.t1 { background: var(--surfaceGreen); }
+  .stay-card .tag.t2 { background: var(--softPink); color: #8b3a4a; }
+  .stay-card .tag.t3 { background: var(--softYellow); color: #6a5500; }
+  .stay-card .copy { font-size: 13px; color: var(--textMuted); line-height: 19px; margin-bottom: 12px; }
+  .ctas { display: flex; gap: 8px; }
+  .btn { flex: 1; height: 42px; border-radius: 14px; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .btn.secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+  .btn.primary { background: var(--primary); color: #fff; flex: 1.4; }
+  .btn.ink { background: var(--inkDeep); color: #fff; }
+  .btn.outline { background: #fff; color: var(--inkDeep); border: 1px solid var(--inkDeep); }
+  .btn.disabled { opacity: 0.4; pointer-events: none; }
+
+  /* ── Home slot A ──────────────────────────────────── */
+  .slot-a {
+    position: relative; border-radius: 28px; overflow: hidden;
+    height: 220px;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.62) 100%),
+      linear-gradient(135deg, #1f2933 0%, #2b4153 45%, #c8a86a 100%);
+  }
+  .slot-a .pattern { position:absolute; inset:0; background:
+      radial-gradient(circle at 78% 22%, rgba(255,255,255,.18), transparent 38%),
+      radial-gradient(circle at 22% 78%, rgba(200,168,106,.35), transparent 50%); }
+  .slot-a .inner { position: absolute; inset: 0; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; }
+  .slot-a .b { align-self: flex-start; background: var(--inkDeep); color: #fff; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 999px; letter-spacing: 0.3px; }
+  .slot-a .stack { color: #fff; }
+  .slot-a .stack .t { font-size: 22px; font-weight: 800; line-height: 28px; letter-spacing: -0.5px; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .slot-a .stack .s { font-size: 13px; opacity: 0.88; margin-top: 4px; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .slot-a .ctaRow { display: flex; justify-content: flex-end; }
+  .slot-a .pill { background: #fff; color: var(--inkDeep); font-size: 13px; font-weight: 800; padding: 10px 16px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ── Home slot B ──────────────────────────────────── */
+  .slot-b { background: var(--surfaceInk); border-radius: 28px; padding: 16px; }
+  .slot-b .head { display: flex; align-items: flex-start; gap: 10px; }
+  .slot-b .head .b { background: var(--inkDeep); color: #fff; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; }
+  .slot-b .head .t { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .slot-b .head .s { font-size: 12px; color: var(--textMuted); margin-top: 2px; }
+  .slot-b .thumbs { display: flex; gap: 8px; margin: 14px 0 14px; overflow: hidden; }
+  .slot-b .th {
+    width: 78px; height: 78px; border-radius: 14px; flex: 0 0 78px;
+    background: linear-gradient(135deg, #2c3e50, #c9a96e);
+  }
+  .slot-b .th.t2 { background: linear-gradient(135deg, #1a2a3a, #6b7f99); }
+  .slot-b .th.t3 { background: linear-gradient(135deg, #3a6b5b, #d8b384); }
+  .slot-b .th.t4 { background: linear-gradient(135deg, #4a3b6b, #f0d0c0); margin-right: -32px; opacity: .6; }
+  .slot-b .full {
+    background: #fff; color: var(--inkDeep); font-weight: 800; font-size: 14px;
+    text-align: center; padding: 12px; border-radius: 14px;
+  }
+  .pick { display: inline-block; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.5px; margin-left: 8px; vertical-align: 4px; }
+  .pick.yes { background: var(--surfaceGreen); color: #2e6b35; }
+  .pick.no { background: #efe6db; color: #8a755a; }
+
+  /* ── Section headings on phone ────────────────────── */
+  .sect-head { padding: 6px 4px; font-size: 13px; font-weight: 800; letter-spacing: -0.2px; }
+  .row-mini { display: flex; gap: 8px; padding: 4px 0 14px; overflow: hidden; }
+  .row-mini .mini {
+    flex: 0 0 132px; background: #fff; border-radius: 18px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  }
+  .row-mini .mini .img {
+    height: 72px; border-radius: 12px;
+    background: linear-gradient(135deg, #f7c4d2, #f48fb1 70%, #6BBF72);
+  }
+  .row-mini .mini .img.v2 { background: linear-gradient(135deg, #c4dafd, #d4a3f5); }
+  .row-mini .mini .img.v3 { background: linear-gradient(135deg, #fff1c9, #ffbf80); }
+  .row-mini .mini .nm { font-size: 12px; font-weight: 700; margin-top: 8px; }
+  .row-mini .mini .lc { font-size: 10px; color: var(--textMuted); margin-top: 2px; }
+  .chips-row { display:flex; gap:6px; padding:0 0 10px; flex-wrap: wrap; }
+  .chip-soft { background: #fff; border:1px solid var(--border); font-size:11px; padding:6px 10px; border-radius:999px; color: var(--text); }
+
+  /* ── Detail screen sections ───────────────────────── */
+  .section-card { background: #fff; border-radius: 22px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(31,41,51,.04); }
+  .section-card h4 { font-size: 14px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.2px; }
+  .point-row { display: flex; gap: 10px; padding: 8px 0; }
+  .point-row + .point-row { border-top: 1px solid var(--border); }
+  .num-pill { width: 22px; height: 22px; border-radius: 999px; background: var(--surfaceInk); color: var(--inkDeep); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: 0 0 22px; margin-top: 2px; }
+  .point-row .pt { font-size: 13px; font-weight: 700; }
+  .point-row .ps { font-size: 11px; color: var(--textMuted); margin-top: 2px; }
+  .rating-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 8px; }
+  .rating-row .left { display: flex; align-items: center; gap: 10px; }
+  .rating-row .star { color: var(--accentGold); font-size: 16px; }
+  .rating-row .score { font-size: 15px; font-weight: 800; color: var(--inkDeep); }
+  .rating-row .src { font-size: 12px; color: var(--textMuted); }
+  .rating-row .arrow { color: var(--textMuted); }
+  .meta { font-size: 11px; color: var(--textMuted); padding-top: 4px; }
+
+  .blog-row { display: flex; gap: 12px; padding: 10px 0; }
+  .blog-row + .blog-row { border-top: 1px solid var(--border); }
+  .blog-row .thumb { width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #f0d0c0, #c8a86a); flex: 0 0 56px; }
+  .blog-row .thumb.t2 { background: linear-gradient(135deg, #b8c8d8, #8095a8); }
+  .blog-row .tt { font-size: 13px; font-weight: 700; line-height: 18px; }
+  .blog-row .mt { font-size: 11px; color: var(--textMuted); margin-top: 4px; }
+
+  /* ── Hero detail ──────────────────────────────────── */
+  .hero-detail {
+    position: relative; border-radius: 24px; overflow: hidden; height: 320px;
+    margin-bottom: 14px;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.55) 100%),
+      linear-gradient(135deg, #2c3e50, #4a6572 60%, #c9a96e);
+  }
+  .hero-detail .body { position: absolute; inset: 0; padding: 16px; display: flex; flex-direction: column; }
+  .hero-detail .top-badge { align-self: flex-start; background: rgba(31,41,51,.92); color: #fff; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 999px; }
+  .hero-detail .grow { flex: 1; }
+  .hero-detail .pills { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .hero-detail .pill { background: rgba(255,255,255,.92); color: var(--inkDeep); font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 999px; }
+  .hero-detail .h { color: #fff; font-size: 24px; font-weight: 800; letter-spacing: -0.6px; text-shadow: 0 2px 6px rgba(0,0,0,.45); }
+  .hero-detail .d { color: rgba(255,255,255,.88); font-size: 13px; margin-top: 6px; line-height: 19px; text-shadow: 0 2px 6px rgba(0,0,0,.45); }
+  .hero-detail .ctas { margin-top: 14px; }
+
+  /* ── Spot vs Stay table ───────────────────────────── */
+  .cmp { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .cmp th, .cmp td { padding: 12px 14px; font-size: 13px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .cmp th { background: var(--surfaceInk); font-weight: 800; color: var(--inkDeep); font-size: 12px; letter-spacing: 0.2px; }
+  .cmp td.change { color: var(--secondary); font-weight: 700; }
+  .cmp td.new { color: #2e6b35; font-weight: 700; }
+  .cmp td.kill { color: var(--textMuted); text-decoration: line-through; }
+
+  /* ── CTA hierarchy ────────────────────────────────── */
+  .cta-side { display: flex; gap: 18px; flex-wrap: wrap; }
+  .cta-frame { background: #fff; border-radius: 22px; padding: 18px; flex: 1 1 280px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+  .cta-frame .lab { font-size: 12px; font-weight: 800; color: var(--textMuted); letter-spacing: 0.4px; }
+  .cta-frame .title { font-size: 16px; font-weight: 800; margin: 4px 0 12px; }
+
+  /* ── stay_type badges ─────────────────────────────── */
+  .badges { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badges .b {
+    background: rgba(31,41,51,.92); color: #fff;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.3px;
+    padding: 7px 12px; border-radius: 999px;
+  }
+
+  /* ── States table ─────────────────────────────────── */
+  .states-list { background: #fff; border-radius: 16px; padding: 4px 0; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .state-row { display: grid; grid-template-columns: 200px 1fr; gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--border); align-items: center; }
+  .state-row:last-child { border-bottom: 0; }
+  .state-row .k { font-size: 13px; font-weight: 800; }
+  .state-row .v { font-size: 13px; color: var(--textMuted); line-height: 19px; }
+
+  /* ── Rec point alts ───────────────────────────────── */
+  .alt-stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .alt {
+    background: #fff; border-radius: 22px; padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    border: 1px solid var(--border);
+  }
+  .alt h5 { margin: 0 0 10px; font-size: 13px; font-weight: 800; }
+  .alt .iconcard { display: flex; gap: 8px; }
+  .alt .iconcard .ic { flex: 1; aspect-ratio: 1/1; background: var(--surfaceInk); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .alt .iconcard .ic .lbl { font-size: 11px; font-weight: 700; }
+  .alt .quote { font-size: 13px; font-style: italic; color: var(--text); padding: 8px 0; line-height: 20px; }
+  .alt .source { font-size: 11px; color: var(--textMuted); margin-top: 6px; }
+  .verdict { display: inline-block; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; margin-left: 6px; vertical-align: 3px; }
+  .verdict.yes { background: var(--surfaceGreen); color: #2e6b35; }
+  .verdict.no { background: #f5e4e4; color: #964444; }
+
+  /* ── Tone separation ──────────────────────────────── */
+  .tone { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+  .tone div { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .tone .h { background: var(--surfaceInk); font-weight: 800; color: var(--inkDeep); font-size: 12px; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid rgba(0,0,0,.06); }
+
+  .legend { font-size: 12px; color: var(--textMuted); padding-top: 8px; }
+  .footer { margin-top: 80px; font-size: 12px; color: var(--textMuted); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>호캉스 어디? — 디자인 결정 시안</h1>
+  <p class="lead">PM 스펙 기반 디자이너 안의 핵심 결정을 한 페이지로 시각화했습니다. 모바일 프레임은 360pt 기준이며, 색·간격·둥근 모서리는 가능한 한 실제 토큰을 그대로 사용했습니다.</p>
+
+  <!-- 1. Tokens ───────────────────────────────────── -->
+  <h2><span class="num">1</span>색 토큰 — 신규 3개만 추가</h2>
+  <p class="sub">primary 그린은 그대로 유지(앱 액션 일관성 보호). 시그니처는 배지/배경 2곳에만 inkDeep 계열을 적용합니다.</p>
+  <div class="tokens">
+    <div class="token"><div class="sw" style="background:#6BBF72"></div><div class="name">primary</div><div class="hex">#6BBF72</div></div>
+    <div class="token"><div class="sw" style="background:#F26D85"></div><div class="name">secondary</div><div class="hex">#F26D85</div></div>
+    <div class="token"><div class="sw" style="background:#243127"></div><div class="name">text</div><div class="hex">#243127</div></div>
+    <div class="token"><div class="sw" style="background:#F8F2EB"></div><div class="name">canvas</div><div class="hex">#F8F2EB</div></div>
+    <div class="token new"><div class="sw" style="background:#F1ECE6"></div><div class="name">surfaceInk</div><div class="hex">#F1ECE6</div></div>
+    <div class="token new"><div class="sw" style="background:#1F2933"></div><div class="name">inkDeep</div><div class="hex">#1F2933</div></div>
+    <div class="token new"><div class="sw" style="background:#C8A86A"></div><div class="name">accentGold</div><div class="hex">#C8A86A</div></div>
+  </div>
+
+  <!-- 2. Home slot A vs B ──────────────────────────── -->
+  <h2><span class="num">2</span>홈 시즌 큐레이션 슬롯 — A안 채택 <span class="pick yes">A 채택</span></h2>
+  <p class="sub">꽃 섹션 가로 캐러셀 직후에 들어가는 슬롯. A안은 풀폭 단일 이미지 카드, B안은 썸네일 프리뷰 카드.</p>
+
+  <div class="row">
+    <!-- A안: 홈 전체 컨텍스트 안에서 보여줌 -->
+    <div class="col" style="flex:0 0 360px">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar"><div>9:41</div><div>● ● ●</div></div>
+          <div class="greeting">
+            <div class="hi">안녕하세요 👋</div>
+            <div class="sub2">오늘은 어디로 떠나볼까요</div>
+          </div>
+          <div class="sect-head">지금 피는 꽃 명소</div>
+          <div class="row-mini">
+            <div class="mini"><div class="img"></div><div class="nm">서울숲 장미원</div><div class="lc">서울 · 성수</div></div>
+            <div class="mini"><div class="img v2"></div><div class="nm">에버랜드 수국</div><div class="lc">경기 · 용인</div></div>
+            <div class="mini"><div class="img v3"></div><div class="nm">남이섬 메타</div><div class="lc">강원 · 춘천</div></div>
+          </div>
+
+          <!-- A안 슬롯 -->
+          <div class="slot-a">
+            <div class="pattern"></div>
+            <div class="inner">
+              <div class="b">시즌 큐레이션</div>
+              <div class="stack">
+                <div class="t">이번 주말,<br/>호캉스 어디 갈까?</div>
+                <div class="s">꽃 시즌 사이, 도심 속 휴식 10곳</div>
+              </div>
+              <div class="ctaRow">
+                <div class="pill">호캉스 보기 →</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sect-head" style="margin-top:14px">꽃 종류 선택</div>
+          <div class="chips-row">
+            <div class="chip-soft">🌹 장미</div>
+            <div class="chip-soft">💠 수국</div>
+            <div class="chip-soft">🌸 라일락</div>
+            <div class="chip-soft">🌻 해바라기</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">A안 — 풀폭 포스터형. 꽃 작은 카드 가로 흐름 직후 시각 호흡이 자연 분리. 시즌 교체 시 이미지·카피만 갈아끼움.</div>
+    </div>
+
+    <!-- B안: 카드 단독 비교 -->
+    <div class="col" style="flex:0 0 360px">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar"><div>9:41</div><div>● ● ●</div></div>
+          <div class="sect-head" style="opacity:.4">(꽃 섹션 생략)</div>
+
+          <div class="slot-b">
+            <div class="head">
+              <div class="b">시즌</div>
+              <div>
+                <div class="t">이번 주말, 호캉스 어디?</div>
+                <div class="s">5월 가족의 달 큐레이션</div>
+              </div>
+            </div>
+            <div class="thumbs">
+              <div class="th"></div>
+              <div class="th t2"></div>
+              <div class="th t3"></div>
+              <div class="th t4"></div>
+            </div>
+            <div class="full">전체 보기 →</div>
+          </div>
+
+          <div class="sect-head" style="margin-top:14px;opacity:.4">(아래 섹션 생략)</div>
+        </div>
+      </div>
+      <div class="note">B안 — 썸네일 프리뷰. 안 미리보기가 강점이지만 꽃 섹션 패턴과 비슷해 톤 분리가 약함. <span class="pick no">탈락</span></div>
+    </div>
+  </div>
+
+  <!-- 3. List card anatomy ─────────────────────────── -->
+  <h2><span class="num">3</span>StayListScreen — 카드 1장 해부</h2>
+  <p class="sub">정보 위계: 이미지 → 호텔명 → 지역 → 태그(최대 3) → 카피(2줄) → CTA. 평점 칩은 이미지 우하단, stay_type 배지는 좌상단.</p>
+
+  <div class="row">
+    <div class="col" style="flex:0 0 360px">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar"><div><span class="back">←</span></div><div style="font-weight:800;color:var(--text)">호캉스</div><div style="width:28px"></div></div>
+          <div style="padding:4px 4px 12px">
+            <div style="font-size:13px;color:var(--textMuted)">5월 12일 기준 · 도심·풀빌라·온천 15곳</div>
+          </div>
+
+          <div class="stay-card">
+            <div class="hero h-naru">
+              <div class="type-badge">🏙 도심</div>
+              <div class="rating-chip"><span class="star">★</span> 4.6</div>
+            </div>
+            <div class="body">
+              <div class="title">호텔 나루 서울 마곡</div>
+              <div class="region">서울 · 강서</div>
+              <div class="tags">
+                <span class="tag t1">한강뷰</span>
+                <span class="tag t2">가족</span>
+                <span class="tag t3">인피니티풀</span>
+              </div>
+              <div class="copy">도심 한복판에서 즐기는 인피니티풀과 스카이라운지의 한강 야경.</div>
+              <div class="ctas">
+                <div class="btn secondary">길찾기</div>
+                <div class="btn primary">예약하러 가기 →</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stay-card">
+            <div class="hero h-villa">
+              <div class="type-badge">🏝 풀빌라</div>
+              <div class="rating-chip"><span class="star">★</span> 4.8</div>
+            </div>
+            <div class="body">
+              <div class="title">소노벨 비발디파크</div>
+              <div class="region">강원 · 홍천</div>
+              <div class="tags">
+                <span class="tag t1">자연</span>
+                <span class="tag t2">가족</span>
+                <span class="tag t3">키즈풀</span>
+              </div>
+              <div class="copy">계곡을 끼고 있는 풀빌라. 5월 어린이날 가족 단위 추천.</div>
+              <div class="ctas">
+                <div class="btn secondary">길찾기</div>
+                <div class="btn primary">예약하러 가기 →</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <h3 style="margin-top:6px;font-size:16px">결정 근거</h3>
+      <ul style="font-size:14px;line-height:24px;color:var(--text)">
+        <li><b>primary = 예약하러 가기</b> (그린). 호캉스의 핵심 액션은 "갈지 결정"이므로 결정 액션이 primary.</li>
+        <li><b>secondary = 길찾기</b>. 호캉스에서는 결정 후 액션이라 위계 한 단계 아래.</li>
+        <li><b>이미지 위 평점 칩</b>은 "이미 좋은 곳"이라는 사회적 증거를 시선 시작점에 결합.</li>
+        <li><b>태그 최대 3개</b>. 시각 부담 통제. 4개 이상이면 어드민 display_order가 우선순위 결정.</li>
+        <li><b>0건 케이스 진입 차단</b>이므로 빈 상태 디자인 불필요.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4. Detail screen ─────────────────────────────── -->
+  <h2><span class="num">4</span>StayDetailScreen — 섹션 흐름</h2>
+  <p class="sub">기존 spot 상세 구조를 90% 재사용. CTA 위계 반전 + 신설 3섹션(추천 포인트 / 평점 / 블로그 후기) + 제거 2섹션(사진 갤러리 / 좋아요).</p>
+
+  <div class="row">
+    <div class="col" style="flex:0 0 360px">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar"><div><span class="back">←</span></div><div></div><div style="width:28px"></div></div>
+
+          <div class="hero-detail">
+            <div class="body">
+              <div class="top-badge">🏙 도심</div>
+              <div class="grow"></div>
+              <div class="pills">
+                <div class="pill">서울 · 강서</div>
+                <div class="pill">가족</div>
+                <div class="pill">한강뷰</div>
+              </div>
+              <div class="h">호텔 나루 서울 마곡</div>
+              <div class="d">도심에서 즐기는 인피니티풀과 스카이라운지의 한강 야경.</div>
+              <div class="ctas">
+                <div class="btn outline" style="background:rgba(255,255,255,.94);border:0">길찾기</div>
+                <div class="btn primary">예약하기 →</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- (영상 섹션 표시) -->
+          <div class="section-card">
+            <h4>관련 영상</h4>
+            <div style="display:flex;gap:8px;overflow:hidden">
+              <div style="flex:0 0 168px;height:96px;border-radius:12px;background:linear-gradient(135deg,#5e7a8c,#c9a96e)"></div>
+              <div style="flex:0 0 168px;height:96px;border-radius:12px;background:linear-gradient(135deg,#3a4858,#8a9bb0)"></div>
+            </div>
+          </div>
+
+          <!-- 추천 포인트 -->
+          <div class="section-card">
+            <h4>추천 포인트</h4>
+            <div class="point-row">
+              <div class="num-pill">1</div>
+              <div>
+                <div class="pt">인피니티풀에서 보는 한강 일몰</div>
+                <div class="ps">저녁 7시~9시가 베스트</div>
+              </div>
+            </div>
+            <div class="point-row">
+              <div class="num-pill">2</div>
+              <div>
+                <div class="pt">키즈 어메니티 무료 제공</div>
+                <div class="ps">유모차·아기침대 사전 요청</div>
+              </div>
+            </div>
+            <div class="point-row">
+              <div class="num-pill">3</div>
+              <div>
+                <div class="pt">셀프 체크인 키오스크</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 평점 -->
+          <div class="section-card">
+            <h4>평점</h4>
+            <div class="rating-row">
+              <div class="left"><span class="star">★</span><span class="score">4.6</span><span class="src">네이버 리뷰 보기</span></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="rating-row">
+              <div class="left"><span class="star">★</span><span class="score">4.4</span><span class="src">구글 리뷰 보기</span></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="meta">· 2026-05-08 수집 기준</div>
+          </div>
+
+          <!-- 예약·찾아가기 -->
+          <div class="section-card">
+            <h4>예약·찾아가기</h4>
+            <div style="font-size:13px;margin-bottom:10px">📍 서울 강서구 마곡중앙8로 38</div>
+            <div class="btn outline" style="margin-bottom:10px">네이버 지도에서 보기 →</div>
+            <div style="font-size:12px;color:var(--textMuted);margin-bottom:8px">예약 검색어: "호텔 나루 서울 숙박"</div>
+            <div class="btn primary">네이버에서 예약 정보 보기 →</div>
+          </div>
+
+          <!-- 블로그 후기 -->
+          <div class="section-card">
+            <h4>블로그 후기</h4>
+            <div class="blog-row">
+              <div class="thumb"></div>
+              <div>
+                <div class="tt">한강뷰 끝판왕, 나루 서울 마곡 1박 후기</div>
+                <div class="mt">네이버 블로그 · 2025-12-03 ›</div>
+              </div>
+            </div>
+            <div class="blog-row">
+              <div class="thumb t2"></div>
+              <div>
+                <div class="tt">키즈 동반 호캉스 코스 정리</div>
+                <div class="mt">티스토리 · 2025-11-21 ›</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <h3 style="margin-top:6px;font-size:16px">spot vs stay 섹션 매핑</h3>
+      <table class="cmp">
+        <tr><th style="width:38%">spot 상세</th><th>stay 상세</th><th style="width:24%">변경</th></tr>
+        <tr><td>Hero (primary=길찾기)</td><td>Hero (primary=예약하기)</td><td class="change">CTA 위계 반전</td></tr>
+        <tr><td>Stories (영상)</td><td>Stories (영상)</td><td>유지 (공유)</td></tr>
+        <tr><td>사진 갤러리</td><td class="kill">사진 갤러리</td><td class="change">제거 (UGC X)</td></tr>
+        <tr><td>좋아요</td><td class="kill">좋아요</td><td class="change">제거 (UGC X)</td></tr>
+        <tr><td>MetaPill 행</td><td>MetaPill 행</td><td>유지</td></tr>
+        <tr><td>—</td><td>추천 포인트</td><td class="new">신설</td></tr>
+        <tr><td>—</td><td>평점 스냅샷</td><td class="new">신설</td></tr>
+        <tr><td>방문 정보</td><td>예약·찾아가기</td><td class="change">변경</td></tr>
+        <tr><td>NativeSpotAd</td><td>NativeSpotAd</td><td>유지</td></tr>
+        <tr><td>소개</td><td>소개</td><td>유지</td></tr>
+        <tr><td>—</td><td>블로그 후기</td><td class="new">신설</td></tr>
+      </table>
+      <div class="legend">총 12섹션 중 7섹션 재사용, 3섹션 신설, 2섹션 제거, 2섹션 변경.</div>
+    </div>
+  </div>
+
+  <!-- 5. CTA hierarchy comparison ──────────────────── -->
+  <h2><span class="num">5</span>CTA 위계 — 꽃 vs 호캉스</h2>
+  <p class="sub">primary 그린은 그대로. 어느 액션을 primary로 둘지가 도메인별로 다름.</p>
+  <div class="cta-side">
+    <div class="cta-frame">
+      <div class="lab">꽃 명소 Hero</div>
+      <div class="title">위치 확인 후 출발이 핵심</div>
+      <div style="display:flex;gap:8px">
+        <div class="btn primary">길찾기</div>
+        <div class="btn secondary">지도보기</div>
+      </div>
+      <div class="note">primary = 길찾기. 사용자는 이미 "갈지"는 결정됨.</div>
+    </div>
+    <div class="cta-frame">
+      <div class="lab">호캉스 Hero</div>
+      <div class="title">갈지 결정이 핵심</div>
+      <div style="display:flex;gap:8px">
+        <div class="btn secondary">길찾기</div>
+        <div class="btn primary">예약하기 →</div>
+      </div>
+      <div class="note">primary = 예약하기. 결정 액션을 가장 강조.</div>
+    </div>
+  </div>
+
+  <!-- 6. stay_type badges ──────────────────────────── -->
+  <h2><span class="num">6</span>stay_type 배지 5종</h2>
+  <p class="sub">강한 색 코딩 없이 작은 inkDeep 배지로 1회만 노출. 이모지는 보조이고 VoiceOver는 한글 라벨로 읽음.</p>
+  <div class="badges">
+    <div class="b">🏙 도심</div>
+    <div class="b">🌊 리조트</div>
+    <div class="b">🏝 풀빌라</div>
+    <div class="b">♨️ 온천</div>
+    <div class="b">🧸 키즈</div>
+  </div>
+  <div class="note">배경: inkDeep 92% · 흰 텍스트 12pt weight 700 · paddingH 12 V 7 · radius 999</div>
+
+  <!-- 7. Rating snapshot states ────────────────────── -->
+  <h2><span class="num">7</span>평점 스냅샷 — 4가지 상태</h2>
+  <p class="sub">두 출처 모두 입력되면 둘 다 표시. 하나만 있으면 그것만. 둘 다 없으면 SectionCard 자체 미렌더.</p>
+  <div class="row" style="align-items:stretch">
+    <div class="col">
+      <div class="section-card">
+        <div class="lab" style="font-size:11px;font-weight:800;color:var(--textMuted)">상태 A — 둘 다 입력</div>
+        <h4 style="margin-top:8px">평점</h4>
+        <div class="rating-row"><div class="left"><span class="star">★</span><span class="score">4.6</span><span class="src">네이버 리뷰 보기</span></div><div class="arrow">›</div></div>
+        <div class="rating-row"><div class="left"><span class="star">★</span><span class="score">4.4</span><span class="src">구글 리뷰 보기</span></div><div class="arrow">›</div></div>
+        <div class="meta">· 2026-05-08 수집 기준</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="section-card">
+        <div class="lab" style="font-size:11px;font-weight:800;color:var(--textMuted)">상태 B — 네이버만</div>
+        <h4 style="margin-top:8px">평점</h4>
+        <div class="rating-row"><div class="left"><span class="star">★</span><span class="score">4.6</span><span class="src">네이버 리뷰 보기</span></div><div class="arrow">›</div></div>
+        <div class="meta">· 2026-05-08 수집 기준</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="section-card">
+        <div class="lab" style="font-size:11px;font-weight:800;color:var(--textMuted)">상태 C — 구글만</div>
+        <h4 style="margin-top:8px">평점</h4>
+        <div class="rating-row"><div class="left"><span class="star">★</span><span class="score">4.4</span><span class="src">구글 리뷰 보기</span></div><div class="arrow">›</div></div>
+        <div class="meta">· 2026-05-08 수집 기준</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="section-card" style="background:repeating-linear-gradient(45deg,#fff,#fff 8px,#f5efe5 8px,#f5efe5 16px);text-align:center;padding:30px 16px">
+        <div class="lab" style="font-size:11px;font-weight:800;color:var(--textMuted)">상태 D — 둘 다 없음</div>
+        <div style="font-size:13px;color:var(--textMuted);margin-top:10px">SectionCard 자체 미렌더</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Recommendation point alternatives ─────────── -->
+  <h2><span class="num">8</span>추천 포인트 — 표기 비교</h2>
+  <p class="sub">번호 리스트 채택. 어드민 이미지 큐레이션 부담 0, 객관 정보 톤 유지.</p>
+  <div class="alt-stack">
+    <div class="alt">
+      <h5>A — 번호 원형 리스트 <span class="verdict yes">채택</span></h5>
+      <div class="point-row"><div class="num-pill">1</div><div><div class="pt">인피니티풀 한강 일몰</div><div class="ps">저녁 7~9시가 베스트</div></div></div>
+      <div class="point-row"><div class="num-pill">2</div><div><div class="pt">키즈 어메니티 무료 제공</div><div class="ps">유모차·아기침대 사전 요청</div></div></div>
+      <div class="point-row"><div class="num-pill">3</div><div><div class="pt">셀프 체크인 키오스크</div></div></div>
+    </div>
+    <div class="alt">
+      <h5>B — 아이콘 카드 <span class="verdict no">탈락</span></h5>
+      <div class="iconcard">
+        <div class="ic"><div><div style="text-align:center">🏊</div><div class="lbl" style="text-align:center;margin-top:6px">인피니티풀</div></div></div>
+        <div class="ic"><div><div style="text-align:center">🌃</div><div class="lbl" style="text-align:center;margin-top:6px">야경</div></div></div>
+        <div class="ic"><div><div style="text-align:center">🛎</div><div class="lbl" style="text-align:center;margin-top:6px">서비스</div></div></div>
+      </div>
+      <div class="note">운영자가 항목마다 이미지·아이콘 선정 → MVP 부담 증가.</div>
+    </div>
+    <div class="alt">
+      <h5>C — 인용형 <span class="verdict no">탈락</span></h5>
+      <div class="quote">" 인피니티풀 한강 일몰이 정말 베스트입니다 "</div>
+      <div class="source">— 출처 모호 (UGC 인상)</div>
+      <div class="note">어드민 수기 큐레이션이 후기처럼 보이는 톤 충돌.</div>
+    </div>
+  </div>
+
+  <!-- 9. Tone separation ───────────────────────────── -->
+  <h2><span class="num">9</span>톤 분리 매트릭스 — 꽃 vs 호캉스</h2>
+  <p class="sub">시그니처 변경은 단 2곳(배지·배경)뿐. 액션 컬러(primary 그린)는 절대 안 건드림.</p>
+  <div class="tone">
+    <div class="h">요소</div>
+    <div class="h">꽃 섹션</div>
+    <div class="h">호캉스 섹션</div>
+
+    <div>Hero 배지 배경</div>
+    <div><span class="swatch" style="background:#6BBF72"></span>primary 그린</div>
+    <div><span class="swatch" style="background:#1F2933"></span>inkDeep</div>
+
+    <div>카드 표면</div>
+    <div><span class="swatch" style="background:#E8F4E2"></span>surfaceGreen / softPink</div>
+    <div><span class="swatch" style="background:#F1ECE6"></span>surfaceInk</div>
+
+    <div>액센트</div>
+    <div>핑크 + 그린</div>
+    <div>inkDeep + accentGold</div>
+
+    <div>이미지 톤</div>
+    <div>화사 / 채도 높음 (낮 외광)</div>
+    <div>야경·실내 / 채도 낮음</div>
+
+    <div>타이틀 그림자</div>
+    <div>기본</div>
+    <div>깊게 (rgba 0,0,0,0.4)</div>
+
+    <div>primary CTA</div>
+    <div><span class="swatch" style="background:#6BBF72"></span>그린</div>
+    <div><span class="swatch" style="background:#6BBF72"></span>그린 — 동일 ★</div>
+  </div>
+
+  <!-- 10. State table ─────────────────────────────── -->
+  <h2><span class="num">10</span>상태 표현 매트릭스</h2>
+  <p class="sub">PM 스펙 AC-5/6/7/9/10 + 디자이너 권장 폴백을 모두 반영.</p>
+  <div class="states-list">
+    <div class="state-row"><div class="k">로딩 (Detail)</div><div class="v">Hero 스켈레톤 390 + SectionCard 자리 height 120 radius 24 스켈레톤 3장</div></div>
+    <div class="state-row"><div class="k">좌표 누락</div><div class="v">길찾기 secondary 버튼 disabled (opacity 0.4) + 탭 시 토스트 "지도가 곧 등록될 예정이에요"</div></div>
+    <div class="state-row"><div class="k">평점 둘 다 미입력</div><div class="v">평점 SectionCard 자체 미렌더</div></div>
+    <div class="state-row"><div class="k">평점 한쪽만 입력</div><div class="v">그 한쪽만 노출, 캡처 일자는 표시</div></div>
+    <div class="state-row"><div class="k">영상 0건</div><div class="v">StoriesSection 미렌더 (기존 spot과 동일)</div></div>
+    <div class="state-row"><div class="k">블로그 0건</div><div class="v">"블로그 후기" SectionCard 미렌더</div></div>
+    <div class="state-row"><div class="k">예약 링크 실패</div><div class="v">토스트 "예약 페이지를 열 수 없어 검색어를 복사했어요" + 자동 클립보드 복사</div></div>
+    <div class="state-row"><div class="k">시즌 큐레이션 비활성</div><div class="v">홈 슬롯 자체 미렌더 (빈 카드 노출 금지)</div></div>
+    <div class="state-row"><div class="k">stays 리스트 0건</div><div class="v">리스트 화면 진입 차단 — 홈 슬롯도 함께 비활성</div></div>
+    <div class="state-row"><div class="k">외부 링크 비-http(s)</div><div class="v">버튼 disabled 처리, 어드민 검증 단계에서 잡힘 (AC-10)</div></div>
+  </div>
+
+  <div class="footer">
+    호캉스 어디? · 디자인 결정 시안 · 2026-05-12<br/>
+    이 페이지는 정적 HTML 시안이며, 실제 RN 컴포넌트 구현 시 색·간격·둥근 모서리 토큰만 유지하고 레이아웃은 RN의 flex로 재구성됩니다.
+  </div>
+</div>
+</body>
+</html>

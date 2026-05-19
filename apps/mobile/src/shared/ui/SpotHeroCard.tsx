@@ -2,7 +2,7 @@ import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native
 
 import { colors } from '../theme/colors';
 
-type SpotHeroCardTone = 'green' | 'pink' | 'yellow';
+type SpotHeroCardTone = 'green' | 'ink' | 'pink' | 'yellow';
 
 type SpotHeroCardProps = {
   badge: string;
@@ -37,7 +37,13 @@ export function SpotHeroCard({
       {/* 상단: 뱃지만 */}
       <View style={styles.topSection}>
         <View style={styles.topRow}>
-          <View style={[styles.badgePill, isEnded && styles.badgePillEnded]}>
+          <View
+            style={[
+              styles.badgePill,
+              !isEnded && tone === 'ink' && styles.badgePillInk,
+              isEnded && styles.badgePillEnded,
+            ]}
+          >
             <Text style={[styles.badgeText, isEnded && styles.badgeTextEnded]}>{badge}</Text>
           </View>
           {metaRight ? <Text style={[styles.metaRight, !hasImage && styles.metaRightDark]}>{metaRight}</Text> : null}
@@ -88,7 +94,13 @@ export function SpotHeroCard({
     <View
       style={[
         styles.card,
-        tone === 'pink' ? styles.cardPink : tone === 'yellow' ? styles.cardYellow : styles.cardGreen,
+        tone === 'pink'
+          ? styles.cardPink
+          : tone === 'yellow'
+            ? styles.cardYellow
+            : tone === 'ink'
+              ? styles.cardInk
+              : styles.cardGreen,
       ]}
     >
       {inner}
@@ -110,6 +122,9 @@ const styles = StyleSheet.create({
   },
   badgePillEnded: {
     backgroundColor: '#EDE8E4',
+  },
+  badgePillInk: {
+    backgroundColor: colors.inkDeep,
   },
   badgeText: {
     color: '#FFFFFF',
@@ -148,6 +163,9 @@ const styles = StyleSheet.create({
   },
   cardGreen: {
     backgroundColor: colors.surfaceGreen,
+  },
+  cardInk: {
+    backgroundColor: colors.surfaceInk,
   },
   cardPink: {
     backgroundColor: colors.softPink,

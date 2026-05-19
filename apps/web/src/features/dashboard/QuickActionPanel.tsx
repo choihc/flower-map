@@ -12,6 +12,7 @@ type QuickAction = {
 const quickActions: QuickAction[] = [
   { href: '/admin/flowers', label: '꽃 관리', description: '꽃 마스터를 추가하고 정리합니다.' },
   { href: '/admin/spots', label: '명소 관리', description: '명소 초안과 공개 상태를 다룹니다.' },
+  { href: '/admin/stays', label: '호텔 관리', description: '호캉스 호텔의 게시 상태를 관리합니다.' },
   { href: '/admin/spots/import', label: 'JSON 등록', description: '외부 JSON을 검증하고 초안으로 저장합니다.' },
 ];
 

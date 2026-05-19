@@ -17,6 +17,7 @@ import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { LikeButton } from '../components/LikeButton';
+import { NearbyStaysSection } from '../components/NearbyStaysSection';
 import { SpotPhotoGallery } from '../components/SpotPhotoGallery';
 import { SpotStoriesSection } from '../components/SpotStoriesSection';
 import { getPhotosBySpotId, photoKeys } from '../../../shared/data/photoRepository';
@@ -106,6 +107,8 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
           <DetailTip key={index} text={tip} />
         ))}
       </SectionCard>
+
+      <NearbyStaysSection spot={spot} />
 
       <SectionCard title="비슷한 꽃 명소">
         {(() => {

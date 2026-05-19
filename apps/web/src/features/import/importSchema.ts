@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { flowerSchema } from '../flowers/flowerSchema';
 import { spotSchema } from '../spots/spotSchema';
+import { staySchema } from '../stays/staySchema';
 
 const { flower_id: _flowerId, ...importedSpotShape } = spotSchema.shape;
 
@@ -35,6 +36,25 @@ const importedSpotSchema = z
     }
   });
 
+const staysBulkSchema = z
+  .object({
+    stays: z.array(staySchema).min(1),
+  })
+  .superRefine((value, ctx) => {
+    const seen = new Set<string>();
+    value.stays.forEach((stay, index) => {
+      if (seen.has(stay.slug)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `${stay.slug} slug가 동일 payload 내에서 중복됩니다`,
+          path: ['stays', index, 'slug'],
+        });
+      } else {
+        seen.add(stay.slug);
+      }
+    });
+  });
+
 export const importPayloadSchema = z.union([
   z.object({
     flower: flowerSchema,
@@ -44,6 +64,22 @@ export const importPayloadSchema = z.union([
     flower_slug: z.string().trim().min(2).regex(/^[a-z0-9-]+$/),
     spot: importedSpotSchema,
   }),
+  z.object({
+    stay: staySchema,
+  }),
+  staysBulkSchema,
 ]);
 
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
+
+/** stay 분기를 제외한 spot/flower 도메인 payload. */
+export type SpotImportPayload = Exclude<ImportPayload, { stay: unknown } | { stays: unknown }>;
+
+/** stay 단건 등록 payload. */
+export type StaySingleImportPayload = Extract<ImportPayload, { stay: unknown }>;
+
+/** stay 복수 등록 payload. */
+export type StayBulkImportPayload = Extract<ImportPayload, { stays: unknown }>;
+
+/** stay 도메인 import payload (단건 또는 복수). */
+export type StayImportPayload = StaySingleImportPayload | StayBulkImportPayload;

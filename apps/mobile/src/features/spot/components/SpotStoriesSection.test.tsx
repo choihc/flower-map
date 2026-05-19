@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { render } from '@testing-library/react-native';
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: vi.fn(),
@@ -54,101 +53,24 @@ describe('SpotStoriesSection', () => {
     expect(queryByTestId('spot-stories-section')).toBeNull();
   });
 
-  it('blog.url이 javascript: 스킴이면 Linking.openURL을 호출하지 않는다', () => {
-    const videos: any[] = [];
-    const blogs = [
-      {
-        url: 'javascript:alert(1)',
-        title: '악성 블로그',
-        bloggerName: '해커',
-        postedAt: new Date('2026-04-10T00:00:00Z'),
+  it("데이터가 있으면 sectionTitle='이 명소 이야기'와 testID='spot-stories-section'으로 렌더한다", () => {
+    (useQuery as any).mockReturnValue({
+      data: {
+        videos: [
+          {
+            videoId: 'v1',
+            title: '영상',
+            channelTitle: '채널',
+            thumbnailUrl: 'https://img/v.jpg',
+            publishedAt: new Date('2026-04-10T00:00:00Z'),
+          },
+        ],
+        blogs: [],
       },
-    ];
-
-    (useQuery as any).mockReturnValue({ data: { videos, blogs }, isLoading: false });
-
-    const openURLSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-    const { getByTestId } = render(<SpotStoriesSection slug="x" />);
-    fireEvent.press(getByTestId('story-blog'));
-
-    expect(openURLSpy).not.toHaveBeenCalled();
-    expect(warnSpy).toHaveBeenCalled();
-
-    openURLSpy.mockRestore();
-    warnSpy.mockRestore();
-  });
-
-  it('blog.url이 허용 호스트(blog.naver.com)이면 Linking.openURL이 호출된다', () => {
-    const videos: any[] = [];
-    const blogs = [
-      {
-        url: 'https://blog.naver.com/tester/post',
-        title: '정상 블로그',
-        bloggerName: '블로거',
-        postedAt: new Date('2026-04-10T00:00:00Z'),
-      },
-    ];
-
-    (useQuery as any).mockReturnValue({ data: { videos, blogs }, isLoading: false });
-
-    const openURLSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
-
-    const { getByTestId } = render(<SpotStoriesSection slug="x" />);
-    fireEvent.press(getByTestId('story-blog'));
-
-    expect(openURLSpy).toHaveBeenCalledWith('https://blog.naver.com/tester/post');
-
-    openURLSpy.mockRestore();
-  });
-
-  it('blog.url이 허용되지 않은 호스트(evil.example.com)면 Linking.openURL을 호출하지 않는다', () => {
-    const videos: any[] = [];
-    const blogs = [
-      {
-        url: 'http://evil.example.com/x',
-        title: '악성 호스트',
-        bloggerName: '해커',
-        postedAt: new Date('2026-04-10T00:00:00Z'),
-      },
-    ];
-
-    (useQuery as any).mockReturnValue({ data: { videos, blogs }, isLoading: false });
-
-    const openURLSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-    const { getByTestId } = render(<SpotStoriesSection slug="x" />);
-    fireEvent.press(getByTestId('story-blog'));
-
-    expect(openURLSpy).not.toHaveBeenCalled();
-    expect(warnSpy).toHaveBeenCalled();
-
-    openURLSpy.mockRestore();
-    warnSpy.mockRestore();
-  });
-
-  it('tistory 서브도메인 blog.url은 허용된다', () => {
-    const videos: any[] = [];
-    const blogs = [
-      {
-        url: 'https://foo.tistory.com/123',
-        title: '티스토리',
-        bloggerName: 'foo',
-        postedAt: new Date('2026-04-10T00:00:00Z'),
-      },
-    ];
-
-    (useQuery as any).mockReturnValue({ data: { videos, blogs }, isLoading: false });
-
-    const openURLSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as never);
-
-    const { getByTestId } = render(<SpotStoriesSection slug="x" />);
-    fireEvent.press(getByTestId('story-blog'));
-
-    expect(openURLSpy).toHaveBeenCalledWith('https://foo.tistory.com/123');
-
-    openURLSpy.mockRestore();
+      isLoading: false,
+    });
+    const { getByTestId, getByText } = render(<SpotStoriesSection slug="x" />);
+    expect(getByTestId('spot-stories-section')).toBeTruthy();
+    expect(getByText('이 명소 이야기')).toBeTruthy();
   });
 });

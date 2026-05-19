@@ -3,12 +3,20 @@ import React from 'react';
 import { act } from 'react';
 import ReactDOM from 'react-dom/client';
 
+type TestElement = HTMLElement & {
+  props: {
+    children?: unknown;
+    style?: unknown;
+    [key: string]: unknown;
+  };
+};
+
 type RenderResult = {
-  getByText: (text: string) => HTMLElement;
-  queryByText: (text: string) => HTMLElement | null;
-  getByTestId: (testId: string) => HTMLElement;
-  queryByTestId: (testId: string) => HTMLElement | null;
-  getAllByTestId: (testId: string) => HTMLElement[];
+  getByText: (text: string | RegExp) => HTMLElement;
+  queryByText: (text: string | RegExp) => HTMLElement | null;
+  getByTestId: (testId: string) => TestElement;
+  queryByTestId: (testId: string) => TestElement | null;
+  getAllByTestId: (testId: string) => TestElement[];
   getByPlaceholderText: (placeholder: string) => HTMLElement;
   unmount: () => void;
   container: HTMLElement;
@@ -35,11 +43,17 @@ export function render(ui: React.ReactElement): RenderResult {
     return texts;
   }
 
-  function getByText(text: string): HTMLElement {
+  function matchesText(content: string | null, matcher: string | RegExp): boolean {
+    if (content === null) return false;
+    if (typeof matcher === 'string') return content === matcher;
+    return matcher.test(content);
+  }
+
+  function getByText(text: string | RegExp): HTMLElement {
     // Find the closest element containing exactly this text
     const textNodes = getAllTextNodes(container);
     for (const textNode of textNodes) {
-      if (textNode.textContent === text) {
+      if (matchesText(textNode.textContent, text)) {
         return textNode.parentElement as HTMLElement;
       }
     }
@@ -47,7 +61,8 @@ export function render(ui: React.ReactElement): RenderResult {
     const elements = Array.from(container.querySelectorAll('*'));
     const el = elements.find((e) => {
       const children = Array.from(e.childNodes).filter((n) => n.nodeType !== Node.TEXT_NODE || (n.textContent?.trim() ?? ''));
-      return e.textContent?.trim() === text && children.every((n) => n.nodeType === Node.TEXT_NODE);
+      const trimmed = e.textContent?.trim() ?? '';
+      return matchesText(trimmed, text) && children.every((n) => n.nodeType === Node.TEXT_NODE);
     });
     if (!el) {
       throw new Error(`Unable to find element with text: "${text}"`);
@@ -55,7 +70,7 @@ export function render(ui: React.ReactElement): RenderResult {
     return el as HTMLElement;
   }
 
-  function queryByText(text: string): HTMLElement | null {
+  function queryByText(text: string | RegExp): HTMLElement | null {
     try {
       return getByText(text);
     } catch {
@@ -63,24 +78,51 @@ export function render(ui: React.ReactElement): RenderResult {
     }
   }
 
-  function getByTestId(testId: string): HTMLElement {
+  function getReactProps(el: HTMLElement): Record<string, unknown> {
+    const fiberKey = Object.keys(el).find(
+      (k) => k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance'),
+    );
+    if (!fiberKey) return {};
+    // Walk UP the fiber tree to find the first fiber whose props.testID matches
+    const targetTestId = el.getAttribute('data-testid');
+    let fiber: any = (el as any)[fiberKey];
+    while (fiber) {
+      const p = fiber.pendingProps ?? fiber.memoizedProps;
+      if (p && typeof p === 'object' && p.testID === targetTestId) {
+        return p as Record<string, unknown>;
+      }
+      fiber = fiber.return;
+    }
+    // Fallback: return the immediate fiber's props
+    fiber = (el as any)[fiberKey];
+    const p = fiber?.pendingProps ?? fiber?.memoizedProps;
+    return (p && typeof p === 'object' ? p : {}) as Record<string, unknown>;
+  }
+
+  function wrapElement(el: HTMLElement): TestElement {
+    const props = getReactProps(el);
+    return Object.assign(el, { props }) as TestElement;
+  }
+
+  function getByTestId(testId: string): TestElement {
     const el = container.querySelector(`[data-testid="${testId}"]`);
     if (!el) {
       throw new Error(`Unable to find element with testId: "${testId}"`);
     }
-    return el as HTMLElement;
+    return wrapElement(el as HTMLElement);
   }
 
-  function queryByTestId(testId: string): HTMLElement | null {
-    return (container.querySelector(`[data-testid="${testId}"]`) as HTMLElement) ?? null;
+  function queryByTestId(testId: string): TestElement | null {
+    const el = container.querySelector(`[data-testid="${testId}"]`) as HTMLElement | null;
+    return el ? wrapElement(el) : null;
   }
 
-  function getAllByTestId(testId: string): HTMLElement[] {
+  function getAllByTestId(testId: string): TestElement[] {
     const els = Array.from(container.querySelectorAll(`[data-testid="${testId}"]`)) as HTMLElement[];
     if (els.length === 0) {
       throw new Error(`Unable to find any element with testId: "${testId}"`);
     }
-    return els;
+    return els.map(wrapElement);
   }
 
   function getByPlaceholderText(placeholder: string): HTMLElement {
@@ -105,6 +147,40 @@ export function render(ui: React.ReactElement): RenderResult {
       document.body.removeChild(container);
     },
     container,
+  };
+}
+
+// renderHook utility — minimal subset for vitest jsdom
+export function renderHook<T>(callback: () => T): {
+  result: { current: T };
+  unmount: () => void;
+  rerender: () => void;
+} {
+  const result = { current: undefined as unknown as T };
+  function Wrapper() {
+    result.current = callback();
+    return null;
+  }
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  let root: ReturnType<typeof ReactDOM.createRoot>;
+  act(() => {
+    root = ReactDOM.createRoot(container);
+    root.render(React.createElement(Wrapper));
+  });
+  return {
+    result,
+    rerender: () => {
+      act(() => {
+        root.render(React.createElement(Wrapper));
+      });
+    },
+    unmount: () => {
+      act(() => {
+        root.unmount();
+      });
+      document.body.removeChild(container);
+    },
   };
 }
 

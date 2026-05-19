@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>호캉스 신기능 발견 시그널 — 디자인 시안</title>
+<style>
+  :root {
+    --primary: #6BBF72;
+    --secondary: #F26D85;
+    --text: #243127;
+    --textMuted: #6E7672;
+    --canvas: #F8F2EB;
+    --surfaceGreen: #E8F4E2;
+    --softPink: #FCE4E9;
+    --softYellow: #FFF1C9;
+    --cardSun: #FFE9C2;
+    --border: #E6DED2;
+    --surfaceInk: #F1ECE6;
+    --inkDeep: #1F2933;
+    --accentGold: #C8A86A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #EFE9DF; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 1240px; margin: 0 auto; padding: 56px 24px 120px; }
+  h1 { font-size: 34px; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 22px; margin: 56px 0 6px; letter-spacing: -0.3px; }
+  h2 .num { display: inline-block; width: 32px; height: 32px; border-radius: 999px; background: var(--inkDeep); color: #fff; font-size: 14px; text-align: center; line-height: 32px; margin-right: 10px; vertical-align: 2px; }
+  h3 { font-size: 16px; margin: 24px 0 10px; letter-spacing: -0.2px; }
+  .sub { color: var(--textMuted); font-size: 14px; margin: 0 0 24px; }
+  .lead { color: var(--textMuted); font-size: 15px; line-height: 24px; margin: 0 0 32px; max-width: 760px; }
+  .row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  .col { flex: 1 1 360px; }
+  .note { color: var(--textMuted); font-size: 13px; line-height: 20px; margin-top: 12px; }
+  .pill { display: inline-block; background: var(--inkDeep); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.3px; font-weight: 700; }
+  .pill.gold { background: var(--accentGold); color: var(--inkDeep); }
+  .pill.pink { background: var(--secondary); color: #fff; }
+  .pill.outline { background: transparent; color: var(--inkDeep); border: 1px solid var(--inkDeep); }
+  .meta-table { width: 100%; border-collapse: collapse; margin-top: 16px; background: #fff; border-radius: 14px; overflow: hidden; }
+  .meta-table th, .meta-table td { text-align: left; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .meta-table th { background: var(--surfaceInk); font-weight: 700; }
+  .meta-table tr:last-child td { border-bottom: none; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--surfaceInk); padding: 2px 6px; border-radius: 5px; }
+
+  /* ── Phone ─────────────────────────────────── */
+  .phone {
+    width: 360px; background: var(--canvas);
+    border-radius: 40px; padding: 14px 12px 0; position: relative;
+    box-shadow: 0 30px 60px rgba(31,41,51,.18), 0 8px 18px rgba(31,41,51,.10);
+    border: 1px solid #d9d1c4;
+    display: inline-block;
+  }
+  .phone .notch { width: 110px; height: 22px; background: #1c1c1e; border-radius: 0 0 16px 16px; margin: -14px auto 8px; }
+  .screen { background: var(--canvas); border-radius: 28px; padding: 14px 16px 12px; }
+  .screen .topbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px 12px; font-size: 13px; color: var(--textMuted); }
+  .screen .topbar .title { font-weight: 800; color: var(--text); font-size: 22px; letter-spacing: -0.4px; }
+
+  /* ── Home sections (stub) ─────────────────────────── */
+  .hero-carousel {
+    border-radius: 24px; height: 180px; overflow: hidden; margin-bottom: 18px;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.50) 100%),
+      linear-gradient(135deg, #f7c4d2 0%, #f48fb1 40%, #6BBF72 100%);
+    position: relative;
+  }
+  .hero-carousel .hcap { position: absolute; bottom: 14px; left: 16px; color: #fff; font-weight: 800; font-size: 17px; letter-spacing: -0.3px; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .hero-carousel .hsub { position: absolute; bottom: 36px; left: 16px; color: rgba(255,255,255,.86); font-size: 12px; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .hero-carousel .dots { position: absolute; bottom: 12px; right: 16px; display: flex; gap: 5px; }
+  .hero-carousel .dots i { width: 6px; height: 6px; border-radius: 999px; background: rgba(255,255,255,.55); display: block; }
+  .hero-carousel .dots i.on { background: #fff; width: 18px; border-radius: 4px; }
+
+  .section-title { font-size: 16px; font-weight: 800; margin: 8px 0 10px; letter-spacing: -0.2px; }
+  .top-spots { display: flex; gap: 10px; overflow: hidden; margin-bottom: 18px; }
+  .top-spot { flex: 0 0 132px; }
+  .top-spot .img { height: 96px; border-radius: 16px; background: linear-gradient(135deg, #f7c4d2, #6BBF72); }
+  .top-spot .img.b { background: linear-gradient(135deg, #ffd28a, #f26d85); }
+  .top-spot .img.c { background: linear-gradient(135deg, #b8e0ff, #6BBF72); }
+  .top-spot .nm { font-size: 12px; font-weight: 700; margin-top: 6px; }
+  .top-spot .rg { font-size: 11px; color: var(--textMuted); }
+
+  /* ── Discovery card ──────────────────────────────── */
+  .discovery {
+    position: relative; border-radius: 28px; overflow: hidden;
+    height: 132px;
+    background-image:
+      linear-gradient(135deg, #1f2933 0%, #2b4153 45%, #c8a86a 100%);
+    margin-bottom: 22px;
+    box-shadow: 0 10px 24px rgba(31,41,51,.18), 0 2px 4px rgba(31,41,51,.08);
+  }
+  .discovery .pattern { position:absolute; inset:0; background:
+      radial-gradient(circle at 86% 18%, rgba(255,255,255,.22), transparent 38%),
+      radial-gradient(circle at 12% 88%, rgba(200,168,106,.40), transparent 50%); }
+  .discovery .inner { position: absolute; inset: 0; padding: 14px 16px 14px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+  .discovery .top { display: flex; align-items: center; gap: 8px; }
+  .discovery .bed {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px;
+  }
+  .discovery .new-badge {
+    background: #fff; color: var(--inkDeep);
+    font-size: 10px; font-weight: 800; letter-spacing: 0.4px;
+    padding: 3px 8px; border-radius: 999px;
+  }
+  .discovery .stack { color: #fff; margin-top: 4px; }
+  .discovery .stack .t { font-size: 18px; font-weight: 800; line-height: 24px; letter-spacing: -0.4px; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .discovery .stack .s { font-size: 13px; color: rgba(255,255,255,.78); margin-top: 2px; line-height: 18px; }
+  .discovery .row-cta { display: flex; justify-content: flex-end; }
+  .discovery .cta {
+    background: var(--accentGold); color: var(--inkDeep);
+    font-size: 13px; font-weight: 800;
+    padding: 8px 14px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .discovery .close {
+    position: absolute; top: 8px; right: 8px;
+    width: 32px; height: 32px; border-radius: 999px;
+    background: rgba(255,255,255,.16);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,.92); font-size: 14px;
+    border: 1px solid rgba(255,255,255,.10);
+  }
+  .discovery .hit { position: absolute; top: 0; right: 0; width: 44px; height: 44px; }
+
+  /* ── Curation slot (existing, for comparison) ────── */
+  .curation {
+    position: relative; border-radius: 28px; overflow: hidden;
+    height: 220px;
+    background-image:
+      linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.62) 100%),
+      linear-gradient(135deg, #1f2933 0%, #2b4153 45%, #c8a86a 100%);
+    margin-bottom: 22px;
+  }
+  .curation .inner { position: absolute; inset: 0; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; }
+  .curation .b { align-self: flex-start; background: var(--inkDeep); color: #fff; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 999px; letter-spacing: 0.3px; }
+  .curation .stack { color: #fff; }
+  .curation .stack .t { font-size: 22px; font-weight: 800; line-height: 28px; letter-spacing: -0.5px; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .curation .stack .s { font-size: 13px; opacity: 0.88; margin-top: 4px; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .curation .row-cta { display: flex; justify-content: flex-end; }
+  .curation .cta { background: #fff; color: var(--inkDeep); font-size: 13px; font-weight: 800; padding: 8px 14px; border-radius: 999px; }
+
+  /* ── Tabbar ──────────────────────────────────────── */
+  .tabbar {
+    margin: 0 -16px; padding: 12px 8px 18px; background: #fff;
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 22px 22px;
+    display: flex; justify-content: space-around;
+    box-shadow: 0 -2px 10px rgba(31,41,51,.04);
+  }
+  .tab { width: 48px; height: 44px; position: relative; display: inline-flex; align-items: center; justify-content: center; color: var(--textMuted); font-size: 22px; }
+  .tab.active { color: var(--text); }
+  .tab .icon {
+    width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .tab .dot {
+    position: absolute; top: 2px; right: 2px;
+    width: 8px; height: 8px; border-radius: 999px;
+    background: var(--secondary);
+    border: 2px solid var(--canvas);
+    box-shadow: 0 1px 2px rgba(0,0,0,.10);
+  }
+  .tab .dot.gone { display: none; }
+  .tab .dot.big-badge {
+    width: auto; height: 16px; border-radius: 999px;
+    background: var(--inkDeep); color: #fff;
+    font-size: 9px; font-weight: 800;
+    padding: 0 5px; line-height: 16px; letter-spacing: 0.4px;
+    top: -2px; right: -8px;
+    border: 2px solid #fff;
+  }
+
+  /* ── Comparison gallery ──────────────────────────── */
+  .gallery { display: flex; gap: 28px; flex-wrap: wrap; }
+  .gallery .case { flex: 0 0 auto; }
+  .gallery .case .cap { font-size: 12px; color: var(--textMuted); margin-top: 10px; max-width: 360px; line-height: 17px; }
+  .gallery .case .cap strong { color: var(--text); display: block; font-size: 13px; margin-bottom: 2px; }
+
+  /* ── Token swatches ──────────────────────────────── */
+  .tokens { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 14px; }
+  .tokenBox { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+  .tokenBox .sw { height: 56px; border-radius: 12px; border: 1px solid rgba(0,0,0,.06); margin-bottom: 10px; }
+  .tokenBox .name { font-size: 13px; font-weight: 700; }
+  .tokenBox .hex { font-size: 12px; color: var(--textMuted); margin-top: 2px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  /* ── Decision table ─────────────────────────────── */
+  .decisions { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(31,41,51,.05); }
+  .decisions th, .decisions td { padding: 12px 14px; font-size: 13px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .decisions th { background: var(--surfaceInk); font-weight: 800; font-size: 12px; letter-spacing: 0.3px; color: var(--text); }
+  .decisions tr:last-child td { border-bottom: none; }
+  .yes { color: #2f7a35; font-weight: 800; }
+  .no { color: #b13443; font-weight: 800; }
+  .meh { color: var(--textMuted); font-weight: 700; }
+
+  /* ── Flow diagram ──────────────────────────────── */
+  .flow { background: #fff; border-radius: 18px; padding: 22px; box-shadow: 0 4px 14px rgba(31,41,51,.06); }
+  .flow .node { background: var(--surfaceInk); border-radius: 12px; padding: 10px 14px; font-size: 13px; font-weight: 700; display: inline-block; }
+  .flow .arrow { display: inline-block; margin: 0 8px; color: var(--textMuted); }
+  .flow .branch { margin: 12px 0; padding-left: 20px; border-left: 2px dashed var(--border); }
+
+  /* ── Spec card ────────────────────────────────── */
+  .spec { background: #fff; border-radius: 18px; padding: 22px; box-shadow: 0 4px 14px rgba(31,41,51,.06); }
+  .spec ul { margin: 8px 0 0 0; padding-left: 18px; font-size: 14px; line-height: 22px; }
+  .spec li code { font-size: 12px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>호캉스 신기능 발견 시그널</h1>
+  <p class="sub">A안 — 탭바 NEW 도트 + 홈 발견 카드 (이중 시그널) · PM/디자이너 합의 1차 시안</p>
+  <p class="lead">호캉스 탭이 라벨 없는 침대 아이콘으로 추가됐고, 홈의 유일한 단서인 시즌 큐레이션은 운영자가 데이터를 채워야만 노출됩니다. 그 사이의 인지 공백을 메우는 두 시그널을 정의합니다. 한 번 본 사용자에게는 영구 소멸합니다.</p>
+
+  <!-- ============================================================= -->
+  <h2><span class="num">1</span>최종 비주얼 — 홈 + 탭바</h2>
+  <p class="sub">하나의 화면에서 두 시그널이 어떻게 작동하는지</p>
+  <div class="row">
+    <div class="col" style="flex: 0 0 auto;">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar">
+            <span class="title">꽃 어디</span>
+            <span>🔔</span>
+          </div>
+
+          <!-- Hero -->
+          <div class="hero-carousel">
+            <div class="hsub">개화 중 · 5곳</div>
+            <div class="hcap">서울숲 벚꽃 절정</div>
+            <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+          </div>
+
+          <!-- TopSpots -->
+          <div class="section-title">지금 인기 명소</div>
+          <div class="top-spots">
+            <div class="top-spot"><div class="img"></div><div class="nm">한강공원</div><div class="rg">서울 · 영등포</div></div>
+            <div class="top-spot"><div class="img b"></div><div class="nm">남산</div><div class="rg">서울 · 중구</div></div>
+            <div class="top-spot"><div class="img c"></div><div class="nm">석촌호수</div><div class="rg">서울 · 송파</div></div>
+          </div>
+
+          <!-- Discovery card -->
+          <div class="discovery">
+            <div class="pattern"></div>
+            <div class="hit"></div>
+            <div class="close">✕</div>
+            <div class="inner">
+              <div class="top">
+                <div class="bed">🛏</div>
+                <div class="new-badge">NEW</div>
+              </div>
+              <div class="stack">
+                <div class="t">이번 주말, 호캉스 어디 갈까?</div>
+                <div class="s">꽃 시즌 사이, 도심 속 휴식 15곳</div>
+              </div>
+              <div class="row-cta">
+                <span class="cta">호캉스 보기 →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabbar -->
+          <div class="tabbar">
+            <div class="tab active"><span class="icon">🏠</span></div>
+            <div class="tab"><span class="icon">🗺</span></div>
+            <div class="tab"><span class="icon">🔍</span></div>
+            <div class="tab">
+              <span class="icon">🛏<span class="dot"></span></span>
+            </div>
+            <div class="tab"><span class="icon">⋯</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="spec">
+        <h3 style="margin-top:0">스펙 요약</h3>
+        <ul>
+          <li><strong>탭바 도트</strong> — 8pt <code>secondary #F26D85</code> + 2pt 캔버스 외곽 링. 정적, enter spring 1회.</li>
+          <li><strong>발견 카드</strong> — 132pt 높이, 28 반경, <code>inkDeep → accentGold</code> 그라디언트, NEW 배지(흰 배경 반전), accentGold CTA pill.</li>
+          <li><strong>위치</strong> — TopSpotsSection 아래, 기존 SeasonCurationSlot 위치를 그대로 점유.</li>
+          <li><strong>디스미스</strong> — 통합 boolean <code>hasSeenStays='true'</code>. 탭 진입/카드 탭/X 어느 쪽이든 영구 OFF.</li>
+          <li><strong>중복 방지</strong> — <code>curationSlots</code>에 <code>/stays</code> 활성 슬롯이 있으면 카드 자동 억제.</li>
+          <li><strong>서버 의존</strong> — 0. AsyncStorage 1회 read만.</li>
+        </ul>
+      </div>
+      <p class="note">탭바 도트는 아이콘 프레임 34×34 기준 top:2/right:2에 위치. 외곽 링이 스크롤 그림자 위에서도 도트를 분리시킵니다.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2><span class="num">2</span>상태별 노출 갤러리</h2>
+  <p class="sub">사용자/운영자 상태에 따라 시그널이 어떻게 변하는지</p>
+
+  <div class="gallery">
+
+    <!-- Case A: First-time, no curation -->
+    <div class="case">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar"><span class="title">꽃 어디</span><span>🔔</span></div>
+          <div class="hero-carousel">
+            <div class="hsub">개화 중 · 5곳</div>
+            <div class="hcap">서울숲 벚꽃 절정</div>
+            <div class="dots"><i class="on"></i><i></i><i></i></div>
+          </div>
+          <div class="section-title">지금 인기 명소</div>
+          <div class="top-spots">
+            <div class="top-spot"><div class="img"></div><div class="nm">한강공원</div></div>
+            <div class="top-spot"><div class="img b"></div><div class="nm">남산</div></div>
+            <div class="top-spot"><div class="img c"></div><div class="nm">석촌호수</div></div>
+          </div>
+          <div class="discovery">
+            <div class="pattern"></div>
+            <div class="close">✕</div>
+            <div class="inner">
+              <div class="top"><div class="bed">🛏</div><div class="new-badge">NEW</div></div>
+              <div class="stack">
+                <div class="t">이번 주말, 호캉스 어디 갈까?</div>
+                <div class="s">꽃 시즌 사이, 도심 속 휴식 15곳</div>
+              </div>
+              <div class="row-cta"><span class="cta">호캉스 보기 →</span></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><span class="icon">🏠</span></div>
+            <div class="tab"><span class="icon">🗺</span></div>
+            <div class="tab"><span class="icon">🔍</span></div>
+            <div class="tab"><span class="icon">🛏<span class="dot"></span></span></div>
+            <div class="tab"><span class="icon">⋯</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <strong>케이스 A — 신규 사용자 · 큐레이션 없음</strong>
+        <code>hasSeenStays=null</code> + <code>curationSlots.some(/stays)=false</code><br>
+        탭바 도트 ON, 발견 카드 ON. 가장 흔한 첫 진입 상태.
+      </div>
+    </div>
+
+    <!-- Case B: First-time, curation has /stays -->
+    <div class="case">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar"><span class="title">꽃 어디</span><span>🔔</span></div>
+          <div class="hero-carousel">
+            <div class="hsub">개화 중 · 5곳</div>
+            <div class="hcap">서울숲 벚꽃 절정</div>
+            <div class="dots"><i class="on"></i><i></i><i></i></div>
+          </div>
+          <div class="section-title">지금 인기 명소</div>
+          <div class="top-spots">
+            <div class="top-spot"><div class="img"></div><div class="nm">한강공원</div></div>
+            <div class="top-spot"><div class="img b"></div><div class="nm">남산</div></div>
+            <div class="top-spot"><div class="img c"></div><div class="nm">석촌호수</div></div>
+          </div>
+          <div class="curation">
+            <div class="inner">
+              <span class="b">시즌 큐레이션</span>
+              <div class="stack">
+                <div class="t">봄의 끝, 한 박자 쉬어가는 호캉스</div>
+                <div class="s">4월 운영자 큐레이션 · cta_route=/stays</div>
+              </div>
+              <div class="row-cta"><span class="cta">바로가기 →</span></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><span class="icon">🏠</span></div>
+            <div class="tab"><span class="icon">🗺</span></div>
+            <div class="tab"><span class="icon">🔍</span></div>
+            <div class="tab"><span class="icon">🛏<span class="dot"></span></span></div>
+            <div class="tab"><span class="icon">⋯</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <strong>케이스 B — 신규 사용자 · 큐레이션이 /stays</strong>
+        <code>hasSeenStays=null</code> + <code>curationSlots.some(/stays)=true</code><br>
+        발견 카드 자동 억제(중복 방지). 시즌 큐레이션이 호캉스 동선 책임. 탭바 도트는 유지 — 사용자가 한 번 들어가야 OFF.
+      </div>
+    </div>
+
+    <!-- Case C: Seen -->
+    <div class="case">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="topbar"><span class="title">꽃 어디</span><span>🔔</span></div>
+          <div class="hero-carousel">
+            <div class="hsub">개화 중 · 5곳</div>
+            <div class="hcap">서울숲 벚꽃 절정</div>
+            <div class="dots"><i class="on"></i><i></i><i></i></div>
+          </div>
+          <div class="section-title">지금 인기 명소</div>
+          <div class="top-spots">
+            <div class="top-spot"><div class="img"></div><div class="nm">한강공원</div></div>
+            <div class="top-spot"><div class="img b"></div><div class="nm">남산</div></div>
+            <div class="top-spot"><div class="img c"></div><div class="nm">석촌호수</div></div>
+          </div>
+          <div class="section-title" style="color: var(--textMuted)">곧 끝나는 축제</div>
+          <div class="top-spots">
+            <div class="top-spot"><div class="img" style="background:linear-gradient(135deg,#FFD28A,#F26D85)"></div><div class="nm">진해 군항제</div></div>
+            <div class="top-spot"><div class="img b" style="background:linear-gradient(135deg,#B8E0FF,#6BBF72)"></div><div class="nm">여의도 축제</div></div>
+          </div>
+          <div class="tabbar">
+            <div class="tab active"><span class="icon">🏠</span></div>
+            <div class="tab"><span class="icon">🗺</span></div>
+            <div class="tab"><span class="icon">🔍</span></div>
+            <div class="tab"><span class="icon">🛏</span></div>
+            <div class="tab"><span class="icon">⋯</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <strong>케이스 C — 재방문 · 한 번 본 사용자</strong>
+        <code>hasSeenStays='true'</code><br>
+        모든 시그널 OFF. 도트도 카드도 없음. 평소 홈으로 돌아옴.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2><span class="num">3</span>도트 vs 풀 배지 — 왜 점인가</h2>
+  <p class="sub">탭바 공간이 좁고 라벨이 꺼져 있어 형태 선택이 다르다</p>
+
+  <div class="row">
+    <div class="col" style="flex:0 0 auto">
+      <h3>채택: 8pt 분홍 도트</h3>
+      <div class="phone" style="width:280px">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="tabbar">
+            <div class="tab active"><span class="icon">🏠</span></div>
+            <div class="tab"><span class="icon">🗺</span></div>
+            <div class="tab"><span class="icon">🔍</span></div>
+            <div class="tab"><span class="icon">🛏<span class="dot"></span></span></div>
+            <div class="tab"><span class="icon">⋯</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note"><span class="pill pink">YES</span> 미니멀 탭바와 시각 무게 균형. 형태(원형) + 색(secondary)의 이중 시그널. App Store/토스/당근 모두 동일 패턴.</p>
+    </div>
+
+    <div class="col" style="flex:0 0 auto">
+      <h3>탈락: NEW 풀 배지</h3>
+      <div class="phone" style="width:280px">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="tabbar">
+            <div class="tab active"><span class="icon">🏠</span></div>
+            <div class="tab"><span class="icon">🗺</span></div>
+            <div class="tab"><span class="icon">🔍</span></div>
+            <div class="tab"><span class="icon">🛏<span class="dot big-badge">NEW</span></span></div>
+            <div class="tab"><span class="icon">⋯</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="note"><span class="pill" style="background:#b13443">NO</span> 5탭 좌우 균형 깨짐. 텍스트 11pt 이하로 압축되어 가독성 손상. 라벨 없는 정책(<code>tabBarShowLabel:false</code>)과 충돌.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2><span class="num">4</span>발견 카드 vs 시즌 큐레이션</h2>
+  <p class="sub">잘못 동시 노출되어도 사용자가 즉시 구분 가능하도록 위계 분리</p>
+
+  <div class="grid-2">
+    <div>
+      <h3>발견 카드 (NEW · 일시적)</h3>
+      <div class="discovery" style="position: relative; width: 320px;">
+        <div class="pattern"></div>
+        <div class="close">✕</div>
+        <div class="inner">
+          <div class="top"><div class="bed">🛏</div><div class="new-badge">NEW</div></div>
+          <div class="stack">
+            <div class="t">이번 주말, 호캉스 어디 갈까?</div>
+            <div class="s">꽃 시즌 사이, 도심 속 휴식 15곳</div>
+          </div>
+          <div class="row-cta"><span class="cta">호캉스 보기 →</span></div>
+        </div>
+      </div>
+      <table class="meta-table">
+        <tr><th style="width:36%">높이</th><td>132pt</td></tr>
+        <tr><th>배지</th><td>NEW (10pt, 흰 배경)</td></tr>
+        <tr><th>CTA</th><td>accentGold pill</td></tr>
+        <tr><th>닫기</th><td>✕ 우상단 (44×44 hit)</td></tr>
+        <tr><th>수명</th><td>1회성, 영구 디스미스</td></tr>
+        <tr><th>책임</th><td>신기능 발견</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>시즌 큐레이션 (운영자 · 지속적)</h3>
+      <div class="curation" style="position: relative; width: 320px;">
+        <div class="inner">
+          <span class="b">시즌 큐레이션</span>
+          <div class="stack">
+            <div class="t">봄의 끝, 한 박자 쉬어가는 호캉스</div>
+            <div class="s">4월 운영자 큐레이션</div>
+          </div>
+          <div class="row-cta"><span class="cta">바로가기 →</span></div>
+        </div>
+      </div>
+      <table class="meta-table">
+        <tr><th style="width:36%">높이</th><td>220pt (1.7×)</td></tr>
+        <tr><th>배지</th><td>"시즌 큐레이션" (11pt, inkDeep)</td></tr>
+        <tr><th>CTA</th><td>흰색 pill + inkDeep 텍스트</td></tr>
+        <tr><th>닫기</th><td>없음 (운영 콘텐츠)</td></tr>
+        <tr><th>수명</th><td>운영자 통제, 상시</td></tr>
+        <tr><th>책임</th><td>마케팅 큐레이션</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="note">두 카드는 책임이 다릅니다. 사용자가 잘못 동시 노출을 봐도 "큰 시즌 카드 + 작은 NEW 발견 카드"로 자연 구분. 다만 코드에서 자동 억제(AC-3)로 동시 노출은 차단.</p>
+
+  <!-- ============================================================= -->
+  <h2><span class="num">5</span>토큰 사용</h2>
+  <p class="sub">새 토큰 추가 0. 기존 자산 재사용.</p>
+  <div class="tokens">
+    <div class="tokenBox"><div class="sw" style="background: var(--secondary)"></div><div class="name">secondary</div><div class="hex">#F26D85</div><div class="note" style="margin-top:6px">탭바 도트</div></div>
+    <div class="tokenBox"><div class="sw" style="background: var(--inkDeep)"></div><div class="name">inkDeep</div><div class="hex">#1F2933</div><div class="note" style="margin-top:6px">카드 베이스</div></div>
+    <div class="tokenBox"><div class="sw" style="background: var(--accentGold)"></div><div class="name">accentGold</div><div class="hex">#C8A86A</div><div class="note" style="margin-top:6px">CTA pill + 그라디언트 종점</div></div>
+    <div class="tokenBox"><div class="sw" style="background: var(--canvas)"></div><div class="name">canvas</div><div class="hex">#F8F2EB</div><div class="note" style="margin-top:6px">도트 외곽 링</div></div>
+    <div class="tokenBox"><div class="sw" style="background: #fff; border: 1px solid var(--border);"></div><div class="name">white</div><div class="hex">#FFFFFF</div><div class="note" style="margin-top:6px">NEW 배지 배경 (반전)</div></div>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2><span class="num">6</span>상태 흐름</h2>
+  <p class="sub">한 키 · 통합 boolean 정책</p>
+  <div class="flow">
+    <div><span class="node">앱 첫 실행</span><span class="arrow">→</span><span class="node">hasSeenStays = null</span></div>
+    <div class="branch">
+      <p style="margin: 8px 0 4px; font-size: 13px; font-weight: 700;">홈 진입 시 분기</p>
+      <div><span class="node">curationSlots에 /stays 있음?</span></div>
+      <div class="branch">
+        <div><span class="pill gold">YES</span> <span class="arrow">→</span> 발견 카드 OFF · 탭바 도트 ON</div>
+        <div><span class="pill outline">NO</span> <span class="arrow">→</span> 발견 카드 ON · 탭바 도트 ON</div>
+      </div>
+    </div>
+    <div style="margin-top:18px"><span class="node">[A] 호캉스 탭 진입</span> · <span class="node">[B] 카드 본문 탭</span> · <span class="node">[C] X 디스미스</span></div>
+    <div><span class="arrow">↓ 어느 쪽이든</span></div>
+    <div><span class="node">hasSeenStays = 'true'</span> <span class="arrow">→</span> <span class="pill">탭바 도트 OFF</span> <span class="pill">발견 카드 OFF</span> 영구</div>
+    <p class="note">분리 케이스(탭 들어갔지만 카드는 계속 보고 싶음)는 멘탈 모델 혼란만 야기 → 통합 단일 키.</p>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2><span class="num">7</span>구현 인계 목록</h2>
+  <p class="sub">개발자 페르소나 착수 시 참조</p>
+  <table class="decisions">
+    <thead><tr><th>#</th><th>항목</th><th>파일 경로 (권고)</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>useFeatureSeen('stays')</code> 훅</td><td><code>apps/mobile/src/shared/lib/useFeatureSeen.ts</code> (신규)</td></tr>
+      <tr><td>2</td><td><code>StaysTabIndicator</code> 도트 컴포넌트</td><td><code>apps/mobile/src/features/stays/components/StaysTabIndicator.tsx</code> (신규)</td></tr>
+      <tr><td>3</td><td>탭바에 도트 부착</td><td><code>apps/mobile/app/(tabs)/_layout.tsx</code> stays 탭 <code>tabBarIcon</code></td></tr>
+      <tr><td>4</td><td><code>StaysDiscoveryCard</code> 카드</td><td><code>apps/mobile/src/features/stays/components/StaysDiscoveryCard.tsx</code> (신규)</td></tr>
+      <tr><td>5</td><td>HomeScreen 발견 카드 삽입</td><td><code>HomeScreen.tsx</code> TopSpots 다음, <code>curationSlots.some(/stays)</code> 미충족 시</td></tr>
+      <tr><td>6</td><td>호캉스 탭 진입 시 markSeen</td><td>stays 라우트에서 <code>useFocusEffect</code></td></tr>
+      <tr><td>7</td><td>토큰 추가</td><td><span class="yes">없음</span> · 기존 활용</td></tr>
+      <tr><td>8</td><td>의존성 추가</td><td><span class="yes">없음</span> · expo-haptics 기존</td></tr>
+    </tbody>
+  </table>
+
+</div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 export const colors = {
+  accentGold: '#C8A86A',
   accentPeach: '#FAE5D8',
   background: '#FFFFFF',
   backgroundTint: '#F8F2EB',
@@ -7,6 +8,7 @@ export const colors = {
   cardAlt: '#FAF6F0',
   cardRose: '#FFF6F8',
   cardSun: '#FFF8E6',
+  inkDeep: '#1F2933',
   primary: '#6BBF72',
   primaryDeep: '#4A9554',
   secondary: '#F26D85',
@@ -14,6 +16,7 @@ export const colors = {
   softPink: '#FEEAED',
   softYellow: '#FBF0C0',
   surfaceGreen: '#ECF5EA',
+  surfaceInk: '#F1ECE6',
   surfaceMint: '#E4EFDF',
   surfaceRose: '#FBEAF0',
   text: '#243127',

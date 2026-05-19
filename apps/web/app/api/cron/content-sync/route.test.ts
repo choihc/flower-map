@@ -68,6 +68,11 @@ function buildSupabaseMock(spots: SpotFixture[]) {
     eq: vi.fn().mockResolvedValue({ data: spots, error: null }),
   };
 
+  // 본 테스트 스위트는 spot 흐름만 검증한다. stay 흐름은 별도 스위트(stays 빈 결과)로 위임.
+  const emptyStaysSelectChain = {
+    eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+  };
+
   const from = vi.fn((table: string) => {
     if (table === 'spots') {
       return {
@@ -84,6 +89,18 @@ function buildSupabaseMock(spots: SpotFixture[]) {
       return {
         delete: vi.fn(() => ({ eq: blogDeleteEq })),
         insert: blogInsert,
+      };
+    }
+    if (table === 'stays') {
+      return {
+        select: vi.fn(() => emptyStaysSelectChain),
+      };
+    }
+    if (table === 'stay_videos' || table === 'stay_blogs') {
+      // 호출되지 않아야 한다 (stays 0건 → 후속 delete/insert 미수행).
+      return {
+        delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
+        insert: vi.fn().mockResolvedValue({ error: null }),
       };
     }
     throw new Error(`Unexpected table: ${table}`);

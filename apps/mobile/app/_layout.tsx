@@ -21,6 +21,9 @@ export default function RootLayout() {
           <Stack.Screen name="list" />
           <Stack.Screen name="filters" />
           <Stack.Screen name="spot/[slug]" />
+          <Stack.Screen name="stays/[slug]" />
+          <Stack.Screen name="saved" />
+          <Stack.Screen name="me" />
           <Stack.Screen name="auth/callback" />
           <Stack.Screen name="+not-found" />
         </Stack>

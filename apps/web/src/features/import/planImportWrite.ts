@@ -2,7 +2,7 @@ import type { SpotInsert, SpotRow, SpotUpdate } from '@/lib/types';
 import { buildSpotWriteInput } from '@/lib/data/spots';
 
 import { classifyImport } from './classifyImport';
-import type { ImportPayload } from './importSchema';
+import type { SpotImportPayload } from './importSchema';
 
 type ExistingSpot = Pick<SpotRow, 'id' | 'slug'>;
 
@@ -26,7 +26,7 @@ type PlanImportWriteResult = {
 // photos 필드는 SpotInsert에 없으므로 unknown[]으로 허용 후 제거
 type ImportedSpotInput = Omit<SpotInsert, 'flower_id'> & { photos?: unknown[] };
 
-export function planImportWrite(payload: ImportPayload, options: PlanImportWriteOptions): PlanImportWriteResult {
+export function planImportWrite(payload: SpotImportPayload, options: PlanImportWriteOptions): PlanImportWriteResult {
   const incomingSpots = 'spot' in payload ? [payload.spot] : payload.spots;
   const classified = classifyImport(incomingSpots, options.existingSpots);
 
