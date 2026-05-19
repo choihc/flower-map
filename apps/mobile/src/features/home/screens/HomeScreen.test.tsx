@@ -37,10 +37,10 @@ function wrap(node: ReactNode) {
 }
 
 describe('HomeScreen', () => {
-  it('새 텍스트 헤더 "꽃 어디 & 호캉스 어디?"를 노출한다', async () => {
-    const { getByText } = render(wrap(<HomeScreen />));
+  it('헤더에 로고 이미지를 노출한다', async () => {
+    const { getByTestId } = render(wrap(<HomeScreen />));
     await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
-    expect(getByText('꽃 어디 & 호캉스 어디?')).toBeTruthy();
+    expect(getByTestId('screen-shell-title-image')).toBeTruthy();
   });
 
   it('TopSpotsSection을 렌더한다', async () => {

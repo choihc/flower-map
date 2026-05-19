@@ -58,7 +58,7 @@ export function HomeScreen() {
   );
 
   return (
-    <ScreenShell titleText="꽃 어디 & 호캉스 어디?" titleColor="#C4778A">
+    <ScreenShell>
       {curationSlots.length > 0 ? (
         <View style={styles.curationSection}>
           {curationSlots.map((slot) => (

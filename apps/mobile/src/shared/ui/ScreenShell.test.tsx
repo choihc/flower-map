@@ -13,10 +13,10 @@ describe('ScreenShell', () => {
 
   it('titleText 전달 시 텍스트 헤더(testID=screen-shell-title-text)가 렌더되고 이미지가 사라진다', () => {
     const { getByTestId, queryByTestId } = render(
-      <ScreenShell title="legacy" titleText="꽃 어디 & 호캉스 어디?" />,
+      <ScreenShell title="legacy" titleText="꽃 & 호캉스 어디?" />,
     );
     const text = getByTestId('screen-shell-title-text');
-    expect(text.props.children).toBe('꽃 어디 & 호캉스 어디?');
+    expect(text.props.children).toBe('꽃 & 호캉스 어디?');
     expect(queryByTestId('screen-shell-title-image')).toBeNull();
   });
 
