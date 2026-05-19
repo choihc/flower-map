@@ -73,7 +73,7 @@ export function TopSpotsSection() {
 function SectionHeading() {
   return (
     <View style={styles.heading}>
-      <Text style={styles.title}>오늘의 TOP 10</Text>
+      <Text style={styles.title}>오늘의 꽃 명소 TOP 10</Text>
       <Text style={styles.meta}>지금 지수로 뽑은 추천</Text>
     </View>
   );
