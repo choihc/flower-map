@@ -37,9 +37,8 @@ export function NearbyStaysSection({ spot }: Props) {
 
   if (result.stays.length === 0) return null;
 
-  const radiusLabel = result.usedFallback
-    ? `${spot.place} ${FALLBACK_RADIUS_KM}km 이내`
-    : `${spot.place} ${PRIMARY_RADIUS_KM}km 이내`;
+  const radiusKm = result.usedFallback ? FALLBACK_RADIUS_KM : PRIMARY_RADIUS_KM;
+  const radiusLabel = `${spot.place} ${radiusKm}km 이내`;
 
   // 후보가 limit 이상이면 잘림 가능성으로 간주해 더보기 노출 (스펙 §6.1 단순화)
   const showMore = result.stays.length >= LIMIT;

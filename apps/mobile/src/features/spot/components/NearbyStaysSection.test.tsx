@@ -93,7 +93,7 @@ describe('NearbyStaysSection', () => {
     expect(getByText(/이 명소에서 5\.6km/)).toBeTruthy();
   });
 
-  it('후보가 limit(3) 이하이면 "더보기" 버튼이 미노출', async () => {
+  it('후보가 limit(3) 미만이면 "더보기" 버튼이 미노출', async () => {
     vi.mocked(getPublishedStays).mockResolvedValue([
       makeStay({ id: 'a', latitude: 0.05, longitude: 0 }),
       makeStay({ id: 'b', latitude: 0.07, longitude: 0 }),
