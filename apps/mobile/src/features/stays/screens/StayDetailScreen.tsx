@@ -23,7 +23,7 @@ import { SectionCard } from '../../../shared/ui/SectionCard';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { StoriesSection } from '../../../shared/ui/StoriesSection';
-import { openNaverHotelSearch, resolveBookingQuery } from '../lib/naverHotel';
+import { openAgodaHotelSearch, resolveBookingQuery } from '../lib/affiliateHotel';
 import { formatStayTypeBadge } from '../lib/stayType';
 
 type StayDetailScreenProps = {
@@ -111,7 +111,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   };
 
   const handleBook = () => {
-    openNaverHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride });
+    openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride });
   };
 
   return (

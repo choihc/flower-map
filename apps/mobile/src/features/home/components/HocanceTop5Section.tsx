@@ -10,7 +10,7 @@ import { DIRECTIONS_DISABLED_MESSAGE, openNaverNavigation } from '../../../share
 import { showToast } from '../../../shared/lib/toast';
 import { colors } from '../../../shared/theme/colors';
 import { StayCard } from '../../stays/components/StayCard';
-import { openNaverHotelSearch } from '../../stays/lib/naverHotel';
+import { openAgodaHotelSearch } from '../../stays/lib/affiliateHotel';
 import { staysDetailPath } from '../../stays/routes';
 import { rankStaysForHome } from '../lib/rankStays';
 
@@ -56,7 +56,7 @@ export function HocanceTop5Section() {
                 });
               }}
               onPressBook={() =>
-                openNaverHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
+                openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
               }
             />
           );

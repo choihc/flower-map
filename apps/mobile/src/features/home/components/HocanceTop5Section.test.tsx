@@ -21,8 +21,8 @@ vi.mock('../../../shared/data/spotRepository', () => ({
 vi.mock('expo-router', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
 }));
-vi.mock('../../stays/lib/naverHotel', () => ({
-  openNaverHotelSearch: vi.fn(),
+vi.mock('../../stays/lib/affiliateHotel', () => ({
+  openAgodaHotelSearch: vi.fn(),
 }));
 vi.mock('../../../shared/lib/naverMap', () => ({
   openNaverNavigation: vi.fn(),

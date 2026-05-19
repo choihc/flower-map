@@ -11,7 +11,7 @@ import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { colors } from '../../../shared/theme/colors';
 import { StayCard } from '../components/StayCard';
-import { openNaverHotelSearch } from '../lib/naverHotel';
+import { openAgodaHotelSearch } from '../lib/affiliateHotel';
 
 export function StayListScreen() {
   const router = useRouter();
@@ -63,7 +63,7 @@ export function StayListScreen() {
                 });
               }}
               onPressBook={() =>
-                openNaverHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
+                openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
               }
             />
             {(idx + 1) % 3 === 0 && idx < stays.length - 1 ? <NativeSpotAd /> : null}
