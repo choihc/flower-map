@@ -8,7 +8,7 @@ import { colors } from '../theme/colors';
 const titleImage = require('../../../assets/images/title.png');
 
 type ScreenShellProps = {
-  title: string;
+  title?: string;
   subtitle?: string;
   titleColor?: string;
   titleText?: string;
