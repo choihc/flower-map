@@ -134,9 +134,35 @@ export function StayDetailForm({ stay }: Props) {
         </CardHeader>
         <CardContent className="px-6 pb-6">
           <form action={handleAgodaSubmit} className="space-y-4">
+            <div className="rounded-2xl border border-border bg-background px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-foreground">현재 상태</span>
+                {stay.agoda_hotel_id ? (
+                  <Badge variant="default" className="rounded-full px-2.5 py-1">
+                    직링크 활성
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="rounded-full px-2.5 py-1">
+                    검색 fallback
+                  </Badge>
+                )}
+              </div>
+              {stay.agoda_hotel_id ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">저장된 hid</span>
+                  <code className="rounded bg-blue-600 px-2 py-1 text-base font-semibold text-white">
+                    {stay.agoda_hotel_id}
+                  </code>
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  hid가 설정되지 않아 호텔명 검색으로 fallback됩니다.
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               <label htmlFor="agoda_hotel_id_input" className="text-sm font-medium text-foreground">
-                Agoda URL 또는 hid
+                Agoda URL 또는 hid 입력
               </label>
               <input
                 id="agoda_hotel_id_input"
@@ -146,13 +172,6 @@ export function StayDetailForm({ stay }: Props) {
                 placeholder="https://www.agoda.com/partners/partnersearch.aspx?...hid=24180119 또는 24180119"
                 className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm"
               />
-              {stay.agoda_hotel_id ? (
-                <p className="text-xs text-muted-foreground">
-                  현재 저장된 hid: <code className="rounded bg-muted px-1.5 py-0.5">{stay.agoda_hotel_id}</code>
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">현재 hid가 설정되지 않았습니다 (검색 fallback).</p>
-              )}
             </div>
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={agodaPending}>
