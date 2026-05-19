@@ -90,7 +90,10 @@
     <tr><td>노출 개수</td><td>최대 3개. 초과 시 '더보기 →' → /stays</td></tr>
     <tr><td>0건 정책</td><td>60km까지 0개면 섹션 전체 숨김</td></tr>
     <tr><td>좌표 결측 호텔</td><td>isValidCoordinate 실패 시 후보 제외</td></tr>
-    <tr><td>이번 비포함</td><td>PlaceCard 추상화 · 티켓·맛집 데이터 모델 · 명소 컨텍스트 prefill</td></tr>
+    <tr><td><code>rankStays.ts</code> 반환 타입</td><td><span class="badge b-keep">변경 없음</span> BoostReason 그대로. 라벨 변환은 호출부 책임 (`shared/lib/proximityLabel.ts`).</td></tr>
+    <tr><td>거리 라벨 가드</td><td><code>distanceKm &lt; 0.1</code> 시 "바로 옆" 으로 치환. 0m 같은 어색한 표기 방지.</td></tr>
+    <tr><td>NativeSpotAd</td><td>현 디자인 유지, 위화감은 수동 검증. <span class="badge b-risk">일치화는 별도 PR</span></td></tr>
+    <tr><td>이번 비포함</td><td>PlaceCard 추상화 · 티켓·맛집 데이터 모델 · 명소 컨텍스트 prefill · <strong>광고 슬롯 디자인 일치화</strong></td></tr>
   </tbody>
 </table>
 
@@ -160,16 +163,15 @@ export function NearbyStaysSection({ spot }: Props) { ... }</code></pre>
 <h3>4.3 큐레이션 순수 함수</h3>
 <pre><code>// apps/mobile/src/features/spot/lib/findNearbyStays.ts
 export type NearbyStay = { stay: Stay; distanceKm: number; score: number };
-export type FindNearbyOptions = {
-  limit?: number;            // 기본 3
-  primaryRadiusKm?: number;  // 기본 30
-  fallbackRadiusKm?: number; // 기본 60
+export type NearbyStaysResult = {
+  stays: NearbyStay[];
+  usedFallback: boolean;   // 30km 0건 → 60km 사용 시 true
 };
 export function findNearbyStays(
   spot: FlowerSpot,
   stays: Stay[],
   options?: FindNearbyOptions,
-): NearbyStay[];</code></pre>
+): NearbyStaysResult;</code></pre>
 <ul>
   <li>좌표 결측 호텔 후보 제외</li>
   <li>1차: primaryRadiusKm 이내 후보 → limit 만큼 반환</li>

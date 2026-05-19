@@ -26,7 +26,10 @@
 | 노출 개수 | 최대 **3개**. 더 있으면 **'더보기 →'** → 호캉스 리스트(`/stays`)로 이동 |
 | 0건 정책 | 반경 60km까지도 0개면 섹션 **전체 숨김** |
 | 좌표 결측 호텔 | `isValidCoordinate` 실패 시 후보에서 제외 |
-| 이번 PR 비포함 | PlaceCard 추상화, 티켓·맛집 데이터 모델/카드, '더보기 →' 클릭 시 명소 기반 필터 prefill |
+| `rankStays.ts` 반환 타입 | `BoostReason = { spotName, distanceKm }` **그대로 유지**. 라벨 변환(`label: string`)은 **호출부 책임**. 알고리즘은 데이터만 반환. |
+| 거리 라벨 가드 | `distanceKm < 0.1` (= ~100m 미만) 일 때 거리 표기 대신 "**바로 옆**" 으로 치환. 거리 0m 등 어색한 출력 방지. |
+| 광고 슬롯(`NativeSpotAd`) | 현 디자인 그대로 유지. 가로 카드와의 시각 위화감은 수동 검증(§6.3)에서만 점검. **위화감 발견 시에도 이번 PR 스코프 밖** → 디자인 일치화는 별도 PR 후보로 이전. |
+| 이번 PR 비포함 | PlaceCard 추상화, 티켓·맛집 데이터 모델/카드, '더보기 →' 클릭 시 명소 기반 필터 prefill, **광고 슬롯 디자인 일치화** |
 
 ## 3. 카드 시안 명세
 
@@ -48,6 +51,8 @@
 - **부스트 행**: `boostBadge.spotName + ' ' + formatDistance(boostBadge.distanceKm)` (11px, 분홍 `#8B3A4A`, weight 700). `boostBadge`가 null이면 이 행 숨김.
   - 명소 상세의 `NearbyStaysSection`에서는 "🌸 이 명소에서 6.2km" 형식으로 명소 이름을 생략한다(컨텍스트가 명소 페이지). → **boostBadge prop에 옵셔널 변형** 필요. 자세한 건 §3.4 참조.
 - **CTA 행**: 좌측 태그 칩 최대 2개 (`seasonTags.slice(0, 2)`, 10px) + 우측 `예약 →` 칩 (배경 `colors.primary`, padding 6×10, 11px)
+
+> **빈 boostBadge.label 정책**: 호출부 라벨 책임 분산으로 빈 문자열이 들어올 가능성 있음. `label` 이 빈 문자열이거나 `boostBadge === null`이면 행 자체를 미렌더(렌더 가드는 카드 컴포넌트 내부에서 처리).
 
 ### 3.2 톤 토큰 (변경 없음, 재사용)
 
@@ -71,6 +76,10 @@ export type StayCardProps = {
   - 홈 TOP5: `${spotName}에서 ${formatDistance(distanceKm)}`
   - 명소 상세 NearbyStaysSection: `이 명소에서 ${formatDistance(distanceKm)}`
   - 호캉스 리스트(StayListScreen): boostBadge 미전달 → null → 라인 숨김
+  - **거리 가드 (양쪽 공통)**: `distanceKm < 0.1`이면 거리 토큰 자리에 `'바로 옆'`을 넣는다. 즉
+    - 홈 TOP5: `${spotName} 바로 옆`
+    - 주변 호텔: `이 명소 바로 옆`
+    - 가드 적용 책임도 호출부. `shared/lib/proximityLabel.ts` (또는 동등 위치)에 `formatProximity(distanceKm: number): string` 헬퍼를 두고 두 호출부가 공유한다.
 
 ### 3.4 boostBadge 일반화의 트레이드오프
 
@@ -114,6 +123,11 @@ export function NearbyStaysSection({ spot }: Props) { ... }
 // apps/mobile/src/features/spot/lib/findNearbyStays.ts
 export type NearbyStay = { stay: Stay; distanceKm: number; score: number };
 
+export type NearbyStaysResult = {
+  stays: NearbyStay[];     // limit만큼 잘린 결과
+  usedFallback: boolean;   // 1차(30km) 0건이라 fallback(60km)을 사용했으면 true
+};
+
 export type FindNearbyOptions = {
   limit?: number;          // 기본 3
   primaryRadiusKm?: number; // 기본 30
@@ -124,22 +138,27 @@ export function findNearbyStays(
   spot: FlowerSpot,
   stays: Stay[],
   options?: FindNearbyOptions,
-): NearbyStay[];
+): NearbyStaysResult;
 ```
 
-- 좌표 결측 호텔(`isValidCoordinate(stay.latitude, stay.longitude) === false`) 제외
+> **반환 구조에 `usedFallback` 메타를 포함하는 이유**: `NearbyStaysSection` 헤더 라벨이 "30km 이내" / "60km 이내" 로 분기되어야 하는데, 호출부에서 다시 거리 분포를 검사하지 않고 한 번에 결정할 수 있어야 한다. 알고리즘이 분기를 알고 있으니 메타로 노출.
+
+- 처리 순서(중요): **(1) 좌표 결측 호텔 제외 → (2) 반경 필터 → (3) 점수 계산 → (4) 정렬 → (5) limit 자르기**. 필터가 점수 계산보다 먼저이므로 `proximityNormalized`가 음수가 될 가능성 원천 차단.
 - 1차: `primaryRadiusKm` 이내 후보 산출 + 정렬 → `limit` 만큼 반환
 - 1차 결과가 0건일 때만 2차: `fallbackRadiusKm` 이내로 확장 후 동일 정렬 → `limit` 반환
 - 정렬 점수: `score = 0.7 * (1 - distanceKm / fallbackRadiusKm) + 0.3 * normalizedRating(stay)`
-  - distanceKm는 양수 / `fallbackRadiusKm` 으로 정규화 (가까울수록 1에 가까움)
+  - distanceKm는 양수 / `fallbackRadiusKm` (60km) 으로 정규화 (가까울수록 1에 가까움)
+  - **분모를 항상 fallbackRadiusKm로 고정하는 이유**: 1차/2차 모두 동일 척도로 점수 비교 가능. 다만 1차에서 후보가 30km 이내라 점수가 최소 0.5(=1-30/60) 이상이 되는 점은 의도된 일관성. 추후 튜닝자가 보기 쉽도록 코드에 한 줄 주석으로 남긴다.
   - normalizedRating = `combineRating(stay) / 5` (rankStaysForHome의 헬퍼와 동일 패턴, 재사용 또는 함수 export 후 재사용)
   - 동점 시 `distanceKm` 오름차순으로 결정적
 
 ### 4.4 UI 명세
 
 - 섹션 제목: **"주변 호텔"** + 우측 거리 칩 `${spot.place} 30km 이내` (1차 반경 fallback 시 `60km 이내`)
-- 카드는 §3 명세 그대로, `boostBadge.label = '이 명소에서 ' + formatDistance(distanceKm)`
+- 카드는 §3 명세 그대로, `boostBadge.label = formatProximity(distanceKm, '이 명소')` 형식. 결과: `'이 명소에서 6.2km'` 또는 `'이 명소 바로 옆'`
 - 카드 3개 아래 **"더보기 →"** 버튼 (호캉스 리스트 `/stays`로 라우팅). 후보가 limit(3) 이하이면 더보기 숨김.
+
+> **어휘 일관성 메모**: 같은 섹션 안에서 거리 칩(섹션 헤더)은 명소 이름(`${spot.place}`)을 명시하고, 카드 내부 부스트 라벨은 컨텍스트가 명소 페이지임을 이용해 "이 명소"로 줄인다. 의도된 차이 — 섹션 헤더는 페이지 전반의 메타이고 카드는 그 안의 반복 단위라 짧게.
 
 ### 4.5 데이터 페치 정책
 
@@ -154,7 +173,9 @@ export function findNearbyStays(
 | `apps/mobile/src/features/stays/components/StayCard.test.tsx` | **테스트 갱신** | 사라진 prop 테스트 제거 + 새 레이아웃 검증 |
 | `apps/mobile/src/features/home/components/HocanceTop5Section.tsx` | **호출부 정리** | onPressDirections / directionsDisabled 제거, boostBadge 라벨 포맷 |
 | `apps/mobile/src/features/stays/screens/StayListScreen.tsx` | **호출부 정리** | onPressDirections / directionsDisabled 제거 |
-| `apps/mobile/src/features/home/lib/rankStays.ts` | **반환 형식 변경** | boostReason → boostLabel(string) 변경 또는 호출부에서 라벨 변환 (호출부 변환 권장 — 알고리즘은 데이터만 반환) |
+| `apps/mobile/src/features/home/lib/rankStays.ts` | **변경 없음** | `BoostReason = { spotName, distanceKm }` 그대로. 라벨 변환은 §3.3 결정대로 `HocanceTop5Section` 호출부에서 수행. 기존 단위 테스트도 변경 불요. |
+| `apps/mobile/src/shared/lib/proximityLabel.ts` | **신규** | `formatProximity(distanceKm: number, subject: string): string` — `<0.1km`는 "바로 옆" 분기. 두 호출부(HocanceTop5/NearbyStays) 공유. **내부적으로 기존 `shared/lib/location.ts`의 `formatDistance(km)`를 재사용** — 거리 포매팅 로직 중복 방지. |
+| `apps/mobile/src/shared/lib/proximityLabel.test.ts` | **신규** | 경계값(0, 0.099, 0.1, 1.0, 60.0) 테스트 |
 | `apps/mobile/src/features/spot/lib/findNearbyStays.ts` | **신규** | 순수 함수 + 단위 테스트 |
 | `apps/mobile/src/features/spot/lib/findNearbyStays.test.ts` | **신규** | TDD |
 | `apps/mobile/src/features/spot/components/NearbyStaysSection.tsx` | **신규** | 섹션 컴포넌트 |
@@ -167,9 +188,9 @@ export function findNearbyStays(
 
 - `findNearbyStays`:
   - 좌표 결측 호텔은 후보에서 제외
-  - 30km 이내 후보가 있으면 fallback 미발동 (60km 후보 등장 안 함)
-  - 30km 이내 0개 + 60km 이내 2개면 2개 반환 (fallback 동작)
-  - 30km/60km 모두 0개면 빈 배열
+  - 30km 이내 후보가 있으면 fallback 미발동 (60km 후보 등장 안 함), `usedFallback === false`
+  - 30km 이내 0개 + 60km 이내 2개면 2개 반환 (fallback 동작), `usedFallback === true`
+  - 30km/60km 모두 0개면 `{ stays: [], usedFallback: false }` (fallback 시도했어도 false: 헤더 분기는 노출 카드 기준)
   - 정렬 결정성: 동일 score면 distanceKm 오름차순
   - limit=3 초과 후보 있을 때 3개로 잘림
 
@@ -178,13 +199,21 @@ export function findNearbyStays(
   - 예약 칩 탭으로 onPressBook 호출
   - 카드 탭으로 onPress 호출
   - boostBadge.label 전달 시 해당 라인 렌더, null이면 미렌더
+  - **boostBadge.label = '' (빈 문자열)** 도 라인 미렌더 (가드)
   - 평점 없는 stay에서 별 칩 미렌더
   - 태그가 3개 이상이어도 2개까지만 노출
 
+- `formatProximity`:
+  - `distanceKm = 0` → `'<subject> 바로 옆'`
+  - `distanceKm = 0.099` → `'<subject> 바로 옆'` (경계 미만)
+  - `distanceKm = 0.1` → `'<subject>에서 100m'` (경계 포함, formatDistance 출력)
+  - `distanceKm = 1.0` → `'<subject>에서 1km'`
+  - `distanceKm = 6.2` → `'<subject>에서 6.2km'`
+
 - `NearbyStaysSection`:
   - 0건이면 컴포넌트가 `null` 반환 (testID 미존재)
-  - N건이면 N개 카드 렌더, "더보기" 버튼은 N > limit일 때만 노출
-  - 거리 칩 라벨이 1차 반경이면 "30km 이내", fallback이면 "60km 이내"
+  - N건이면 N개 카드 렌더, "더보기" 버튼은 후보 총 개수(필터 후 미잘림 기준)가 limit 초과일 때만 노출 — 단순화를 위해 이번 PR에서는 **N === limit이면 더보기 노출**(즉 잘렸을 가능성 추정)로 처리 가능. (정확한 잘림 신호가 필요하면 `findNearbyStays` 결과에 `truncated` 메타 추가 — 후속 PR 후보)
+  - 거리 칩 라벨이 `usedFallback === false` 면 "${spot.place} 30km 이내", `true` 면 "${spot.place} 60km 이내"
 
 ### 6.2 회귀 / 통합
 
@@ -207,11 +236,12 @@ export function findNearbyStays(
 - **'더보기 →' 명소 컨텍스트 전달** — 호캉스 리스트에 `?nearSpot=<slug>` 같은 쿼리로 진입해 해당 명소 기반 정렬을 유지.
 - **티켓·맛집 데이터 모델 신설** — 카테고리 통일성을 위한 인프라.
 - **`combineRating` 공유** — `rankStays.ts`의 헬퍼를 `shared/data/rating.ts`로 추출 (이번 PR에서 즉시 필요해지면 그때 추출).
+- **`NativeSpotAd` 디자인 일치화** — 가로형 StayCard와 톤이 안 맞으면 광고 슬롯 디자인을 가로 카드 비율에 맞춰 재디자인. 수동 검증(§6.3)에서 위화감 발견되어도 별도 PR에서 처리.
 
 ## 8. 리스크 / 트레이드오프
 
 - **카드 컴팩트화로 시각 임팩트 감소**: 이미지가 112×112로 축소되어 호텔 분위기 어필이 약해진다. 그러나 호캉스 리스트에서 한 화면 내 비교 가능 카드 수가 늘어나 비교/선택 효율은 개선된다. PM 합의 시 임팩트 보완은 hero 큐레이션(상세 화면)에서 다룬다.
-- **boostBadge 라벨 외부화**: 호출부가 라벨 포맷을 알아야 한다. 라벨 결정 책임을 카드 외부에 두는 게 의도(콘텍스트에 따라 표현이 다름). 라벨 포맷터를 `shared/lib/boostLabel.ts` 같은 곳에 모으면 분산을 막을 수 있음.
+- **boostBadge 라벨 외부화**: 호출부가 라벨 포맷을 알아야 한다. 라벨 결정 책임을 카드 외부에 두는 게 의도(콘텍스트에 따라 표현이 다름). 라벨 포맷터를 `shared/lib/proximityLabel.ts` (§3.3) 에 모아 분산을 막는다.
 - **fallback 반경 60km**: 60km는 자동차 이동 ~1시간. 도서/산악 명소에서 후보가 너무 멀 수 있음. 운영 데이터로 fallback 발동 빈도를 모니터링하고 조정.
 - **rankStaysForHome과의 점수 가중 차이**: 홈 TOP5는 0.5/0.5, 주변 호텔은 0.7/0.3. 의도적으로 다르지만 추후 일관성 검토 필요.
 
