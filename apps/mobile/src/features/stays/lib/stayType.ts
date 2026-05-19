@@ -2,26 +2,24 @@ import type { StayType } from '../../../shared/data/types';
 
 export type StayTypeLabel = {
   ko: string;
-  emoji: string;
 };
 
 const STAY_TYPE_LABELS: Record<StayType, StayTypeLabel> = {
-  city: { ko: '도심', emoji: '🏙' },
-  resort: { ko: '리조트', emoji: '🌊' },
-  poolvilla: { ko: '풀빌라', emoji: '🏝' },
-  onsen: { ko: '온천', emoji: '♨️' },
-  kids: { ko: '키즈', emoji: '🧸' },
-  ocean: { ko: '오션뷰', emoji: '🌊' },
-  island: { ko: '아일랜드', emoji: '🌴' },
+  city: { ko: '도심' },
+  resort: { ko: '리조트' },
+  poolvilla: { ko: '풀빌라' },
+  onsen: { ko: '온천' },
+  kids: { ko: '키즈' },
+  ocean: { ko: '오션뷰' },
+  island: { ko: '아일랜드' },
 };
 
-const FALLBACK_LABEL: StayTypeLabel = { ko: '호텔', emoji: '🏨' };
+const FALLBACK_LABEL: StayTypeLabel = { ko: '호텔' };
 
 export function getStayTypeLabel(type: StayType): StayTypeLabel {
   return STAY_TYPE_LABELS[type] ?? FALLBACK_LABEL;
 }
 
 export function formatStayTypeBadge(type: StayType): string {
-  const { ko, emoji } = getStayTypeLabel(type);
-  return `${emoji} ${ko}`;
+  return getStayTypeLabel(type).ko;
 }
