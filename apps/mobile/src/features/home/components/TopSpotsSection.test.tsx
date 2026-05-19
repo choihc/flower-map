@@ -73,7 +73,7 @@ describe('TopSpotsSection', () => {
     (useQuery as any).mockReturnValue({ data: mockSpots, isLoading: false });
     const { getByText, getByTestId } = render(<TopSpotsSection />);
 
-    expect(getByText('오늘의 꽃 명소 TOP 10')).toBeTruthy();
+    expect(getByText('꽃 명소 TOP 10')).toBeTruthy();
     expect(getByText('TOP 1 명소')).toBeTruthy();
     expect(getByText('TOP 2 명소')).toBeTruthy();
     expect(getByTestId('top-spots-section')).toBeTruthy();
@@ -86,7 +86,7 @@ describe('TopSpotsSection', () => {
     (useQuery as any).mockReturnValue({ data: undefined, isLoading: true });
     const { getByText, getAllByTestId } = render(<TopSpotsSection />);
 
-    expect(getByText('오늘의 꽃 명소 TOP 10')).toBeTruthy();
+    expect(getByText('꽃 명소 TOP 10')).toBeTruthy();
     expect(getAllByTestId('top-spots-skeleton').length).toBeGreaterThan(0);
   });
 
@@ -95,7 +95,7 @@ describe('TopSpotsSection', () => {
     const { getByText, getByTestId } = render(<TopSpotsSection />);
 
     expect(getByTestId('top-spots-section')).toBeTruthy();
-    expect(getByText('오늘의 꽃 명소 TOP 10')).toBeTruthy();
+    expect(getByText('꽃 명소 TOP 10')).toBeTruthy();
     expect(getByText('추천 집계 준비 중')).toBeTruthy();
   });
 

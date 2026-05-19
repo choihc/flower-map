@@ -33,7 +33,7 @@ export function HocanceTop5Section() {
 
   return (
     <View testID="hocance-top5-section" style={styles.container}>
-      <Text style={styles.title}>오늘 여기서 호캉스 어떠세요?</Text>
+      <Text style={styles.title}>꽃 명소 주변 호텔보기</Text>
       <View style={styles.list}>
         {ranked.map(({ stay, boostReason }) => {
           const directionsDisabled = !isValidCoordinate(stay.latitude, stay.longitude);

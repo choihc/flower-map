@@ -86,7 +86,7 @@ describe('HocanceTop5Section', () => {
     const { getByTestId, getByText, getAllByTestId } = render(wrap(<HocanceTop5Section />));
     await flushQueries();
     expect(getByTestId('hocance-top5-section')).toBeTruthy();
-    expect(getByText('오늘 여기서 호캉스 어떠세요?')).toBeTruthy();
+    expect(getByText('꽃 명소 주변 호텔보기')).toBeTruthy();
     expect(getAllByTestId('stay-card').length).toBeGreaterThan(0);
   });
 
