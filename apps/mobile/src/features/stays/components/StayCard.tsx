@@ -1,6 +1,7 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Stay, StayRating } from '../../../shared/data/types';
+import { formatDistance } from '../../../shared/lib/location';
 import { colors } from '../../../shared/theme/colors';
 import { formatStayTypeBadge } from '../lib/stayType';
 
@@ -10,6 +11,7 @@ export type StayCardProps = {
   onPressDirections: () => void;
   onPressBook: () => void;
   directionsDisabled?: boolean;
+  boostBadge?: { spotName: string; distanceKm: number } | null;
 };
 
 const TAG_TONE_BG = [colors.surfaceGreen, colors.softPink, colors.softYellow];
@@ -34,6 +36,7 @@ export function StayCard({
   onPressDirections,
   onPressBook,
   directionsDisabled = false,
+  boostBadge,
 }: StayCardProps) {
   const tags = stay.seasonTags.slice(0, 3);
   const rating = pickTopRating(stay);
@@ -82,6 +85,14 @@ export function StayCard({
         ) : null}
 
         <Text style={styles.tagline} numberOfLines={2}>{stay.shortTagline}</Text>
+
+        {boostBadge ? (
+          <View testID="stay-card-boost-badge" style={styles.boostBadge}>
+            <Text style={styles.boostBadgeText}>
+              {`${boostBadge.spotName}에서 ${formatDistance(boostBadge.distanceKm)}`}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.ctaRow}>
@@ -235,6 +246,19 @@ const styles = StyleSheet.create({
   },
   typeBadgeText: {
     color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  boostBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.softPink,
+    borderRadius: 999,
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  boostBadgeText: {
+    color: '#8B3A4A',
     fontSize: 12,
     fontWeight: '700',
   },

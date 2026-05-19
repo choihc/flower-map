@@ -239,4 +239,43 @@ describe('StayCard', () => {
     asEl(getByTestId('stay-card')).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it('boostBadge prop이 주어지면 부스트 사유 칩을 렌더한다', () => {
+    const { getByText } = render(
+      <StayCard
+        stay={baseStay}
+        onPress={() => {}}
+        onPressDirections={() => {}}
+        onPressBook={() => {}}
+        boostBadge={{ spotName: '장미공원', distanceKm: 5.6 }}
+      />,
+    );
+    // formatDistance(5.6) → "5.6km"
+    expect(getByText('장미공원에서 5.6km')).toBeTruthy();
+  });
+
+  it('boostBadge가 null이면 부스트 사유 칩을 렌더하지 않는다', () => {
+    const { queryByText } = render(
+      <StayCard
+        stay={baseStay}
+        onPress={() => {}}
+        onPressDirections={() => {}}
+        onPressBook={() => {}}
+        boostBadge={null}
+      />,
+    );
+    expect(queryByText(/에서 \d+/)).toBeNull();
+  });
+
+  it('boostBadge prop 미전달 시 기존 동작 그대로 (부스트 칩 없음)', () => {
+    const { queryByText } = render(
+      <StayCard
+        stay={baseStay}
+        onPress={() => {}}
+        onPressDirections={() => {}}
+        onPressBook={() => {}}
+      />,
+    );
+    expect(queryByText(/에서 \d+/)).toBeNull();
+  });
 });
