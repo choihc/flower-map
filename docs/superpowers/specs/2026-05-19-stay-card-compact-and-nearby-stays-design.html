@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>StayCard 컴팩트화 + 명소→호텔 연계 설계</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", sans-serif; color:#1f2933; margin:0; background:#f7f8fa; line-height:1.6; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 28px 80px; background:#fff; min-height:100vh; box-shadow:0 0 30px rgba(0,0,0,.03); }
+  h1 { font-size: 26px; letter-spacing:-.4px; margin: 0 0 4px; }
+  h2 { font-size: 19px; letter-spacing:-.3px; margin: 32px 0 12px; padding-top:18px; border-top:1px solid #eef1f4; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color:#3a4651; }
+  p, li { font-size: 14px; }
+  .meta { color:#7a8693; font-size:13px; margin-bottom:18px; }
+  .summary { background:#f3f7f4; border-left:3px solid #2E6B35; padding:14px 16px; border-radius:8px; margin: 14px 0 24px; font-size:13.5px; }
+  .summary strong { color:#1f4926; }
+  table { width:100%; border-collapse:collapse; margin: 8px 0 14px; font-size:13px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #eef1f4; vertical-align:top; }
+  th { background:#fafbfc; font-weight:700; font-size:12px; letter-spacing:.3px; color:#3a4651; }
+  code { background:#f3f5f7; padding:1px 6px; border-radius:4px; font-size:12.5px; font-family: "SF Mono", Consolas, monospace; }
+  pre { background:#1f2933; color:#e3e6ea; padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:12.5px; line-height:1.55; }
+  pre code { background:none; color:inherit; padding:0; }
+  .toc { background:#fafbfc; border:1px solid #eef1f4; border-radius:8px; padding:12px 16px; margin: 6px 0 18px; }
+  .toc a { color:#2E6B35; text-decoration:none; font-size:13px; }
+  .toc a:hover { text-decoration:underline; }
+  .toc ul { margin:6px 0 0; padding-left:18px; columns:2; column-gap:18px; }
+  .toc li { font-size:13px; line-height:1.7; break-inside: avoid; }
+  .badge { display:inline-block; padding:1px 8px; border-radius:6px; font-size:11px; font-weight:700; letter-spacing:.2px; margin-right:4px; }
+  .b-keep   { background:#E6F4EA; color:#2E6B35; }
+  .b-change { background:#FFF6D6; color:#6A5500; }
+  .b-remove { background:#FCE4EC; color:#8B3A4A; }
+  .b-new    { background:#E3F2FD; color:#1565C0; }
+  .b-risk   { background:#FFE3E3; color:#A03434; }
+  .stay-mock { background:#fff; border:1px solid #e3e6ea; border-radius:18px; overflow:hidden; display:flex; max-width:380px; margin:14px 0; }
+  .stay-hero { width:112px; height:112px; flex-shrink:0; background:linear-gradient(135deg,#cfd6dd,#e6e9ed); position:relative; }
+  .stay-typebadge { position:absolute; top:6px; left:6px; background:rgba(31,41,51,.92); color:#fff; font-size:10px; font-weight:700; padding:3px 7px; border-radius:999px; }
+  .stay-body { padding:10px 12px; flex:1; display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .stay-name { font-size:15px; font-weight:800; letter-spacing:-0.3px; color:#1f2933; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .stay-rating { font-size:11px; font-weight:700; color:#1f2933; flex-shrink:0; }
+  .stay-meta { color:#7a8693; font-size:11px; }
+  .stay-boost { color:#8B3A4A; font-size:11px; font-weight:700; }
+  .stay-tag { font-size:10px; font-weight:700; padding:3px 7px; border-radius:999px; }
+  .stay-cta { background:#2E6B35; color:#fff; border-radius:999px; padding:6px 10px; font-weight:700; font-size:11px; }
+  .ascii { font-family:"SF Mono", Consolas, monospace; font-size:12px; background:#1f2933; color:#e3e6ea; padding:14px 18px; border-radius:8px; white-space:pre; overflow-x:auto; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>StayCard 컴팩트화 + 명소 → 호텔 연계 강화</h1>
+<div class="meta">2026-05-19 · feat/home-hocance-integration · 호캉스 Phase 2 후속</div>
+
+<div class="summary">
+<strong>핵심 요약.</strong> StayCard를 가로형(112×112 이미지 + 우측 정보)으로 컴팩트화하면서 길찾기 버튼을 제거하고, 명소 상세 화면에 '주변 호텔' 섹션을 신설해 꽃 명소 ↔ 호텔 연계를 동선으로 연결한다. 카드 정체성은 <strong>예약 전환 1순위</strong>로 유지하되, 큐레이션 정책은 <strong>거리 0.7 + 평점 0.3</strong>으로 명소 옆 호텔 가중을 강화한다. PlaceCard 추상화·티켓/맛집 카테고리는 별도 PR.
+</div>
+
+<div class="toc">
+<strong>목차</strong>
+<ul>
+  <li><a href="#bg">1. 배경 / 목적</a></li>
+  <li><a href="#decisions">2. 합의 사항</a></li>
+  <li><a href="#card">3. 카드 시안</a></li>
+  <li><a href="#nearby">4. 주변 호텔 섹션</a></li>
+  <li><a href="#files">5. 변경 파일</a></li>
+  <li><a href="#test">6. 테스트 전략</a></li>
+  <li><a href="#future">7. 후속 PR 후보</a></li>
+  <li><a href="#risk">8. 리스크</a></li>
+  <li><a href="#dod">9. Done 기준</a></li>
+</ul>
+</div>
+
+<h2 id="bg">1. 배경 / 목적</h2>
+<ul>
+  <li>호캉스 Phase 2(2026-05-12) 이후 <code>StayCard</code>가 약 400px로 커서 두 화면(홈 TOP5 / 호캉스 리스트) 모두 스크롤 부담. 길찾기 버튼은 실사용 비율이 낮다.</li>
+  <li>꽃 명소 ↔ 호텔 연계는 카드 단위가 아닌 <strong>컨텍스트(섹션)</strong>에서 강화해야 한다. 명소 상세 화면에서 "이 명소 옆에서 자고 갈 곳" 동선이 단절돼 있다.</li>
+  <li>향후 명소/티켓/맛집 카테고리 확장의 <strong>첫 적용 사례</strong>. 이번 PR은 호텔 케이스만 구현, PlaceCard 추상화는 후속.</li>
+</ul>
+
+<h2 id="decisions">2. 합의된 결정 사항</h2>
+<table>
+  <thead><tr><th style="width:30%">항목</th><th>결정</th></tr></thead>
+  <tbody>
+    <tr><td>카드 정체성</td><td><span class="badge b-keep">예약 전환 1순위</span> 호텔 프로모션 쇼케이스. 꽃 명소 정보는 보조 메타.</td></tr>
+    <tr><td>카드 형태</td><td>가로형 — 좌 이미지 112×112 + 우 정보 + 우하단 예약 칩</td></tr>
+    <tr><td>두 화면 적용</td><td>홈 TOP5 / 호캉스 리스트 동일 카드 하나로 통일</td></tr>
+    <tr><td>길찾기</td><td><span class="badge b-remove">제거</span> 카드에서 완전히 사라짐</td></tr>
+    <tr><td>예약 동선</td><td>카드 전체 탭 = 상세 / 우하단 칩 = openAgodaHotelSearch</td></tr>
+    <tr><td>주변 호텔 섹션</td><td><span class="badge b-new">신설</span> '비슷한 꽃 명소' 섹션 <strong>위</strong>에 배치</td></tr>
+    <tr><td>큐레이션 반경</td><td>30km 우선, 1차 0건이면 <strong>60km fallback</strong></td></tr>
+    <tr><td>큐레이션 정렬</td><td><code>score = 0.7×proximity + 0.3×rating</code></td></tr>
+    <tr><td>노출 개수</td><td>최대 3개. 초과 시 '더보기 →' → /stays</td></tr>
+    <tr><td>0건 정책</td><td>60km까지 0개면 섹션 전체 숨김</td></tr>
+    <tr><td>좌표 결측 호텔</td><td>isValidCoordinate 실패 시 후보 제외</td></tr>
+    <tr><td>이번 비포함</td><td>PlaceCard 추상화 · 티켓·맛집 데이터 모델 · 명소 컨텍스트 prefill</td></tr>
+  </tbody>
+</table>
+
+<h2 id="card">3. 카드 시안 명세</h2>
+
+<h3>3.1 레이아웃</h3>
+<div class="stay-mock">
+  <div class="stay-hero"><div class="stay-typebadge">호텔</div></div>
+  <div class="stay-body">
+    <div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start">
+      <div class="stay-name">소노캄 거제</div>
+      <span class="stay-rating">★ 4.6</span>
+    </div>
+    <div class="stay-meta">경상남도 · 거제시</div>
+    <div class="stay-boost">🌸 학동흑진주몽돌 6.2km</div>
+    <div style="display:flex;gap:4px;margin-top:auto;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:4px">
+        <span class="stay-tag" style="background:#E6F4EA;color:#2E6B35">바다뷰</span>
+        <span class="stay-tag" style="background:#FCE4EC;color:#8B3A4A">가족</span>
+      </div>
+      <span class="stay-cta">예약 →</span>
+    </div>
+  </div>
+</div>
+<p>카드 전체 높이 ≈ <strong>112px</strong> (이미지 높이 = 카드 높이). 현재 ~400px 대비 <strong>-72%</strong>.</p>
+
+<h3>3.2 prop 시그니처 (Breaking change)</h3>
+<pre><code>export type StayCardProps = {
+  stay: Stay;
+  onPress: () => void;        // 카드 전체 탭 → 상세
+  onPressBook: () => void;    // 우하단 예약 칩 탭
+  boostBadge?: { label: string } | null;  // 라벨 형식으로 일반화
+};</code></pre>
+<ul>
+  <li><span class="badge b-remove">제거</span> <code>onPressDirections</code>, <code>directionsDisabled</code></li>
+  <li><span class="badge b-change">변경</span> boostBadge: <code>{ spotName, distanceKm }</code> → <code>{ label: string }</code></li>
+  <li>홈 TOP5 라벨: <code>${spotName}에서 ${formatDistance(distanceKm)}</code></li>
+  <li>주변 호텔 라벨: <code>이 명소에서 ${formatDistance(distanceKm)}</code></li>
+  <li>호캉스 리스트: boostBadge 미전달 → 라인 숨김</li>
+</ul>
+
+<h2 id="nearby">4. NearbyStaysSection 명세</h2>
+
+<h3>4.1 SpotDetailScreen 내 위치</h3>
+<div class="ascii">SpotHeroCard
+SpotStoriesSection
+SpotPhotoGallery
+LikeButton
+MetaRow (축제/입장료)
+SectionCard '방문 정보'
+NativeSpotAd
+SectionCard '소개'
+SectionCard '팁'
+NearbyStaysSection          ← 신설
+SectionCard '비슷한 꽃 명소'</div>
+
+<h3>4.2 컴포넌트 인터페이스</h3>
+<pre><code>// apps/mobile/src/features/spot/components/NearbyStaysSection.tsx
+type Props = { spot: FlowerSpot };
+export function NearbyStaysSection({ spot }: Props) { ... }</code></pre>
+<ul>
+  <li>내부에서 <code>useQuery(stayKeys.all, getPublishedStays)</code> 호출 (기존 캐시 공유)</li>
+  <li><code>findNearbyStays(spot, stays)</code> 순수 함수로 후보 산출</li>
+  <li>0건이면 <code>null</code> 반환 (섹션 자체 숨김)</li>
+</ul>
+
+<h3>4.3 큐레이션 순수 함수</h3>
+<pre><code>// apps/mobile/src/features/spot/lib/findNearbyStays.ts
+export type NearbyStay = { stay: Stay; distanceKm: number; score: number };
+export type FindNearbyOptions = {
+  limit?: number;            // 기본 3
+  primaryRadiusKm?: number;  // 기본 30
+  fallbackRadiusKm?: number; // 기본 60
+};
+export function findNearbyStays(
+  spot: FlowerSpot,
+  stays: Stay[],
+  options?: FindNearbyOptions,
+): NearbyStay[];</code></pre>
+<ul>
+  <li>좌표 결측 호텔 후보 제외</li>
+  <li>1차: primaryRadiusKm 이내 후보 → limit 만큼 반환</li>
+  <li>1차 0건일 때만 2차: fallbackRadiusKm 이내로 확장</li>
+  <li><code>score = 0.7 × (1 - d/fallbackRadiusKm) + 0.3 × normalizedRating</code></li>
+  <li>동점 시 distanceKm 오름차순으로 결정적</li>
+</ul>
+
+<h3>4.4 UI 명세</h3>
+<ul>
+  <li>섹션 제목: <strong>주변 호텔</strong> + 거리 칩 <code>${spot.place} 30km 이내</code> (fallback 시 60km)</li>
+  <li>카드 boostBadge.label: <code>이 명소에서 ${formatDistance(distanceKm)}</code></li>
+  <li>3개 아래 <strong>더보기 →</strong> 버튼 (/stays 라우팅). 후보가 limit 이하면 더보기 숨김</li>
+</ul>
+
+<h2 id="files">5. 변경되는 파일</h2>
+<table>
+  <thead><tr><th>파일</th><th>변경</th></tr></thead>
+  <tbody>
+    <tr><td><code>features/stays/components/StayCard.tsx</code></td><td><span class="badge b-change">전면 리뉴얼</span></td></tr>
+    <tr><td><code>features/stays/components/StayCard.test.tsx</code></td><td><span class="badge b-change">테스트 갱신</span></td></tr>
+    <tr><td><code>features/home/components/HocanceTop5Section.tsx</code></td><td><span class="badge b-change">호출부 정리</span></td></tr>
+    <tr><td><code>features/stays/screens/StayListScreen.tsx</code></td><td><span class="badge b-change">호출부 정리</span></td></tr>
+    <tr><td><code>features/home/lib/rankStays.ts</code></td><td><span class="badge b-change">라벨 변환은 호출부로</span></td></tr>
+    <tr><td><code>features/spot/lib/findNearbyStays.ts</code></td><td><span class="badge b-new">신규</span></td></tr>
+    <tr><td><code>features/spot/lib/findNearbyStays.test.ts</code></td><td><span class="badge b-new">신규 (TDD)</span></td></tr>
+    <tr><td><code>features/spot/components/NearbyStaysSection.tsx</code></td><td><span class="badge b-new">신규</span></td></tr>
+    <tr><td><code>features/spot/components/NearbyStaysSection.test.tsx</code></td><td><span class="badge b-new">신규</span></td></tr>
+    <tr><td><code>features/spot/screens/SpotDetailScreen.tsx</code></td><td><span class="badge b-change">섹션 삽입</span></td></tr>
+  </tbody>
+</table>
+
+<h2 id="test">6. 테스트 전략</h2>
+<h3>6.1 단위 (TDD)</h3>
+<ul>
+  <li>findNearbyStays: 좌표 결측 제외 · 1차 후보 있을 때 fallback 미발동 · 1차 0건 + 2차 N건 → fallback 동작 · 60km도 0건이면 빈 배열 · 동점 시 distanceKm 오름차순 · limit 잘림</li>
+  <li>StayCard: 길찾기 버튼 미렌더 · 예약/카드 탭 콜백 호출 · boostBadge null이면 라인 미렌더 · 평점 없을 때 별 칩 미렌더 · 태그 3개 이상이어도 2개만</li>
+  <li>NearbyStaysSection: 0건 null 반환 · N건 카드 N개 + 더보기는 N > limit일 때만 · 거리 칩 라벨 1차/2차 분기</li>
+</ul>
+<h3>6.2 회귀 / 통합 / 수동</h3>
+<ul>
+  <li>호캉스 리스트 광고 슬롯(3개 간격) 위화감 점검</li>
+  <li>홈 TOP5에 boost 있는/없는 카드 섞일 때 높이 동일</li>
+  <li>명소 상세 (좌표 정상/외딴/좌표 결측 각각)</li>
+</ul>
+
+<h2 id="future">7. 후속 PR 후보</h2>
+<ul>
+  <li><strong>PlaceCard 추상화</strong> — 좌이미지+우정보 패턴 일반화</li>
+  <li><strong>'더보기 →' 명소 컨텍스트 전달</strong> — /stays?nearSpot=&lt;slug&gt;</li>
+  <li><strong>티켓·맛집 데이터 모델</strong></li>
+  <li><strong>combineRating 공유</strong> — rankStays.ts의 헬퍼를 shared로 추출</li>
+</ul>
+
+<h2 id="risk">8. 리스크 / 트레이드오프</h2>
+<ul>
+  <li><span class="badge b-risk">시각 임팩트</span> 이미지 112×112로 축소되어 분위기 어필 약화. 비교 효율은 개선.</li>
+  <li><span class="badge b-risk">라벨 외부화</span> 호출부가 라벨 포맷 책임. 컨텍스트별로 다르므로 의도된 분산.</li>
+  <li><span class="badge b-risk">fallback 60km</span> 도서·산악 명소에서 너무 멀 수도. 운영 데이터로 빈도 모니터링.</li>
+  <li><span class="badge b-risk">가중치 차이</span> 홈 0.5/0.5 vs 주변 0.7/0.3. 의도적 차이지만 추후 일관성 검토.</li>
+</ul>
+
+<h2 id="dod">9. Definition of Done</h2>
+<ul>
+  <li>§6 단위/통합 테스트 모두 그린</li>
+  <li><code>tsc --noEmit</code> 통과</li>
+  <li>수동 검증 6항 OK</li>
+  <li>기존 미해결 PM 항목과 별개로 다뤄짐 — 이 PR이 추가로 막지 않음</li>
+</ul>
+
+</div>
+</body>
+</html>

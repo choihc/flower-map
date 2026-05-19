@@ -29,3 +29,6 @@ android/
 # TypeScript
 *.tsbuildinfo
 .worktrees/
+
+# Superpowers brainstorm mockups
+.superpowers/
