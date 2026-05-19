@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ImageUploader } from '@/features/spots/ImageUploader';
 import type { StayRow } from '@/lib/types';
 
-import { updateStayThumbnailAction } from './actions';
+import { updateStayAgodaHotelIdAction, updateStayThumbnailAction } from './actions';
 
 type Props = {
   stay: StayRow;
@@ -24,6 +24,26 @@ export function StayDetailForm({ stay }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+
+  const [agodaPending, startAgodaTransition] = useTransition();
+  const [agodaMessage, setAgodaMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+
+  function handleAgodaSubmit(formData: FormData) {
+    const raw = String(formData.get('agoda_hotel_id_input') ?? '');
+    setAgodaMessage(null);
+    startAgodaTransition(async () => {
+      try {
+        await updateStayAgodaHotelIdAction(stay.id, raw);
+        setAgodaMessage({ kind: 'success', text: 'Agoda 호텔 ID를 저장했습니다.' });
+        router.refresh();
+      } catch (error) {
+        setAgodaMessage({
+          kind: 'error',
+          text: error instanceof Error ? error.message : 'Agoda 호텔 ID 저장 중 오류가 발생했습니다.',
+        });
+      }
+    });
+  }
 
   function handleSubmit(formData: FormData) {
     const thumbnailUrl = String(formData.get('thumbnail_url') ?? '');
@@ -101,6 +121,57 @@ export function StayDetailForm({ stay }: Props) {
               {stay.is_featured ? '대표' : '일반'}
             </Badge>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden xl:col-span-full">
+        <CardHeader className="px-6 py-6">
+          <CardTitle>Agoda 호텔 ID (예약 직링크)</CardTitle>
+          <CardDescription>
+            Agoda Partners 검색 결과 페이지 URL을 그대로 붙여넣거나 hid 숫자만 입력하세요.
+            비우면 호텔명 검색으로 자동 fallback됩니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-6 pb-6">
+          <form action={handleAgodaSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="agoda_hotel_id_input" className="text-sm font-medium text-foreground">
+                Agoda URL 또는 hid
+              </label>
+              <input
+                id="agoda_hotel_id_input"
+                name="agoda_hotel_id_input"
+                type="text"
+                defaultValue={stay.agoda_hotel_id ?? ''}
+                placeholder="https://www.agoda.com/partners/partnersearch.aspx?...hid=24180119 또는 24180119"
+                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm"
+              />
+              {stay.agoda_hotel_id ? (
+                <p className="text-xs text-muted-foreground">
+                  현재 저장된 hid: <code className="rounded bg-muted px-1.5 py-0.5">{stay.agoda_hotel_id}</code>
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">현재 hid가 설정되지 않았습니다 (검색 fallback).</p>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={agodaPending}>
+                저장
+              </Button>
+              {agodaMessage ? (
+                <p
+                  className={
+                    agodaMessage.kind === 'success'
+                      ? 'text-sm text-foreground'
+                      : 'text-sm text-destructive'
+                  }
+                  role={agodaMessage.kind === 'error' ? 'alert' : undefined}
+                >
+                  {agodaMessage.text}
+                </p>
+              ) : null}
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

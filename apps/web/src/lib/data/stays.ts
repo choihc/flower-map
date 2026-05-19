@@ -17,6 +17,7 @@ export function buildStayWriteInput(input: StayWriteDraft): StayInsert {
     ...input,
     thumbnail_url: emptyToNull(input.thumbnail_url),
     booking_query_override: emptyToNull(input.booking_query_override),
+    agoda_hotel_id: emptyToNull(input.agoda_hotel_id),
     season_window_start: emptyToNull(input.season_window_start),
     season_window_end: emptyToNull(input.season_window_end),
     naver_rating_score: numberToNull(input.naver_rating_score),
@@ -86,6 +87,19 @@ export async function updateStayThumbnail(
 
   if (error != null) throw error;
   return data as StayRow;
+}
+
+/**
+ * 호텔 Agoda 호텔 ID(hid) 업데이트. null이면 컬럼을 비움 (검색 fallback).
+ */
+export async function updateStayAgodaHotelId(
+  client: SupabaseClient<Database>,
+  id: string,
+  agodaHotelId: string | null,
+): Promise<void> {
+  const update: StayUpdate = { agoda_hotel_id: agodaHotelId };
+  const { error } = await (client.from('stays') as any).update(update).eq('id', id);
+  if (error != null) throw error;
 }
 
 export async function findStayBySlug(
