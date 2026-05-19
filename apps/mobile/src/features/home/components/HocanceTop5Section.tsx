@@ -5,9 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getTopSpots, spotKeys } from '../../../shared/data/spotRepository';
 import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository';
-import { isValidCoordinate } from '../../../shared/lib/coordinate';
-import { DIRECTIONS_DISABLED_MESSAGE, openNaverNavigation } from '../../../shared/lib/naverMap';
-import { showToast } from '../../../shared/lib/toast';
+import { formatProximity } from '../../../shared/lib/proximityLabel';
 import { colors } from '../../../shared/theme/colors';
 import { StayCard } from '../../stays/components/StayCard';
 import { openAgodaHotelSearch } from '../../stays/lib/affiliateHotel';
@@ -36,25 +34,15 @@ export function HocanceTop5Section() {
       <Text style={styles.title}>꽃 명소 주변 호텔보기</Text>
       <View style={styles.list}>
         {ranked.map(({ stay, boostReason }) => {
-          const directionsDisabled = !isValidCoordinate(stay.latitude, stay.longitude);
+          const boostBadge = boostReason
+            ? { label: formatProximity(boostReason.distanceKm, boostReason.spotName) }
+            : null;
           return (
             <StayCard
               key={stay.id}
               stay={stay}
-              boostBadge={boostReason}
-              directionsDisabled={directionsDisabled}
+              boostBadge={boostBadge}
               onPress={() => router.push(staysDetailPath(stay.slug))}
-              onPressDirections={() => {
-                if (directionsDisabled) {
-                  showToast(DIRECTIONS_DISABLED_MESSAGE);
-                  return;
-                }
-                openNaverNavigation({
-                  name: stay.name,
-                  latitude: stay.latitude,
-                  longitude: stay.longitude,
-                });
-              }}
               onPressBook={() =>
                 openAgodaHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
               }

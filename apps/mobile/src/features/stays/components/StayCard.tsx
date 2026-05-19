@@ -1,24 +1,20 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Stay, StayRating } from '../../../shared/data/types';
-import { formatDistance } from '../../../shared/lib/location';
 import { colors } from '../../../shared/theme/colors';
 import { formatStayTypeBadge } from '../lib/stayType';
 
 export type StayCardProps = {
   stay: Stay;
   onPress: () => void;
-  onPressDirections: () => void;
   onPressBook: () => void;
-  directionsDisabled?: boolean;
-  boostBadge?: { spotName: string; distanceKm: number } | null;
+  boostBadge?: { label: string } | null;
 };
 
-const TAG_TONE_BG = [colors.surfaceGreen, colors.softPink, colors.softYellow];
-const TAG_TONE_FG = ['#2E6B35', '#8B3A4A', '#6A5500'];
+const TAG_TONE_BG = [colors.surfaceGreen, colors.softPink];
+const TAG_TONE_FG = ['#2E6B35', '#8B3A4A'];
 
 const TYPE_BADGE_BG = 'rgba(31, 41, 51, 0.92)';
-const RATING_CHIP_BG = 'rgba(255, 255, 255, 0.94)';
 
 function isValidRating(r: StayRating | null): r is StayRating {
   return r !== null && Number.isFinite(r.score);
@@ -30,16 +26,10 @@ function pickTopRating(stay: Stay): StayRating | null {
   return candidates.reduce((a, b) => (a.score >= b.score ? a : b));
 }
 
-export function StayCard({
-  stay,
-  onPress,
-  onPressDirections,
-  onPressBook,
-  directionsDisabled = false,
-  boostBadge,
-}: StayCardProps) {
-  const tags = stay.seasonTags.slice(0, 3);
+export function StayCard({ stay, onPress, onPressBook, boostBadge }: StayCardProps) {
+  const tags = stay.seasonTags.slice(0, 2);
   const rating = pickTopRating(stay);
+  const showBoost = boostBadge != null && boostBadge.label.length > 0;
 
   return (
     <Pressable testID="stay-card" onPress={onPress} style={styles.card}>
@@ -57,122 +47,74 @@ export function StayCard({
         <View style={styles.typeBadge}>
           <Text style={styles.typeBadgeText}>{formatStayTypeBadge(stay.stayType)}</Text>
         </View>
-        {rating ? (
-          <View testID="stay-card-rating" style={styles.ratingChip}>
-            <Text style={styles.ratingStar}>★</Text>
-            <Text style={styles.ratingText}>{rating.score.toFixed(1)}</Text>
-          </View>
-        ) : null}
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.name} numberOfLines={1}>{stay.name}</Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={1}>{stay.name}</Text>
+          {rating ? (
+            <Text testID="stay-card-rating" style={styles.rating}>
+              ★ {rating.score.toFixed(1)}
+            </Text>
+          ) : null}
+        </View>
+
         <Text style={styles.region} numberOfLines={1}>
           {stay.regionPrimary} · {stay.regionSecondary}
         </Text>
 
-        {tags.length > 0 ? (
-          <View testID="stay-card-tags" style={styles.tagRow}>
-            {tags.map((tag, idx) => (
-              <View
-                key={tag}
-                style={[styles.tag, { backgroundColor: TAG_TONE_BG[idx] ?? colors.surfaceGreen }]}
-              >
-                <Text style={[styles.tagText, { color: TAG_TONE_FG[idx] ?? colors.text }]}>{tag}</Text>
-              </View>
-            ))}
-          </View>
+        {showBoost ? (
+          <Text testID="stay-card-boost-badge" style={styles.boost} numberOfLines={1}>
+            🌸 {boostBadge!.label}
+          </Text>
         ) : null}
 
-        <Text style={styles.tagline} numberOfLines={2}>{stay.shortTagline}</Text>
-
-        {boostBadge ? (
-          <View testID="stay-card-boost-badge" style={styles.boostBadge}>
-            <Text style={styles.boostBadgeText}>
-              {`${boostBadge.spotName}에서 ${formatDistance(boostBadge.distanceKm)}`}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.ctaRow}>
-        <Pressable
-          testID="stay-card-directions"
-          accessibilityState={{ disabled: directionsDisabled }}
-          aria-disabled={directionsDisabled}
-          onPress={onPressDirections}
-          style={[styles.ctaSecondary, directionsDisabled ? styles.ctaDisabled : null]}
-        >
-          <Text style={styles.ctaSecondaryText}>길찾기</Text>
-        </Pressable>
-        <Pressable
-          testID="stay-card-book"
-          onPress={onPressBook}
-          style={styles.ctaPrimary}
-        >
-          <Text style={styles.ctaPrimaryText}>예약하러 가기 →</Text>
-        </Pressable>
+        <View style={styles.ctaRow}>
+          {tags.length > 0 ? (
+            <View testID="stay-card-tags" style={styles.tagRow}>
+              {tags.map((tag, idx) => (
+                <View
+                  key={tag}
+                  style={[styles.tag, { backgroundColor: TAG_TONE_BG[idx] ?? colors.surfaceGreen }]}
+                >
+                  <Text style={[styles.tagText, { color: TAG_TONE_FG[idx] ?? colors.text }]}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+          ) : <View />}
+          <Pressable
+            testID="stay-card-book"
+            onPress={onPressBook}
+            style={styles.ctaBook}
+          >
+            <Text style={styles.ctaBookText}>예약 →</Text>
+          </Pressable>
+        </View>
       </View>
     </Pressable>
   );
 }
 
+const HERO = 112;
+
 const styles = StyleSheet.create({
-  body: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-  },
   card: {
     backgroundColor: colors.background,
-    borderRadius: 24,
-    marginBottom: 16,
+    borderRadius: 18,
+    flexDirection: 'row',
+    marginBottom: 12,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  ctaDisabled: {
-    opacity: 0.4,
-  },
-  ctaPrimary: {
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 14,
-    flex: 1.4,
-    paddingVertical: 14,
-  },
-  ctaPrimaryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  ctaRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  ctaSecondary: {
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderColor: colors.border,
-    borderRadius: 14,
-    borderWidth: 1,
-    flex: 1,
-    paddingVertical: 14,
-  },
-  ctaSecondaryText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   hero: {
-    height: 200,
+    height: HERO,
+    width: HERO,
+    flexShrink: 0,
     position: 'relative',
-    width: '100%',
   },
   heroImage: {
     height: '100%',
@@ -181,85 +123,85 @@ const styles = StyleSheet.create({
   heroPlaceholder: {
     backgroundColor: colors.cardAlt,
   },
-  name: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  ratingChip: {
-    alignItems: 'center',
-    backgroundColor: RATING_CHIP_BG,
+  typeBadge: {
+    backgroundColor: TYPE_BADGE_BG,
     borderRadius: 999,
-    bottom: 12,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    left: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
     position: 'absolute',
-    right: 12,
+    top: 6,
   },
-  ratingStar: {
-    color: colors.accentGold,
-    fontSize: 12,
+  typeBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
     fontWeight: '700',
   },
-  ratingText: {
+  body: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 4,
+    minWidth: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  nameRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'space-between',
+  },
+  name: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    flex: 1,
+  },
+  rating: {
     color: colors.inkDeep,
-    fontSize: 12,
+    flexShrink: 0,
+    fontSize: 11,
     fontWeight: '700',
   },
   region: {
     color: colors.textMuted,
-    fontSize: 13,
-    marginTop: 4,
+    fontSize: 11,
   },
-  tag: {
-    borderRadius: 999,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+  boost: {
+    color: '#8B3A4A',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  ctaRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'space-between',
+    marginTop: 'auto',
   },
   tagRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 10,
+    gap: 4,
+  },
+  tag: {
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
   },
   tagText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '700',
   },
-  tagline: {
-    color: colors.textMuted,
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 10,
-  },
-  typeBadge: {
-    backgroundColor: TYPE_BADGE_BG,
+  ctaBook: {
+    backgroundColor: colors.primary,
     borderRadius: 999,
-    left: 12,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    position: 'absolute',
-    top: 12,
+    paddingVertical: 6,
   },
-  typeBadgeText: {
+  ctaBookText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  boostBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.softPink,
-    borderRadius: 999,
-    marginTop: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  boostBadgeText: {
-    color: '#8B3A4A',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
 });

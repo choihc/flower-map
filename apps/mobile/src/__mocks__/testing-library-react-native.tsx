@@ -12,8 +12,8 @@ type TestElement = HTMLElement & {
 };
 
 type RenderResult = {
-  getByText: (text: string) => HTMLElement;
-  queryByText: (text: string) => HTMLElement | null;
+  getByText: (text: string | RegExp) => HTMLElement;
+  queryByText: (text: string | RegExp) => HTMLElement | null;
   getByTestId: (testId: string) => TestElement;
   queryByTestId: (testId: string) => TestElement | null;
   getAllByTestId: (testId: string) => TestElement[];
@@ -43,11 +43,17 @@ export function render(ui: React.ReactElement): RenderResult {
     return texts;
   }
 
-  function getByText(text: string): HTMLElement {
+  function matchesText(content: string | null, matcher: string | RegExp): boolean {
+    if (content === null) return false;
+    if (typeof matcher === 'string') return content === matcher;
+    return matcher.test(content);
+  }
+
+  function getByText(text: string | RegExp): HTMLElement {
     // Find the closest element containing exactly this text
     const textNodes = getAllTextNodes(container);
     for (const textNode of textNodes) {
-      if (textNode.textContent === text) {
+      if (matchesText(textNode.textContent, text)) {
         return textNode.parentElement as HTMLElement;
       }
     }
@@ -55,7 +61,8 @@ export function render(ui: React.ReactElement): RenderResult {
     const elements = Array.from(container.querySelectorAll('*'));
     const el = elements.find((e) => {
       const children = Array.from(e.childNodes).filter((n) => n.nodeType !== Node.TEXT_NODE || (n.textContent?.trim() ?? ''));
-      return e.textContent?.trim() === text && children.every((n) => n.nodeType === Node.TEXT_NODE);
+      const trimmed = e.textContent?.trim() ?? '';
+      return matchesText(trimmed, text) && children.every((n) => n.nodeType === Node.TEXT_NODE);
     });
     if (!el) {
       throw new Error(`Unable to find element with text: "${text}"`);
@@ -63,7 +70,7 @@ export function render(ui: React.ReactElement): RenderResult {
     return el as HTMLElement;
   }
 
-  function queryByText(text: string): HTMLElement | null {
+  function queryByText(text: string | RegExp): HTMLElement | null {
     try {
       return getByText(text);
     } catch {
