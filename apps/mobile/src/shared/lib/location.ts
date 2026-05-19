@@ -23,7 +23,7 @@ export async function requestAndGetLocation(): Promise<LocationResult> {
   }
 }
 
-function haversineKm(a: Coords, b: Coords): number {
+export function haversineKm(a: Coords, b: Coords): number {
   const R = 6371;
   const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
   const dLng = ((b.longitude - a.longitude) * Math.PI) / 180;
