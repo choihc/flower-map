@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>홈 화면 호캉스 통합 개편 구현 플랜</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --border: #e5e1d8;
+    --text: #2d2a26;
+    --text-muted: #6b6760;
+    --primary: #c4778a;
+    --primary-deep: #8b3a4a;
+    --code-bg: #f4f1ec;
+    --code-text: #2d2a26;
+    --chunk1: #4a90b8;
+    --chunk2: #6b8e3d;
+    --chunk3: #c4778a;
+    --chunk4: #b88a3c;
+    --critical: #c0392b;
+    --warning: #b88a3c;
+    --info: #4a90b8;
+    --success: #6b8e3d;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "Noto Sans KR", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+  }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { position: static !important; max-height: none !important; }
+  }
+  .toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 16px;
+    font-size: 13.5px;
+  }
+  .toc h3 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .toc ul { list-style: none; padding: 0; margin: 0; }
+  .toc li { margin: 4px 0; }
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    display: block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .toc a:hover { background: var(--code-bg); }
+  .toc .toc-chunk { font-weight: 700; margin-top: 10px; }
+  .toc .toc-task { padding-left: 16px; color: var(--text-muted); font-size: 13px; }
+
+  main { max-width: 880px; }
+  h1 {
+    font-size: 28px;
+    margin: 0 0 8px;
+    letter-spacing: -0.5px;
+  }
+  h2 {
+    font-size: 22px;
+    margin: 40px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    letter-spacing: -0.3px;
+  }
+  h3 {
+    font-size: 18px;
+    margin: 28px 0 10px;
+    letter-spacing: -0.2px;
+  }
+  h4 {
+    font-size: 15px;
+    margin: 20px 0 8px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  p { margin: 10px 0; }
+
+  .meta {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .meta a { color: var(--primary-deep); }
+
+  .summary {
+    background: linear-gradient(135deg, #fff4f6 0%, #fff9f0 100%);
+    border: 1px solid #f0d8d8;
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin: 24px 0 36px;
+  }
+  .summary h2 {
+    border: none;
+    margin: 0 0 12px;
+    font-size: 18px;
+    padding: 0;
+  }
+  .summary p { margin: 6px 0; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 18px 0 0;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .stat-value { font-size: 22px; font-weight: 800; color: var(--primary-deep); }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.4;
+    vertical-align: middle;
+    letter-spacing: 0.2px;
+  }
+  .badge-chunk1 { background: #e3eff7; color: var(--chunk1); }
+  .badge-chunk2 { background: #e7f0db; color: var(--chunk2); }
+  .badge-chunk3 { background: #f7e3e8; color: var(--chunk3); }
+  .badge-chunk4 { background: #f5ead4; color: var(--chunk4); }
+  .badge-critical { background: #fbe4e1; color: var(--critical); }
+  .badge-warning { background: #f6ecd6; color: var(--warning); }
+  .badge-info { background: #e3eff7; color: var(--info); }
+  .badge-success { background: #e7f0db; color: var(--success); }
+  .badge-test { background: #efe6f7; color: #6e4aa3; }
+  .badge-impl { background: #f5ead4; color: var(--warning); }
+  .badge-verify { background: #e3eff7; color: var(--info); }
+  .badge-commit { background: #e7f0db; color: var(--success); }
+  .badge-delete { background: #fbe4e1; color: var(--critical); }
+  .badge-new { background: #e7f0db; color: var(--success); }
+  .badge-mod { background: #f5ead4; color: var(--warning); }
+
+  details.chunk {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+  details.chunk[open] { box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+  details.chunk > summary {
+    cursor: pointer;
+    padding: 18px 24px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 17px;
+    user-select: none;
+  }
+  details.chunk > summary::-webkit-details-marker { display: none; }
+  details.chunk > summary::before {
+    content: "▸";
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    display: inline-block;
+    width: 14px;
+  }
+  details.chunk[open] > summary::before { transform: rotate(90deg); }
+  details.chunk[open] > summary { border-bottom: 1px solid var(--border); }
+  .chunk-body { padding: 20px 24px; }
+
+  details.task {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 14px 0;
+    overflow: hidden;
+  }
+  details.task > summary {
+    cursor: pointer;
+    padding: 12px 18px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    user-select: none;
+  }
+  details.task > summary::-webkit-details-marker { display: none; }
+  details.task > summary::before {
+    content: "▸";
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    width: 12px;
+  }
+  details.task[open] > summary::before { transform: rotate(90deg); }
+  details.task[open] > summary { border-bottom: 1px solid var(--border); }
+  .task-body { padding: 14px 18px; background: var(--surface); }
+
+  .files-block {
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 10px 0 14px;
+    font-size: 13.5px;
+  }
+  .files-block .file-row { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; }
+  .files-block code { background: transparent; padding: 0; }
+
+  .step {
+    display: flex;
+    gap: 12px;
+    margin: 14px 0;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .step input[type="checkbox"] {
+    margin-top: 4px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: var(--primary);
+  }
+  .step-content { flex: 1; min-width: 0; }
+  .step-title { font-weight: 700; margin: 0 0 4px; font-size: 14.5px; }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    font-family: "SF Mono", "Monaco", "Consolas", "Menlo", monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 10px 0;
+  }
+  code {
+    font-family: "SF Mono", "Monaco", "Consolas", "Menlo", monospace;
+    font-size: 0.92em;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--code-text);
+  }
+  pre code { background: transparent; padding: 0; font-size: 13px; }
+
+  .callout {
+    border-left: 4px solid var(--info);
+    background: #f4f8fb;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .callout.warning { border-left-color: var(--warning); background: #faf5e9; }
+  .callout.critical { border-left-color: var(--critical); background: #fbe9e7; }
+  .callout.success { border-left-color: var(--success); background: #f0f6e6; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: var(--code-bg); font-weight: 700; }
+
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+
+  .expected {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f0f6e6;
+    border-left: 3px solid var(--success);
+    border-radius: 4px;
+    font-size: 13.5px;
+  }
+  .expected b { color: var(--success); }
+
+  .checkpoint {
+    background: linear-gradient(135deg, #f4f8fb 0%, #f0f6e6 100%);
+    border: 1px dashed var(--info);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 18px 0;
+  }
+  .checkpoint h4 { margin: 0 0 8px; color: var(--info); }
+
+  .controls {
+    margin: 0 0 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .controls button {
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .controls button:hover { background: var(--code-bg); }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc" aria-label="목차">
+    <h3>목차</h3>
+    <ul>
+      <li><a href="#summary">핵심 요약</a></li>
+      <li><a href="#pretasks">사전 점검</a></li>
+      <li class="toc-chunk"><a href="#chunk1">Chunk 1 · 기반 준비</a></li>
+      <li class="toc-task"><a href="#task1">Task 1 · haversineKm export</a></li>
+      <li class="toc-task"><a href="#task2">Task 2 · ScreenShell.titleText</a></li>
+      <li class="toc-task"><a href="#task3">Task 3 · TopSpotsSection 제목</a></li>
+      <li class="toc-chunk"><a href="#chunk2">Chunk 2 · 랭킹 알고리즘</a></li>
+      <li class="toc-task"><a href="#task4">Task 4 · rankStaysForHome</a></li>
+      <li class="toc-task"><a href="#task5">Task 5 · StayCard.boostBadge</a></li>
+      <li class="toc-chunk"><a href="#chunk3">Chunk 3 · 홈 통합</a></li>
+      <li class="toc-task"><a href="#task6">Task 6 · HocanceTop5Section</a></li>
+      <li class="toc-task"><a href="#task7">Task 7 · HomeScreen 정리</a></li>
+      <li class="toc-chunk"><a href="#chunk4">Chunk 4 · 정리·검증</a></li>
+      <li class="toc-task"><a href="#task8">Task 8 · StaysDiscoveryCard 제거</a></li>
+      <li class="toc-task"><a href="#task9">Task 9 · 최종 검증</a></li>
+      <li><a href="#dod">완료 정의</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>홈 화면 호캉스 통합 개편 구현 플랜</h1>
+    <div class="meta">
+      <strong>Spec:</strong> <a href="../specs/2026-05-18-home-screen-with-hocance-design.md"><code>docs/superpowers/specs/2026-05-18-home-screen-with-hocance-design.md</code></a><br>
+      <strong>Branch:</strong> <code>feat/home-hocance-integration</code> · <strong>작성일:</strong> 2026-05-19
+    </div>
+
+    <section id="summary" class="summary">
+      <h2>핵심 요약</h2>
+      <p><strong>Goal</strong> · 모바일 홈 화면을 <em>오늘의 꽃 명소 TOP 10 + 오늘 여기서 호캉스 어떠세요? TOP 5</em> 2단 헤드라이너로 개편. 히어로 캐러셀·꽃 종류 칩·지금 보기 좋은 명소·내 주변 명소·StaysDiscoveryCard 제거.</p>
+      <p><strong>Architecture</strong> · 호캉스 TOP 5는 <code>평점 0.5 + 꽃 TOP 10 인접도 부스트 0.5</code> 점수 + <code>시/도별 최대 2개</code> 다양성 필터를 적용한 순수 함수 <code>rankStaysForHome</code>로 산출. HomeScreen은 데이터 페치·섹션 조립만 담당하고 호캉스 섹션은 <code>HocanceTop5Section</code>으로 분리. 헤더 텍스트화를 위해 <code>ScreenShell</code>에 <code>titleText</code> prop 추가.</p>
+      <p><strong>Tech</strong> · React Native (Expo) · expo-router · @tanstack/react-query · Vitest · @testing-library/react-native · TypeScript</p>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-value">4</div><div class="stat-label">청크</div></div>
+        <div class="stat"><div class="stat-value">9</div><div class="stat-label">태스크</div></div>
+        <div class="stat"><div class="stat-value">5</div><div class="stat-label">신규 파일</div></div>
+        <div class="stat"><div class="stat-value">TDD</div><div class="stat-label">진행 방식</div></div>
+      </div>
+
+      <p style="margin-top: 16px;"><strong>작업 원칙</strong> · 실패 테스트 → 최소 구현 → 통과 확인 → 커밋. 한국어 커밋 메시지. 각 청크 끝에서 <code>pnpm --filter mobile typecheck && pnpm --filter mobile test</code> 통과 확인. 한 작업당 1커밋.</p>
+    </section>
+
+    <div class="controls">
+      <button onclick="document.querySelectorAll('details').forEach(d => d.open = true)">모두 펼치기</button>
+      <button onclick="document.querySelectorAll('details').forEach(d => d.open = false)">모두 접기</button>
+    </div>
+
+    <!-- 사전 점검 -->
+    <section id="pretasks">
+      <h2>사전 점검</h2>
+      <details class="task" open>
+        <summary>0-1. working tree 클린 확인 후 브랜치 생성</summary>
+        <div class="task-body">
+          <pre><code>cd /Users/user/workspace/flower-map
+git status                                  # 변경/스테이지 항목 확인</code></pre>
+          <ul>
+            <li>working tree가 dirty면 <strong>에스컬레이션</strong>(별도 브랜치 커밋 또는 stash 결정은 작업자가 사람에게 묻는다). 임의 스태시 금지.</li>
+            <li>깨끗하면 다음 진행:</li>
+          </ul>
+          <pre><code>git checkout -b feat/home-hocance-integration</code></pre>
+        </div>
+      </details>
+
+      <details class="task" open>
+        <summary>0-2. 의존 사실 재확인 (스펙 작성 후 변동 가능성)</summary>
+        <div class="task-body">
+          <pre><code>grep -n "function haversineKm\|export function haversineKm" apps/mobile/src/shared/lib/location.ts
+# A) "function haversineKm"        → Task 1에서 export 승격 진행
+# B) "export function haversineKm" → 이미 export됨. Task 1 no-op
+
+grep -n "titleColor\|titleText\|ScreenShellProps" apps/mobile/src/shared/ui/ScreenShell.tsx
+# 기대: titleColor prop 존재. titleText는 아직 없음.
+
+grep -rn "useFeatureSeen" apps/mobile/src apps/mobile/app --include="*.tsx" --include="*.ts" \
+  | grep -v __mocks__ | grep -v useFeatureSeen.test
+# 기대: HomeScreen.tsx + (tabs)/_layout.tsx + (tabs)/stays.tsx 사용 → 그 외 보존.
+
+grep -rn "StaysDiscoveryCard" apps/mobile/src apps/mobile/app --include="*.tsx" --include="*.ts"
+# 기대: HomeScreen.tsx import 1개 + 컴포넌트 본체 + 테스트. 모두 제거 대상.
+
+grep -rn "isStaysRoute\|STAYS_ROUTE" apps/mobile/src apps/mobile/app --include="*.tsx" --include="*.ts"
+# 기대: features/stays/routes.ts(보존), routes.test.ts(보존), HomeScreen.tsx(제거), 그 외 보존.
+
+grep -n "^export\|getTopSpots\|spotKeys\.top" apps/mobile/src/shared/data/spotRepository.ts
+# 기대: getTopSpots(n) + spotKeys.top(n) 존재. HocanceTop5Section이 재사용.
+
+grep -n "^export" apps/mobile/src/features/stays/lib/naverHotel.ts \
+  apps/mobile/src/shared/lib/naverMap.ts apps/mobile/src/shared/lib/coordinate.ts
+# 기대: openNaverHotelSearch, openNaverNavigation, DIRECTIONS_DISABLED_MESSAGE, isValidCoordinate 존재.</code></pre>
+          <div class="callout warning">결과가 기대와 다르면 차이를 메모하고 영향 받는 Task에서 반영한다.</div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ============= Chunk 1 ============= -->
+    <details class="chunk" id="chunk1" open>
+      <summary><span class="badge badge-chunk1">Chunk 1</span> 기반 준비 (헤더 · 유틸 · 타이틀)</summary>
+      <div class="chunk-body">
+        <p>3개 작업 모두 독립적이며 서로 다른 파일을 건드린다. 순차 진행.</p>
+
+        <details class="task" id="task1" open>
+          <summary><span class="badge badge-chunk1">Task 1</span> <code>haversineKm</code>을 모듈 export로 승격</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-mod">Modify</span> <code>apps/mobile/src/shared/lib/location.ts</code></div>
+            </div>
+            <p><strong>왜:</strong> <code>rankStays.ts</code>에서 호텔 ↔ 꽃 명소 거리 계산에 재사용. 현재는 module-private.</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">1-1. 변경 (export 키워드 추가)</div>
+                <p><code>function haversineKm(...)</code> → <code>export function haversineKm(...)</code>. 본문 변경 없음.</p>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">1-2. 타입 체크</div>
+                <pre><code>pnpm --filter mobile typecheck</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">1-3. 기존 테스트 회귀 확인</div>
+                <pre><code>pnpm --filter mobile test src/shared/lib/location</code></pre>
+                <div class="expected"><b>Expected:</b> 모든 기존 테스트 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">1-4. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git add apps/mobile/src/shared/lib/location.ts
+git commit -m "refactor(location): haversineKm을 모듈 export로 승격"</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="task" id="task2">
+          <summary><span class="badge badge-chunk1">Task 2</span> <code>ScreenShell</code>에 <code>titleText</code> prop 추가</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-new">Create</span> <code>apps/mobile/src/shared/ui/ScreenShell.test.tsx</code></div>
+              <div class="file-row"><span class="badge badge-mod">Modify</span> <code>apps/mobile/src/shared/ui/ScreenShell.tsx</code></div>
+            </div>
+            <p><strong>왜:</strong> 헤더를 로고 이미지 대신 텍스트 "꽃 어디 & 호캉스 어디?"로 노출. 기본 동작은 보존.</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">2-1. 실패 테스트 작성 <span class="badge badge-test">test</span></div>
+                <pre><code>import { describe, expect, it } from 'vitest';
+import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+
+import { ScreenShell } from './ScreenShell';
+
+describe('ScreenShell', () => {
+  it('titleText 미전달 시 로고 이미지(testID=screen-shell-title-image)가 렌더된다', () => {
+    const { getByTestId, queryByTestId } = render(&lt;ScreenShell title="legacy" /&gt;);
+    expect(getByTestId('screen-shell-title-image')).toBeTruthy();
+    expect(queryByTestId('screen-shell-title-text')).toBeNull();
+  });
+
+  it('titleText 전달 시 텍스트 헤더가 렌더되고 이미지가 사라진다', () => {
+    const { getByTestId, queryByTestId } = render(
+      &lt;ScreenShell title="legacy" titleText="꽃 어디 & 호캉스 어디?" /&gt;,
+    );
+    const text = getByTestId('screen-shell-title-text');
+    expect(text.props.children).toBe('꽃 어디 & 호캉스 어디?');
+    expect(queryByTestId('screen-shell-title-image')).toBeNull();
+  });
+
+  it('titleText + titleColor 전달 시 텍스트에 color 스타일이 적용된다', () => {
+    const { getByTestId } = render(
+      &lt;ScreenShell title="legacy" titleText="홈" titleColor="#C4778A" /&gt;,
+    );
+    const node = getByTestId('screen-shell-title-text');
+    const flat = StyleSheet.flatten(node.props.style);
+    expect(flat?.color).toBe('#C4778A');
+  });
+});</code></pre>
+                <div class="callout info">testID 기반 검증으로 RN mock 환경의 Image 식별 문제를 회피한다.</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">2-2. 테스트 실패 확인</div>
+                <pre><code>pnpm --filter mobile test src/shared/ui/ScreenShell</code></pre>
+                <div class="expected"><b>Expected:</b> FAIL (텍스트 헤더 검증 실패)</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">2-3. 최소 구현 <span class="badge badge-impl">impl</span></div>
+                <div class="callout info"><code>titleColor</code> prop은 이미 존재(스타일 적용 안 되어 있을 수 있음). <code>titleText</code>만 신규 추가하고, 텍스트 모드일 때 <code>titleColor</code>를 텍스트 색상으로 적용. 이미지 모드는 기존 동작 유지.</div>
+                <ul>
+                  <li><code>ScreenShellProps</code>에 <code>titleText?: string</code> 추가</li>
+                  <li>함수 시그니처에서 <code>titleText</code> 구조분해</li>
+                  <li>헤더 렌더 분기 (<code>styles.header</code>는 기본 column, <code>textAlign: 'center'</code>로 충족):</li>
+                </ul>
+                <pre><code>&lt;View style={styles.header}&gt;
+  {titleText ? (
+    &lt;Text
+      testID="screen-shell-title-text"
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.7}
+      style={[styles.titleText, titleColor ? { color: titleColor } : null]}
+    &gt;
+      {titleText}
+    &lt;/Text&gt;
+  ) : (
+    &lt;Image testID="screen-shell-title-image" source={titleImage} style={styles.titleImage} /&gt;
+  )}
+  {subtitle ? &lt;Text style={styles.subtitle}&gt;{subtitle}&lt;/Text&gt; : null}
+&lt;/View&gt;</code></pre>
+                <pre><code>titleText: {
+  color: colors.text,
+  fontSize: 24,
+  fontWeight: '800',
+  letterSpacing: -0.4,
+  textAlign: 'center',
+},</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">2-4. 테스트 통과 확인</div>
+                <pre><code>pnpm --filter mobile test src/shared/ui/ScreenShell</code></pre>
+                <div class="expected"><b>Expected:</b> 3개 테스트 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">2-5. 타입 체크</div>
+                <pre><code>pnpm --filter mobile typecheck</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">2-6. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git add apps/mobile/src/shared/ui/ScreenShell.tsx apps/mobile/src/shared/ui/ScreenShell.test.tsx
+git commit -m "feat(screen-shell): titleText prop으로 텍스트 헤더 렌더 지원"</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="task" id="task3">
+          <summary><span class="badge badge-chunk1">Task 3</span> <code>TopSpotsSection</code> 제목 변경</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-mod">Modify</span> <code>apps/mobile/src/features/home/components/TopSpotsSection.tsx</code></div>
+              <div class="file-row"><span class="badge badge-mod">Modify</span> <code>apps/mobile/src/features/home/components/TopSpotsSection.test.tsx</code></div>
+            </div>
+            <p><strong>왜:</strong> 새 헤드라이너 타이틀 "오늘의 꽃 명소 TOP 10"으로 갱신.</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">3-1. 잔존 참조 0 확인 후 테스트 기대값 갱신 <span class="badge badge-test">test</span></div>
+                <pre><code>grep -rn "오늘의 TOP 10" apps/mobile/src apps/mobile/app --include="*.tsx" --include="*.ts"</code></pre>
+                <p><code>TopSpotsSection.tsx:76</code>, 테스트 파일의 단언 외 잔존이 있으면 같이 갱신. 모든 <code>'오늘의 TOP 10'</code>을 <code>'오늘의 꽃 명소 TOP 10'</code>으로 치환.</p>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">3-2. 테스트 실패 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/components/TopSpotsSection</code></pre>
+                <div class="expected"><b>Expected:</b> FAIL (텍스트 불일치)</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">3-3. 구현 변경 <span class="badge badge-impl">impl</span></div>
+                <p><code>TopSpotsSection.tsx</code> 76행: <code>&lt;Text style={styles.title}&gt;오늘의 TOP 10&lt;/Text&gt;</code> → <code>오늘의 꽃 명소 TOP 10</code></p>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">3-4. 테스트 통과 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/components/TopSpotsSection</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">3-5. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git add apps/mobile/src/features/home/components/TopSpotsSection.tsx \
+        apps/mobile/src/features/home/components/TopSpotsSection.test.tsx
+git commit -m "feat(home): TopSpotsSection 제목을 '오늘의 꽃 명소 TOP 10'으로 변경"</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="checkpoint">
+          <h4>Chunk 1 종료 체크포인트</h4>
+          <div class="step">
+            <input type="checkbox">
+            <div class="step-content">
+              <div class="step-title">C1-1. 전체 타입 체크 + 전체 테스트</div>
+              <pre><code>pnpm --filter mobile typecheck && pnpm --filter mobile test</code></pre>
+              <div class="expected"><b>Expected:</b> 모두 PASS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ============= Chunk 2 ============= -->
+    <details class="chunk" id="chunk2">
+      <summary><span class="badge badge-chunk2">Chunk 2</span> 호캉스 랭킹 알고리즘</summary>
+      <div class="chunk-body">
+        <p>핵심 도메인 로직. 다음 청크의 모든 작업이 이 청크에 의존.</p>
+
+        <details class="task" id="task4">
+          <summary><span class="badge badge-chunk2">Task 4</span> <code>rankStaysForHome</code> 순수 함수 + 테스트</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-new">Create</span> <code>apps/mobile/src/features/home/lib/rankStays.ts</code></div>
+              <div class="file-row"><span class="badge badge-new">Create</span> <code>apps/mobile/src/features/home/lib/rankStays.test.ts</code></div>
+            </div>
+            <p><strong>왜:</strong> 호캉스 TOP 5 추천의 점수·다양성·부스트 사유 산출 단일 책임 모듈.</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">4-1. 실패 테스트 작성 (10개 케이스) <span class="badge badge-test">test</span></div>
+                <details>
+                  <summary style="cursor:pointer; color: var(--primary-deep); font-weight: 600; padding: 6px 0;">▸ 전체 테스트 코드 보기</summary>
+                <pre><code>import { describe, expect, it } from 'vitest';
+
+import type { FlowerSpot, Stay } from '../../../shared/data/types';
+import { rankStaysForHome } from './rankStays';
+
+function makeStay(overrides: Partial&lt;Stay&gt; & { id: string; latitude: number; longitude: number; regionPrimary?: string }): Stay {
+  return {
+    id: overrides.id,
+    slug: `slug-${overrides.id}`,
+    name: `Stay ${overrides.id}`,
+    regionPrimary: overrides.regionPrimary ?? '서울',
+    regionSecondary: '', address: '',
+    latitude: overrides.latitude, longitude: overrides.longitude,
+    stayType: 'city', seasonTags: [],
+    seasonWindowStart: null, seasonWindowEnd: null,
+    shortTagline: '', description: '', recommendationPoints: [],
+    thumbnailUrl: null, bookingQueryOverride: null,
+    naverRating: null, googleRating: null, ratingCapturedAt: null,
+    isFeatured: false, displayOrder: 0,
+    ...overrides,
+  };
+}
+
+function makeSpot(id: string, latitude: number, longitude: number, place = `Spot ${id}`): FlowerSpot {
+  return {
+    id, slug: `spot-${id}`, badge: '', bloomEndAt: '', bloomStartAt: '',
+    bloomStatus: '', description: '', fee: '', festivalDate: '',
+    flower: '벚꽃', flowerIsActive: true, flowerThumbnailUrl: null,
+    helper: '', latitude, longitude, location: '', parking: '',
+    place, thumbnailUrl: null, tone: 'pink',
+  };
+}
+
+describe('rankStaysForHome', () => {
+  it('꽃 TOP 10이 빈 배열이면 평점 단독으로 정렬한다 (proximityBoost = 0)', () => {
+    const stays = [
+      makeStay({ id: '1', latitude: 0, longitude: 0, naverRating: { score: 3, url: '' } }),
+      makeStay({ id: '2', latitude: 0, longitude: 0, naverRating: { score: 5, url: '' } }),
+      makeStay({ id: '3', latitude: 0, longitude: 0, naverRating: { score: 4, url: '' } }),
+    ];
+    const ranked = rankStaysForHome(stays, []);
+    expect(ranked.map((r) =&gt; r.stay.id)).toEqual(['2', '3', '1']);
+    expect(ranked[0].boostReason).toBeNull();
+  });
+
+  it('두 평점이 모두 있으면 평균을 사용한다 (최댓값 아님)', () => {
+    const stays = [
+      makeStay({ id: 'a', latitude: 0, longitude: 0,
+        naverRating: { score: 5, url: '' }, googleRating: { score: 3, url: '' } }), // 평균 4.0
+      makeStay({ id: 'b', latitude: 0, longitude: 0,
+        naverRating: { score: 5, url: '' } }), // 5.0
+    ];
+    const ranked = rankStaysForHome(stays, []);
+    expect(ranked[0].stay.id).toBe('b');
+    expect(ranked[1].stay.id).toBe('a');
+  });
+
+  it('평점 동률 시 거리 가까운 쪽이 위로 온다', () => {
+    const stays = [
+      makeStay({ id: 'far',  latitude: 1.0, longitude: 0, naverRating: { score: 4, url: '' } }),
+      makeStay({ id: 'near', latitude: 0.05, longitude: 0, naverRating: { score: 4, url: '' } }),
+    ];
+    const spots = [makeSpot('s1', 0, 0)];
+    const ranked = rankStaysForHome(stays, spots);
+    expect(ranked[0].stay.id).toBe('near');
+  });
+
+  it('거리 임계치 경계값(10/30/60km)을 폐구간으로 처리한다', () => {
+    const spots = [makeSpot('origin', 0, 0)];
+    const at10  = rankStaysForHome([makeStay({ id: 'a', latitude: 10  / 111.195, longitude: 0, naverRating: { score: 0, url: '' } })], spots);
+    const at30  = rankStaysForHome([makeStay({ id: 'b', latitude: 30  / 111.195, longitude: 0, naverRating: { score: 0, url: '' } })], spots);
+    const at60  = rankStaysForHome([makeStay({ id: 'c', latitude: 60  / 111.195, longitude: 0, naverRating: { score: 0, url: '' } })], spots);
+    const at60p = rankStaysForHome([makeStay({ id: 'd', latitude: 60.5 / 111.195, longitude: 0, naverRating: { score: 0, url: '' } })], spots);
+    expect(at10[0].score).toBeCloseTo(0.5 * 1.0, 5);
+    expect(at30[0].score).toBeCloseTo(0.5 * 0.6, 5);
+    expect(at60[0].score).toBeCloseTo(0.5 * 0.3, 5);
+    expect(at60p[0].score).toBeCloseTo(0, 5);
+  });
+
+  it('같은 regionPrimary는 최대 2개까지만 채택한다', () => {
+    const stays = [
+      makeStay({ id: 's1', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 5, url: '' } }),
+      makeStay({ id: 's2', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 4.9, url: '' } }),
+      makeStay({ id: 's3', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 4.8, url: '' } }),
+      makeStay({ id: 's4', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 4.7, url: '' } }),
+      makeStay({ id: 'j1', regionPrimary: '제주', latitude: 0, longitude: 0, naverRating: { score: 4.6, url: '' } }),
+      makeStay({ id: 'g1', regionPrimary: '강원', latitude: 0, longitude: 0, naverRating: { score: 4.5, url: '' } }),
+    ];
+    const ranked = rankStaysForHome(stays, []);
+    expect(ranked.filter((r) =&gt; r.stay.regionPrimary === '서울').length).toBe(2);
+    expect(ranked.map((r) =&gt; r.stay.id)).toEqual(['s1', 's2', 'j1', 'g1']);
+  });
+
+  it('후보 호캉스가 5개 미만이면 가능한 만큼만 반환한다', () => {
+    const stays = [
+      makeStay({ id: '1', latitude: 0, longitude: 0, naverRating: { score: 4, url: '' } }),
+      makeStay({ id: '2', latitude: 0, longitude: 0, naverRating: { score: 3, url: '' } }),
+    ];
+    expect(rankStaysForHome(stays, [])).toHaveLength(2);
+  });
+
+  it('boostReason은 가장 가까운 꽃 명소 이름과 거리(km)를 가진다', () => {
+    const stays = [makeStay({ id: 'h', latitude: 0.05, longitude: 0, naverRating: { score: 5, url: '' } })];
+    const spots = [makeSpot('a', 0, 0, '장미공원'), makeSpot('b', 1, 0, '먼명소')];
+    const ranked = rankStaysForHome(stays, spots);
+    expect(ranked[0].boostReason?.spotName).toBe('장미공원');
+    expect(ranked[0].boostReason!.distanceKm).toBeLessThan(10);
+    expect(ranked[0].boostReason!.distanceKm).toBeGreaterThan(0);
+  });
+
+  it('거리 60km 초과면 boostReason은 null', () => {
+    const stays = [makeStay({ id: 'far', latitude: 1.0, longitude: 0, naverRating: { score: 5, url: '' } })];
+    const spots = [makeSpot('a', 0, 0, '장미공원')];
+    expect(rankStaysForHome(stays, spots)[0].boostReason).toBeNull();
+  });
+
+  it('후보 풀이 poolSize로 제한되어 풀 밖 호캉스는 채택되지 않는다', () => {
+    // 상위 5개 모두 '서울' → perRegionMax=2로 2개만 픽. '제주'는 점수 6위 → 풀(5) 밖 → 채택 불가.
+    const stays = [
+      makeStay({ id: 's1', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 5.0, url: '' } }),
+      makeStay({ id: 's2', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 4.9, url: '' } }),
+      makeStay({ id: 's3', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 4.8, url: '' } }),
+      makeStay({ id: 's4', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 4.7, url: '' } }),
+      makeStay({ id: 's5', regionPrimary: '서울', latitude: 0, longitude: 0, naverRating: { score: 4.6, url: '' } }),
+      makeStay({ id: 'j1', regionPrimary: '제주', latitude: 0, longitude: 0, naverRating: { score: 4.5, url: '' } }),
+    ];
+    const ranked = rankStaysForHome(stays, [], { poolSize: 5 });
+    expect(ranked.map((r) =&gt; r.stay.id)).toEqual(['s1', 's2']);
+  });
+
+  it('호캉스가 0건이면 빈 배열을 반환한다', () => {
+    expect(rankStaysForHome([], [])).toEqual([]);
+  });
+});</code></pre>
+                </details>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">4-2. 테스트 실패 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/lib/rankStays</code></pre>
+                <div class="expected"><b>Expected:</b> FAIL (모듈/함수 없음)</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">4-3. 구현 <span class="badge badge-impl">impl</span></div>
+                <details>
+                  <summary style="cursor:pointer; color: var(--primary-deep); font-weight: 600; padding: 6px 0;">▸ 전체 구현 코드 보기</summary>
+                <pre><code>import type { FlowerSpot, Stay } from '../../../shared/data/types';
+import { haversineKm } from '../../../shared/lib/location';
+
+export type BoostReason = { spotName: string; distanceKm: number };
+
+export type RankedStay = {
+  stay: Stay;
+  score: number;
+  boostReason: BoostReason | null;
+};
+
+export type RankOptions = {
+  limit?: number;        // 최종 반환 개수 (기본 5)
+  perRegionMax?: number; // 같은 regionPrimary 최대 (기본 2)
+  poolSize?: number;     // 점수 상위 풀 크기 (기본 15)
+};
+
+const DEFAULTS = { limit: 5, perRegionMax: 2, poolSize: 15 } as const;
+
+function combineRating(stay: Stay): number | null {
+  const naver  = stay.naverRating  && Number.isFinite(stay.naverRating.score)  ? stay.naverRating.score  : null;
+  const google = stay.googleRating && Number.isFinite(stay.googleRating.score) ? stay.googleRating.score : null;
+  if (naver !== null && google !== null) return (naver + google) / 2;
+  if (naver  !== null) return naver;
+  if (google !== null) return google;
+  return null;
+}
+
+function normalizedRating(stay: Stay): number {
+  const r = combineRating(stay);
+  if (r === null) return 0;
+  return Math.min(Math.max(r, 0), 5) / 5;
+}
+
+function proximityBoostFromKm(distanceKm: number): number {
+  if (distanceKm &lt;= 10) return 1.0;
+  if (distanceKm &lt;= 30) return 0.6;
+  if (distanceKm &lt;= 60) return 0.3;
+  return 0;
+}
+
+function nearestSpot(stay: Stay, spots: FlowerSpot[]): { spot: FlowerSpot; distanceKm: number } | null {
+  if (spots.length === 0) return null;
+  let best: { spot: FlowerSpot; distanceKm: number } | null = null;
+  for (const spot of spots) {
+    const distanceKm = haversineKm(
+      { latitude: stay.latitude, longitude: stay.longitude },
+      { latitude: spot.latitude, longitude: spot.longitude },
+    );
+    if (best === null || distanceKm &lt; best.distanceKm) {
+      best = { spot, distanceKm };
+    }
+  }
+  return best;
+}
+
+export function rankStaysForHome(
+  stays: Stay[],
+  top10Spots: FlowerSpot[],
+  options: RankOptions = {},
+): RankedStay[] {
+  const limit        = options.limit        ?? DEFAULTS.limit;
+  const perRegionMax = options.perRegionMax ?? DEFAULTS.perRegionMax;
+  const poolSize     = options.poolSize     ?? DEFAULTS.poolSize;
+
+  if (stays.length === 0) return [];
+
+  const scored: RankedStay[] = stays.map((stay) =&gt; {
+    const nearest = nearestSpot(stay, top10Spots);
+    const proximity = nearest ? proximityBoostFromKm(nearest.distanceKm) : 0;
+    const score = 0.5 * normalizedRating(stay) + 0.5 * proximity;
+    const boostReason: BoostReason | null =
+      nearest && nearest.distanceKm &lt;= 60
+        ? { spotName: nearest.spot.place, distanceKm: nearest.distanceKm }
+        : null;
+    return { stay, score, boostReason };
+  });
+
+  scored.sort((a, b) =&gt; b.score - a.score);
+  const pool = scored.slice(0, poolSize);
+
+  const regionCount = new Map&lt;string, number&gt;();
+  const picked: RankedStay[] = [];
+  for (const candidate of pool) {
+    const region = candidate.stay.regionPrimary;
+    const current = regionCount.get(region) ?? 0;
+    if (current &gt;= perRegionMax) continue;
+    picked.push(candidate);
+    regionCount.set(region, current + 1);
+    if (picked.length &gt;= limit) break;
+  }
+
+  return picked;
+}</code></pre>
+                </details>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">4-4. 테스트 통과 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/lib/rankStays</code></pre>
+                <div class="expected"><b>Expected:</b> 10개 테스트 모두 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">4-5. 타입 체크</div>
+                <pre><code>pnpm --filter mobile typecheck</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">4-6. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git add apps/mobile/src/features/home/lib/rankStays.ts apps/mobile/src/features/home/lib/rankStays.test.ts
+git commit -m "feat(home): 호캉스 TOP 5 랭킹 알고리즘 rankStaysForHome 추가"</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="task" id="task5">
+          <summary><span class="badge badge-chunk2">Task 5</span> <code>StayCard</code>에 <code>boostBadge</code> prop 추가</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-mod">Modify</span> <code>apps/mobile/src/features/stays/components/StayCard.tsx</code></div>
+              <div class="file-row"><span class="badge badge-mod">Modify</span> <code>apps/mobile/src/features/stays/components/StayCard.test.tsx</code></div>
+            </div>
+            <p><strong>왜:</strong> 호캉스 카드 내부에 "○○공원에서 N km" 부스트 사유 칩을 그리기 위해.</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">5-1. 실패 테스트 추가 <span class="badge badge-test">test</span></div>
+                <pre><code>it('boostBadge prop이 주어지면 부스트 사유 칩을 렌더한다', () =&gt; {
+  const stay = makeStay(/* 기존 헬퍼 그대로 */);
+  const { getByText } = render(
+    &lt;StayCard stay={stay} onPress={() =&gt; {}} onPressDirections={() =&gt; {}} onPressBook={() =&gt; {}}
+      boostBadge={{ spotName: '장미공원', distanceKm: 5.6 }} /&gt;
+  );
+  expect(getByText('장미공원에서 5.6km')).toBeTruthy(); // formatDistance(5.6) → "5.6km"
+});
+
+it('boostBadge가 null이면 부스트 사유 칩을 렌더하지 않는다', () =&gt; { /* ... */ });
+it('boostBadge prop 미전달 시 기존 동작 그대로 (부스트 칩 없음)', () =&gt; { /* ... */ });</code></pre>
+                <p>기존 테스트 파일의 <code>makeStay</code> 헬퍼·imports를 그대로 활용해 호출만 작성.</p>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">5-2. 테스트 실패 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/stays/components/StayCard</code></pre>
+                <div class="expected"><b>Expected:</b> FAIL</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">5-3. 구현 <span class="badge badge-impl">impl</span></div>
+                <ul>
+                  <li><code>StayCardProps</code>에 <code>boostBadge?: { spotName: string; distanceKm: number } | null;</code> 추가</li>
+                  <li><code>import { formatDistance } from '../../../shared/lib/location';</code> 추가</li>
+                  <li>카드 본문 적절한 위치에 칩 블록 삽입:</li>
+                </ul>
+                <pre><code>{boostBadge ? (
+  &lt;View testID="stay-card-boost-badge" style={styles.boostBadge}&gt;
+    &lt;Text style={styles.boostBadgeText}&gt;
+      {`${boostBadge.spotName}에서 ${formatDistance(boostBadge.distanceKm)}`}
+    &lt;/Text&gt;
+  &lt;/View&gt;
+) : null}</code></pre>
+                <pre><code>boostBadge: {
+  alignSelf: 'flex-start', backgroundColor: colors.softPink,
+  borderRadius: 999, marginTop: 10, paddingHorizontal: 10, paddingVertical: 5,
+},
+boostBadgeText: { color: '#8B3A4A', fontSize: 12, fontWeight: '700' },</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">5-4. 테스트 통과 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/stays/components/StayCard</code></pre>
+                <div class="expected"><b>Expected:</b> 신규 3개 포함 모든 케이스 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">5-5. 타입 체크</div>
+                <pre><code>pnpm --filter mobile typecheck</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">5-6. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git add apps/mobile/src/features/stays/components/StayCard.tsx \
+        apps/mobile/src/features/stays/components/StayCard.test.tsx
+git commit -m "feat(stays): StayCard에 boostBadge prop으로 부스트 사유 칩 지원"</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="checkpoint">
+          <h4>Chunk 2 종료 체크포인트</h4>
+          <div class="step">
+            <input type="checkbox">
+            <div class="step-content">
+              <div class="step-title">C2-1. 전체 타입 체크 + 전체 테스트</div>
+              <pre><code>pnpm --filter mobile typecheck && pnpm --filter mobile test</code></pre>
+              <div class="expected"><b>Expected:</b> 모두 PASS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ============= Chunk 3 ============= -->
+    <details class="chunk" id="chunk3">
+      <summary><span class="badge badge-chunk3">Chunk 3</span> 호캉스 섹션 컴포넌트 + 홈 통합</summary>
+      <div class="chunk-body">
+
+        <details class="task" id="task6">
+          <summary><span class="badge badge-chunk3">Task 6</span> <code>HocanceTop5Section</code> 컴포넌트 + 테스트</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-new">Create</span> <code>apps/mobile/src/features/home/components/HocanceTop5Section.tsx</code></div>
+              <div class="file-row"><span class="badge badge-new">Create</span> <code>apps/mobile/src/features/home/components/HocanceTop5Section.test.tsx</code></div>
+            </div>
+            <p><strong>왜:</strong> HomeScreen에서 호캉스 섹션을 독립 단위로 분리. 페치·랭킹·렌더 책임을 한 컴포넌트로 응축.</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">6-1. 실패 테스트 작성 (4개 케이스) <span class="badge badge-test">test</span></div>
+                <details>
+                  <summary style="cursor:pointer; color: var(--primary-deep); font-weight: 600; padding: 6px 0;">▸ 전체 테스트 코드 보기</summary>
+                <pre><code>import { describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+
+import type { FlowerSpot, Stay } from '../../../shared/data/types';
+import { HocanceTop5Section } from './HocanceTop5Section';
+
+vi.mock('../../../shared/data/stayRepository', () =&gt; ({
+  getPublishedStays: vi.fn(),
+  stayKeys: { all: ['stays'] },
+}));
+vi.mock('../../../shared/data/spotRepository', () =&gt; ({
+  getTopSpots: vi.fn(),
+  spotKeys: { all: ['spots'], top: (n: number) =&gt; ['spots', 'top', n] },
+}));
+vi.mock('expo-router', () =&gt; ({
+  useRouter: () =&gt; ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
+}));
+
+import { getPublishedStays } from '../../../shared/data/stayRepository';
+import { getTopSpots } from '../../../shared/data/spotRepository';
+
+/* makeStay/makeSpot 헬퍼 (위 Task 4 테스트와 동일 구조) */
+
+function wrap(node: ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return &lt;QueryClientProvider client={client}&gt;{node}&lt;/QueryClientProvider&gt;;
+}
+
+describe('HocanceTop5Section', () =&gt; {
+  it('호캉스 0건이면 섹션 자체를 미렌더한다', async () =&gt; {
+    vi.mocked(getPublishedStays).mockResolvedValue([]);
+    vi.mocked(getTopSpots).mockResolvedValue([]);
+    render(wrap(&lt;HocanceTop5Section /&gt;));
+    await new Promise((r) =&gt; setTimeout(r, 0));
+    expect(screen.queryByTestId('hocance-top5-section')).toBeNull();
+  });
+
+  it('호캉스가 있으면 섹션 헤더와 카드를 렌더한다', async () =&gt; {
+    vi.mocked(getPublishedStays).mockResolvedValue([
+      makeStay({ id: '1', latitude: 0.05, longitude: 0 }),
+      makeStay({ id: '2', regionPrimary: '제주', latitude: 0.05, longitude: 0 }),
+    ]);
+    vi.mocked(getTopSpots).mockResolvedValue([makeSpot('s1', 0, 0, '장미공원')]);
+    render(wrap(&lt;HocanceTop5Section /&gt;));
+    await screen.findByTestId('hocance-top5-section');
+    expect(screen.getByText('오늘 여기서 호캉스 어떠세요?')).toBeTruthy();
+    expect(screen.getAllByTestId('stay-card').length).toBeGreaterThan(0);
+  });
+
+  it('꽃 TOP 10 근처(≤60km)면 부스트 칩이 노출된다', async () =&gt; { /* ... */ });
+  it('꽃 TOP 10과 거리 &gt; 60km면 부스트 칩을 렌더하지 않는다', async () =&gt; { /* ... */ });
+});</code></pre>
+                </details>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">6-2. 테스트 실패 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/components/HocanceTop5Section</code></pre>
+                <div class="expected"><b>Expected:</b> FAIL (모듈 없음)</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">6-3. 구현 <span class="badge badge-impl">impl</span></div>
+                <div class="callout warning">
+                  <strong>핵심 결정 1:</strong> TOP 10 데이터 소스는 <code>TopSpotsSection</code>과 동일한 RPC <code>getTopSpots(10)</code> 재사용.<br>
+                  <strong>핵심 결정 2:</strong> StayCard 핸들러는 <code>StayListScreen</code>과 동일 패턴(<code>openNaverHotelSearch</code> · <code>openNaverNavigation</code> · <code>isValidCoordinate</code>) 재사용.
+                </div>
+                <details>
+                  <summary style="cursor:pointer; color: var(--primary-deep); font-weight: 600; padding: 6px 0;">▸ 전체 구현 코드 보기</summary>
+                <pre><code>import { useMemo } from 'react';
+import { useRouter } from 'expo-router';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+
+import { getTopSpots, spotKeys } from '../../../shared/data/spotRepository';
+import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository';
+import { isValidCoordinate } from '../../../shared/lib/coordinate';
+import { DIRECTIONS_DISABLED_MESSAGE, openNaverNavigation } from '../../../shared/lib/naverMap';
+import { colors } from '../../../shared/theme/colors';
+import { StayCard } from '../../stays/components/StayCard';
+import { openNaverHotelSearch } from '../../stays/lib/naverHotel';
+import { staysDetailPath } from '../../stays/routes';
+import { rankStaysForHome } from '../lib/rankStays';
+
+const HOCANCE_TOP_N_SPOTS = 10;
+
+export function HocanceTop5Section() {
+  const router = useRouter();
+  const { data: stays = [] } = useQuery({
+    queryKey: stayKeys.all,
+    queryFn: getPublishedStays,
+  });
+  const { data: topSpots = [] } = useQuery({
+    queryKey: spotKeys.top(HOCANCE_TOP_N_SPOTS),
+    queryFn: () =&gt; getTopSpots(HOCANCE_TOP_N_SPOTS),
+  });
+
+  const ranked = useMemo(() =&gt; rankStaysForHome(stays, topSpots), [stays, topSpots]);
+
+  if (ranked.length === 0) return null;
+
+  return (
+    &lt;View testID="hocance-top5-section" style={styles.container}&gt;
+      &lt;Text style={styles.title}&gt;오늘 여기서 호캉스 어떠세요?&lt;/Text&gt;
+      &lt;View style={styles.list}&gt;
+        {ranked.map(({ stay, boostReason }) =&gt; {
+          const directionsDisabled = !isValidCoordinate(stay.latitude, stay.longitude);
+          return (
+            &lt;StayCard
+              key={stay.id}
+              stay={stay}
+              boostBadge={boostReason}
+              directionsDisabled={directionsDisabled}
+              onPress={() =&gt; router.push(staysDetailPath(stay.slug))}
+              onPressDirections={() =&gt; {
+                if (directionsDisabled) { Alert.alert(DIRECTIONS_DISABLED_MESSAGE); return; }
+                openNaverNavigation({ name: stay.name, latitude: stay.latitude, longitude: stay.longitude });
+              }}
+              onPressBook={() =&gt;
+                openNaverHotelSearch({ name: stay.name, queryOverride: stay.bookingQueryOverride })
+              }
+            /&gt;
+          );
+        })}
+      &lt;/View&gt;
+    &lt;/View&gt;
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { marginBottom: 24 },
+  title: { color: colors.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.4, marginBottom: 14 },
+  list: { gap: 14 },
+});</code></pre>
+                </details>
+                <div class="callout info">의존 export는 사전 점검 0-2에서 확정. <code>onPressDirections</code> 가드 패턴은 <code>StayListScreen.tsx</code>와 정확히 일치시킨다.</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">6-4. 테스트 통과 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/components/HocanceTop5Section</code></pre>
+                <div class="expected"><b>Expected:</b> 4개 테스트 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">6-5. 타입 체크</div>
+                <pre><code>pnpm --filter mobile typecheck</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">6-6. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git add apps/mobile/src/features/home/components/HocanceTop5Section.tsx \
+        apps/mobile/src/features/home/components/HocanceTop5Section.test.tsx
+git commit -m "feat(home): 호캉스 TOP 5 섹션 HocanceTop5Section 추가"</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="task" id="task7">
+          <summary><span class="badge badge-chunk3">Task 7</span> <code>HomeScreen</code> 정리 + 헤더 텍스트화 + 호캉스 섹션 통합</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-mod">Modify</span> <code>apps/mobile/src/features/home/screens/HomeScreen.tsx</code></div>
+              <div class="file-row"><span class="badge badge-new">Create</span> <code>apps/mobile/src/features/home/screens/HomeScreen.test.tsx</code></div>
+            </div>
+            <p><strong>왜:</strong> 스펙 §2/§4 제거·추가·헤더 변경을 한 번에 반영. 가장 큰 변경이라 테스트로 가드.</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">7-1. 실패 통합 테스트 작성 <span class="badge badge-test">test</span></div>
+                <details>
+                  <summary style="cursor:pointer; color: var(--primary-deep); font-weight: 600; padding: 6px 0;">▸ 전체 테스트 코드 보기</summary>
+                <pre><code>import { describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+
+import { HomeScreen } from './HomeScreen';
+
+vi.mock('expo-router', () =&gt; ({
+  useRouter: () =&gt; ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
+  Link: ({ children }: any) =&gt; children,
+}));
+
+vi.mock('../../../shared/data/spotRepository', () =&gt; ({
+  getPublishedSpots: vi.fn().mockResolvedValue([]),
+  getTopSpots: vi.fn().mockResolvedValue([]),
+  spotKeys: { all: ['spots'], top: (n: number) =&gt; ['spots', 'top', n] },
+  deriveFlowerLabels: vi.fn().mockReturnValue([]),
+  deriveRegionSummaries: vi.fn().mockReturnValue(['서울', '제주']),
+}));
+vi.mock('../../../shared/data/stayRepository', () =&gt; ({
+  getPublishedStays: vi.fn().mockResolvedValue([]),
+  stayKeys: { all: ['stays'] },
+}));
+vi.mock('../../../shared/data/homeCurationRepository', () =&gt; ({
+  getActiveHomeCurationSlots: vi.fn().mockResolvedValue([]),
+  homeCurationKeys: { active: ['home-curation', 'active'] },
+}));
+
+function wrap(node: ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return &lt;QueryClientProvider client={client}&gt;{node}&lt;/QueryClientProvider&gt;;
+}
+
+describe('HomeScreen', () =&gt; {
+  it('새 텍스트 헤더 "꽃 어디 & 호캉스 어디?"를 노출한다', async () =&gt; {
+    render(wrap(&lt;HomeScreen /&gt;));
+    expect(await screen.findByText('꽃 어디 & 호캉스 어디?')).toBeTruthy();
+  });
+
+  it('TopSpotsSection을 렌더한다', async () =&gt; {
+    render(wrap(&lt;HomeScreen /&gt;));
+    await screen.findByTestId('top-spots-section');
+  });
+
+  it('히어로/꽃 칩/지금 보기 좋은 명소/위치 권한 버튼이 더 이상 렌더되지 않는다', async () =&gt; {
+    render(wrap(&lt;HomeScreen /&gt;));
+    await new Promise((r) =&gt; setTimeout(r, 0));
+    expect(screen.queryByText('꽃 종류 선택')).toBeNull();
+    expect(screen.queryByText('지금 보기 좋은 명소')).toBeNull();
+    expect(screen.queryByText('📍 내 주변 명소 보기')).toBeNull();
+    expect(screen.queryByText('내 주변 명소')).toBeNull();
+  });
+});</code></pre>
+                </details>
+                <p>HocanceTop5Section은 mock하지 않고 실제 렌더되게 두되, 빈 배열이라 미렌더되는 게 정상.</p>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">7-2. 테스트 실패 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/screens/HomeScreen</code></pre>
+                <div class="expected"><b>Expected:</b> FAIL</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">7-3. 구현 — HomeScreen 정리 <span class="badge badge-impl">impl</span> <span class="badge badge-delete">cleanup</span></div>
+                <h4 style="margin-top:14px;">상단 import 정리 — 제거 대상</h4>
+                <ul>
+                  <li><code>AppState</code>, <code>AppStateStatus</code>, <code>Dimensions</code>, <code>ImageBackground</code>, <code>Linking</code>, <code>NativeScrollEvent</code>, <code>NativeSyntheticEvent</code>, <code>Pressable</code>(잔존 사용처 있으면 보존), <code>ScrollView</code></li>
+                  <li><code>useEffect</code>, <code>useRef</code>, <code>useState</code> (잔존 사용처 없으면)</li>
+                  <li><code>SpotHeroCard</code>, <code>BloomArt</code>, <code>SkeletonBox</code>(로딩 분기 유지면 보존)</li>
+                  <li><code>deriveFlowerLabels</code></li>
+                  <li><code>Coords</code>, <code>formatDistance</code>, <code>getNearbySpots</code>, <code>requestAndGetLocation</code></li>
+                  <li><code>StaysDiscoveryCard</code>, <code>useFeatureSeen</code>, <code>isStaysRoute</code>, <code>STAYS_ROUTE</code></li>
+                </ul>
+
+                <h4>신규 import</h4>
+                <pre><code>import { HocanceTop5Section } from '../components/HocanceTop5Section';</code></pre>
+
+                <h4>함수 본문 정리</h4>
+                <ul>
+                  <li><code>featuredSpots</code> 쿼리 + curation 쿼리는 유지.</li>
+                  <li><code>selectedFlower</code>/<code>selectedSpot</code>/<code>orderedSpots</code>/<code>sectionSpots</code>/<code>shuffledSpots</code>/<code>heroSpots</code>/위치 권한 상태 전부 삭제.</li>
+                  <li><code>endingSoonSpot</code> 로직 유지.</li>
+                  <li>로딩/빈 상태도 <code>&lt;ScreenShell titleText="꽃 어디 & 호캉스 어디?" titleColor="#C4778A"&gt;</code>로 헤더 갱신.</li>
+                </ul>
+
+                <h4>JSX 본문</h4>
+                <pre><code>&lt;ScreenShell titleText="꽃 어디 & 호캉스 어디?" titleColor="#C4778A"&gt;
+  {curationSlots.length &gt; 0 ? (
+    &lt;View style={styles.curationSection}&gt;
+      {curationSlots.map((slot) =&gt; &lt;SeasonCurationSlot key={slot.id} slot={slot} /&gt;)}
+    &lt;/View&gt;
+  ) : null}
+
+  &lt;TopSpotsSection /&gt;
+  &lt;HocanceTop5Section /&gt;
+
+  &lt;SectionHeading meta="종료된 일정은 제외해 보여드려요" title="곧 끝나는 축제" /&gt;
+  &lt;View style={styles.eventCard}&gt;
+    {/* 기존 endingSoonSpot 블록 그대로 */}
+  &lt;/View&gt;
+
+  &lt;NativeSpotAd /&gt;
+
+  &lt;SectionHeading meta="주말 나들이 큐레이션" title="지역별 추천" /&gt;
+  &lt;View style={styles.regionGrid}&gt;
+    {regionSummaries.map((item, index) =&gt; (
+      &lt;Pressable key={item} ... /&gt;
+    ))}
+  &lt;/View&gt;
+&lt;/ScreenShell&gt;</code></pre>
+
+                <h4>미사용 스타일 일괄 삭제</h4>
+                <p style="font-size:13px;color:var(--text-muted);"><code>heroCarousel*</code>, <code>heroDots*</code>, <code>flowerCarousel*</code>, <code>flowerTile*</code>, <code>spotCard*</code>, <code>spotArt</code>, <code>spotImage*</code>, <code>spotContent</code>, <code>spotTitle</code>, <code>caption</code>, <code>badge*</code>, <code>buttonRow</code>, <code>primaryButton*</code>, <code>secondaryButton*</code>, <code>viewAllButton*</code>, <code>locationButton*</code>, <code>locationDenied*</code>, <code>locationSettingsButton*</code>, <code>nearby*</code></p>
+
+                <div class="callout info">한 번에 다 지우려 하지 말고, <b>(a)</b> 새 JSX/import만 먼저 적용 → 타입체크 → 미사용 경고 확인 → <b>(b)</b> 경고 따라 미사용 식별자/스타일 삭제 순서가 안전.</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">7-4. 타입 체크 (점진)</div>
+                <pre><code>pnpm --filter mobile typecheck</code></pre>
+                <div class="expected"><b>Expected:</b> 미사용 정리되며 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">7-5. 테스트 통과 확인</div>
+                <pre><code>pnpm --filter mobile test src/features/home/screens/HomeScreen</code></pre>
+                <div class="expected"><b>Expected:</b> 신규 통합 테스트 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">7-6. 전체 회귀 테스트</div>
+                <pre><code>pnpm --filter mobile test</code></pre>
+                <div class="expected"><b>Expected:</b> 다른 화면 회귀 없음 (특히 ScreenShell 미전달 호출)</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">7-7. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git add apps/mobile/src/features/home/screens/HomeScreen.tsx \
+        apps/mobile/src/features/home/screens/HomeScreen.test.tsx
+git commit -m "feat(home): 홈 화면을 TOP 10 + 호캉스 TOP 5 헤드라이너로 개편"</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="checkpoint">
+          <h4>Chunk 3 종료 체크포인트</h4>
+          <div class="step">
+            <input type="checkbox">
+            <div class="step-content">
+              <div class="step-title">C3-1. 전체 타입 체크 + 전체 테스트</div>
+              <pre><code>pnpm --filter mobile typecheck && pnpm --filter mobile test</code></pre>
+              <div class="expected"><b>Expected:</b> 모두 PASS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ============= Chunk 4 ============= -->
+    <details class="chunk" id="chunk4">
+      <summary><span class="badge badge-chunk4">Chunk 4</span> 잔존 파일 정리 + 최종 검증</summary>
+      <div class="chunk-body">
+
+        <details class="task" id="task8">
+          <summary><span class="badge badge-chunk4">Task 8</span> <code>StaysDiscoveryCard</code> 제거</summary>
+          <div class="task-body">
+            <div class="files-block">
+              <div class="file-row"><span class="badge badge-delete">Delete</span> <code>apps/mobile/src/features/home/components/StaysDiscoveryCard.tsx</code></div>
+              <div class="file-row"><span class="badge badge-delete">Delete</span> <code>apps/mobile/src/features/home/components/StaysDiscoveryCard.test.tsx</code></div>
+            </div>
+            <p><strong>왜:</strong> Task 7에서 HomeScreen 호출을 제거했고, 다른 사용처가 없으면 컴포넌트도 삭제(데드 코드 방지).</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">8-1. 사용처 재확인 (src + app 라우트 + __mocks__ 전 범위)</div>
+                <pre><code>grep -rn "StaysDiscoveryCard" apps/mobile/src apps/mobile/app apps/mobile/src/__mocks__ \
+  --include="*.tsx" --include="*.ts"</code></pre>
+                <div class="expected"><b>Expected:</b> 자체 파일 외 0건. import 잔존 시 이번 Task에서 정리.</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">8-2. 삭제</div>
+                <pre><code>git rm apps/mobile/src/features/home/components/StaysDiscoveryCard.tsx \
+       apps/mobile/src/features/home/components/StaysDiscoveryCard.test.tsx</code></pre>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">8-3. 타입 체크 + 전체 테스트</div>
+                <pre><code>pnpm --filter mobile typecheck && pnpm --filter mobile test</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">8-4. 커밋 <span class="badge badge-commit">commit</span></div>
+                <pre><code>git commit -m "chore(home): 더 이상 사용하지 않는 StaysDiscoveryCard 제거"</code></pre>
+              </div>
+            </div>
+            <div class="callout info"><code>shared/lib/useFeatureSeen.ts</code>는 보존. 이유: <code>apps/mobile/app/(tabs)/_layout.tsx</code>(탭 NEW 뱃지)와 <code>apps/mobile/app/(tabs)/stays.tsx</code>(탭 진입 시 markSeen)가 사용 중이므로 삭제 불가.</div>
+          </div>
+        </details>
+
+        <details class="task" id="task9">
+          <summary><span class="badge badge-chunk4">Task 9</span> 최종 검증 (앱 부팅 · UI 확인)</summary>
+          <div class="task-body">
+            <p><strong>Files:</strong> 없음 (실행만)</p>
+
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">9-1. 타입 체크 <span class="badge badge-verify">verify</span></div>
+                <pre><code>pnpm --filter mobile typecheck</code></pre>
+                <div class="expected"><b>Expected:</b> PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">9-2. 전체 테스트</div>
+                <pre><code>pnpm --filter mobile test</code></pre>
+                <div class="expected"><b>Expected:</b> 모두 PASS</div>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">9-3. 디바이스/시뮬레이터 수동 검증</div>
+                <pre><code>pnpm --filter mobile start</code></pre>
+                <p><strong>확인 체크리스트:</strong></p>
+                <ul>
+                  <li>헤더에 "꽃 어디 & 호캉스 어디?" 한 줄 텍스트가 보인다</li>
+                  <li>히어로 캐러셀이 없다</li>
+                  <li>"오늘의 꽃 명소 TOP 10" 가로 스크롤 노출</li>
+                  <li>"오늘 여기서 호캉스 어떠세요?" 카드 1~5개 노출, 부스트 칩이 일부 카드에 "○○에서 N km"로 보인다</li>
+                  <li>꽃 종류 칩, 지금 보기 좋은 명소, 내 주변 명소 블록이 없다</li>
+                  <li>"곧 끝나는 축제", "지역별 추천"은 그대로</li>
+                  <li>호캉스 카드 탭 → 호캉스 상세로 이동</li>
+                  <li>작은 디바이스(iPhone SE 등)에서 헤더가 잘리지 않음(폰트 자동 축소)</li>
+                </ul>
+                <p>결함 발견 시 별도 Task로 fix → commit.</p>
+              </div>
+            </div>
+            <div class="step">
+              <input type="checkbox">
+              <div class="step-content">
+                <div class="step-title">9-4. 최종 보고용 diff 요약</div>
+                <pre><code>git log --oneline main..HEAD
+git diff --stat main..HEAD</code></pre>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <!-- DoD -->
+    <section id="dod">
+      <h2>작업 완료 정의 (Definition of Done)</h2>
+      <div class="callout success">
+        <ul style="margin: 4px 0;">
+          <li>모든 Task 체크박스 ✅</li>
+          <li><code>pnpm --filter mobile typecheck</code>, <code>pnpm --filter mobile test</code> 모두 PASS</li>
+          <li>수동 시뮬레이터 검증 체크리스트(9-3) 모두 OK</li>
+          <li>작업 브랜치 <code>feat/home-hocance-integration</code>에 의미 단위 커밋이 남아있고, 각 커밋이 독립적으로 빌드·테스트 가능</li>
+        </ul>
+        <p style="margin: 6px 0 0;">다음 단계는 <strong>PR 생성</strong> — 전역 <code>CLAUDE.md</code>의 PR 생성 프로세스(서브에이전트 코드리뷰 → 검토 리포트 → 승인 후 PR 생성)를 따른다.</p>
+      </div>
+    </section>
+
+    <hr>
+    <p style="text-align: center; color: var(--text-muted); font-size: 13px;">
+      🤖 Generated for review · <a href="2026-05-19-home-screen-with-hocance.md" style="color: var(--primary-deep);">원본 Markdown</a> · <a href="../specs/2026-05-18-home-screen-with-hocance-design.md" style="color: var(--primary-deep);">설계 문서</a>
+    </p>
+  </main>
+</div>
+</body>
+</html>
