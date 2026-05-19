@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { useRouter } from 'expo-router';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import { getTopSpots, spotKeys } from '../../../shared/data/spotRepository';
 import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository';
 import { isValidCoordinate } from '../../../shared/lib/coordinate';
 import { DIRECTIONS_DISABLED_MESSAGE, openNaverNavigation } from '../../../shared/lib/naverMap';
+import { showToast } from '../../../shared/lib/toast';
 import { colors } from '../../../shared/theme/colors';
 import { StayCard } from '../../stays/components/StayCard';
 import { openNaverHotelSearch } from '../../stays/lib/naverHotel';
@@ -45,7 +46,7 @@ export function HocanceTop5Section() {
               onPress={() => router.push(staysDetailPath(stay.slug))}
               onPressDirections={() => {
                 if (directionsDisabled) {
-                  Alert.alert(DIRECTIONS_DISABLED_MESSAGE);
+                  showToast(DIRECTIONS_DISABLED_MESSAGE);
                   return;
                 }
                 openNaverNavigation({

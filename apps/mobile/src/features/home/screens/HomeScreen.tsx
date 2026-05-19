@@ -24,7 +24,7 @@ const HOME_STATIC_STALE_MS = 1000 * 60 * 30;
 
 export function HomeScreen() {
   const router = useRouter();
-  const { data: featuredSpots = [], isLoading, error } = useQuery({
+  const { data: featuredSpots = [], error } = useQuery({
     queryKey: spotKeys.all,
     queryFn: getPublishedSpots,
   });
