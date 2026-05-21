@@ -18,6 +18,7 @@ export function PhoneFrame({ width, screenshotDataUrl }: PhoneFrameProps) {
   const innerWidth = width - bezel * 2;
   const innerHeight = height - bezel * 2;
   const innerCorner = corner - bezel;
+  const safeAreaTop = width * PHONE_FRAME.safeAreaTopRatio;
 
   const islandWidth = width * 0.32;
   const islandHeight = width * 0.08;
@@ -43,7 +44,7 @@ export function PhoneFrame({ width, screenshotDataUrl }: PhoneFrameProps) {
           height: innerHeight,
           borderRadius: innerCorner,
           overflow: 'hidden',
-          background: screenshotDataUrl ? '#ffffff' : '#f3f3f3',
+          background: '#ffffff',
         }}
       >
         {screenshotDataUrl ? (
@@ -51,18 +52,30 @@ export function PhoneFrame({ width, screenshotDataUrl }: PhoneFrameProps) {
           <img
             src={screenshotDataUrl}
             alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{
+              position: 'absolute',
+              top: safeAreaTop,
+              left: 0,
+              width: '100%',
+              height: innerHeight - safeAreaTop,
+              objectFit: 'cover',
+              display: 'block',
+            }}
           />
         ) : (
           <div
             style={{
+              position: 'absolute',
+              top: safeAreaTop,
+              left: 0,
               width: '100%',
-              height: '100%',
+              height: innerHeight - safeAreaTop,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: width * 0.04,
               color: '#9b9b9b',
+              background: '#f3f3f3',
             }}
           >
             스크린샷 업로드
