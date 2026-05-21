@@ -10,69 +10,76 @@ export const PLATFORM_LABEL: Record<Platform, string> = {
   android: 'Android',
 };
 
-/** 폰 프레임: 9:19.5 비율 + 다이내믹 아일랜드. 레퍼런스 디자인 따름. */
-export const PHONE_FRAME = {
-  aspect: 19.5 / 9,
-  cornerRadiusRatio: 0.085,
-  bezelRatio: 0.014,
-  islandWidthRatio: 0.32,
-  islandHeightRatio: 0.085,
-  islandTopRatio: 0.035,
-};
-
 /**
- * 폰을 캔버스의 **좌하단(중앙 가까이)**에 직립으로 크게 배치. 폰의 약 40-45%가 캔버스 하단을 넘어 잘린다.
- * - widthRatio: 캔버스 폭 대비 폰 폭 (~78%)
- * - leftInsetRatio: 캔버스 좌측 안쪽으로 들여쓴 거리(양의 left)
- * - bottomOverflowRatio: 캔버스 하단 밖으로 밀려나간 비율(폰 height 기준 잘림 분량을 캔버스 height 비율로)
- * - tiltDeg: 회전각. 0이 기본.
+ * 디자인 핸드오프 베이스 사이즈. 모든 픽셀 값은 이 기준으로 디자인됐고,
+ * 실제 캔버스 크기는 width / DESIGN_BASE_W 만큼 스케일된다.
+ * (308 × 668 ≈ App Store 1290 × 2796 비율 1:2.169)
  */
-export const PHONE_LAYOUT: Record<
-  Platform,
-  { widthRatio: number; leftInsetRatio: number; bottomOverflowRatio: number; tiltDeg: number }
-> = {
-  ios: { widthRatio: 0.78, leftInsetRatio: 0.08, bottomOverflowRatio: 0.34, tiltDeg: 0 },
-  android: { widthRatio: 0.66, leftInsetRatio: 0.07, bottomOverflowRatio: 0.32, tiltDeg: 0 },
+export const DESIGN_BASE_W = 308;
+
+/** 폰 비율(디자인 200×420 = 1:2.1, iPhone 19.5:9 ≈ 1:2.167과 거의 동일). */
+export const PHONE_FRAME = {
+  aspect: 420 / 200,
+  /** 캔버스 폭 대비 폰 폭 (디자인 200/308) */
+  widthRatio: 200 / DESIGN_BASE_W,
+  /** 폰을 캔버스 하단에서 아래로 밀어내는 양 (디자인 -180px @ scale=1) */
+  bottomOffsetBase: -180,
+  /** 폰 회전각(반시계, 도) */
+  tiltDeg: -6,
 };
 
-const HEADLINE_FONT =
-  '"Gowun Batang", "Nanum Myeongjo", "AppleGothic", "Apple SD Gothic Neo", serif';
+/** 디자인 팔레트 6종. from/to=배경 그라데이션, ink=텍스트, accent=NEW배지/포인트, soft=폰 내부 화면 배경 */
+export const PALETTES = {
+  lilac: { from: '#EADCFF', to: '#C9B3F2', ink: '#2E1A52', accent: '#7B3FE4', soft: '#F5EBFF' },
+  blossom: { from: '#FFE0EC', to: '#FFB9D2', ink: '#5A1B36', accent: '#E03B7F', soft: '#FFF0F6' },
+  peach: { from: '#FFE2D1', to: '#FFB89B', ink: '#5A2310', accent: '#E55A2B', soft: '#FFF1E8' },
+  amber: { from: '#FFE2B8', to: '#FFC078', ink: '#553200', accent: '#C97A11', soft: '#FFF1D6' },
+  fern: { from: '#D7F2C8', to: '#9EE08A', ink: '#1F3D17', accent: '#3F8C2B', soft: '#EBF8E2' },
+  iris: { from: '#DDD3FB', to: '#B4A4F0', ink: '#241750', accent: '#6442D6', soft: '#ECE6FE' },
+} as const;
+export type PaletteKey = keyof typeof PALETTES;
+
+/** 사쿠라 꽃잎의 단일 톤. 모든 팔레트 공통으로 부드러운 블라썸 핑크. */
+export const PETAL_TINT = '#FFB7C8';
+
 const SANS_FONT =
-  'Pretendard, "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", system-ui, sans-serif';
-const MONO_FONT = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+  "'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', system-ui, sans-serif";
+const SERIF_FONT = "'Nanum Myeongjo', 'Pretendard', serif";
+const MONO_FONT = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
 export const FONT = {
-  headline: HEADLINE_FONT,
   sans: SANS_FONT,
+  serif: SERIF_FONT,
   mono: MONO_FONT,
 };
 
-export const TYPO = {
-  /** 헤드라인: 굵은 명조체 */
-  headlinePx: 132,
-  headlineLineHeight: 1.18,
-  headlineWeight: 700,
-  headlineColor: '#3a2730',
+/**
+ * 디자인 베이스(308 폭) 기준의 픽셀 값. 캔버스에서는 모두 × scale.
+ * scale = canvasWidth / DESIGN_BASE_W
+ */
+export const TYPO_BASE = {
+  edgePadding: 28,
+  /** NEW 배지 */
+  newBadgePadX: 12,
+  newBadgePadY: 5,
+  newBadgePx: 11,
+  /** 페이지 번호(우상단) */
+  pageNumberPx: 11,
+  pageNumberOpacity: 0.5,
+  /** 헤드라인 */
+  headlinePx: 38,
+  headlineLineHeight: 1.12,
+  headlineWeight: 800,
   headlineLetterSpacing: '-0.02em',
-  /** 서브헤드: 산세리프 한글 */
-  subheadPx: 42,
-  subheadLineHeight: 1.4,
-  subheadWeight: 500,
-  subheadColor: '#5a3f4a',
-  /** NEW 배지: 보라 */
-  newBadgePx: 38,
-  newBadgePadX: 0.03,
-  newBadgePadY: 0.014,
-  newBadgeBg: '#6B5BD2',
-  newBadgeFg: '#FFFFFF',
-  newBadgeRadius: 0.022,
-  newBadgeTracking: '0.08em',
-  /** 페이지 번호(우상단) — 모노 */
-  pageNumberPx: 28,
-  pageNumberColor: 'rgba(58,39,48,0.7)',
-  pageNumberTracking: '0.18em',
-  /** 푸터(좌하단) — 모노 */
-  footerPx: 26,
-  footerColor: 'rgba(58,39,48,0.68)',
-  footerTracking: '0.16em',
+  headlineTopWithBadge: 72,
+  headlineTopWithoutBadge: 60,
+  /** 서브헤드 */
+  subheadPx: 13,
+  subheadLineHeight: 1.45,
+  subheadMarginTop: 14,
+  subheadOpacity: 0.7,
+  /** 브랜드 서명(SPRING · 2026) */
+  brandPx: 10,
+  brandBottom: 24,
+  brandOpacity: 0.55,
 };

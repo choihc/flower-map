@@ -57,7 +57,7 @@ export function PanelCard({
     <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <div className="text-sm font-semibold">
-          {panel.index}. {panel.headline}
+          {panel.index}. {panel.title.join(' ')}
         </div>
         {panel.isNew ? (
           <span className="inline-block rounded-full bg-[#FF7B9C] px-2 py-0.5 text-[10px] font-bold text-white">

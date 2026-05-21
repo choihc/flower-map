@@ -26,12 +26,11 @@ describe('PanelCanvas', () => {
     expect(root.style.height).toBe('1920px');
   });
 
-  it('NEW 패널은 보라색 NEW 배지를 렌더한다', () => {
+  it('NEW 패널은 NEW 배지를 렌더한다', () => {
     const { getByTestId } = render(
       <PanelCanvas panel={newPanel} platform="ios" screenshotDataUrl={null} />,
     );
-    const badge = getByTestId('new-badge');
-    expect(badge.textContent).toBe('NEW');
+    expect(getByTestId('new-badge').textContent).toBe('NEW');
   });
 
   it('일반 패널은 NEW 배지를 렌더하지 않는다', () => {
@@ -41,15 +40,16 @@ describe('PanelCanvas', () => {
     expect(queryByTestId('new-badge')).toBeNull();
   });
 
-  it('헤드라인과 서브헤드를 렌더한다', () => {
+  it('헤드라인 두 줄과 서브헤드를 렌더한다', () => {
     const { getByText } = render(
       <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
     );
-    expect(getByText(ordinaryPanel.headline.replace(/\n/g, ' '))).toBeDefined();
-    expect(getByText(ordinaryPanel.subhead)).toBeDefined();
+    expect(getByText(ordinaryPanel.title[0])).toBeDefined();
+    expect(getByText(ordinaryPanel.title[1])).toBeDefined();
+    expect(getByText(ordinaryPanel.subtitle)).toBeDefined();
   });
 
-  it('모든 패널이 PhoneFrame을 렌더한다(단일 레이아웃)', () => {
+  it('모든 패널이 PhoneFrame을 렌더한다', () => {
     PANELS.forEach((panel) => {
       const { getByTestId, unmount } = render(
         <PanelCanvas panel={panel} platform="ios" screenshotDataUrl={null} />,
@@ -59,28 +59,36 @@ describe('PanelCanvas', () => {
     });
   });
 
-  it('폰에 다이내믹 아일랜드가 있다', () => {
+  it('폰에 다이내믹 아일랜드와 홈 인디케이터가 있다', () => {
     const { getByTestId } = render(
       <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
     );
     expect(getByTestId('dynamic-island')).toBeDefined();
+    expect(getByTestId('home-indicator')).toBeDefined();
   });
 
-  it('우상단에 페이지 번호("NN / 총수")를 렌더한다', () => {
+  it('우상단에 페이지 번호("NN / 06")를 렌더한다', () => {
     const { getByTestId } = render(
       <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
     );
     const text = getByTestId('page-number').textContent ?? '';
-    expect(text).toMatch(/\d{2}\s*\/\s*\d{2}/);
+    expect(text).toMatch(/\d{2}\s*\/\s*06/);
     expect(text).toContain(String(ordinaryPanel.index).padStart(2, '0'));
   });
 
-  it('좌하단에 푸터 라벨(SEASON · footerLabel + screenshot.png)을 렌더한다', () => {
+  it('좌하단에 브랜드 서명(SPRING · 2026)을 렌더한다', () => {
     const { getByTestId } = render(
       <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
     );
-    const text = getByTestId('footer-label').textContent ?? '';
-    expect(text).toContain(ordinaryPanel.footerLabel);
-    expect(text).toContain('screenshot.png');
+    expect(getByTestId('brand-signature').textContent).toContain('SPRING');
+    expect(getByTestId('brand-signature').textContent).toContain('2026');
+  });
+
+  it('스크린샷이 없을 때 폰 내부에 phoneNote와 screenshot.png를 렌더한다', () => {
+    const { getByText } = render(
+      <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
+    );
+    expect(getByText(ordinaryPanel.phoneNote)).toBeDefined();
+    expect(getByText('screenshot.png')).toBeDefined();
   });
 });
