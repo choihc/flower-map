@@ -21,18 +21,18 @@ export const PHONE_FRAME = {
 };
 
 /**
- * 폰을 캔버스의 **좌하단**에 거의 직립으로 배치. 캔버스 좌측을 살짝 벗어나며 하단이 잘린다.
- * - widthRatio: 캔버스 폭 대비 폰 폭
- * - leftOffsetRatio: 캔버스 좌측 기준 음의 left (-값 = 왼쪽 밖으로 밀림)
- * - bottomOffsetRatio: 캔버스 하단 기준 음의 bottom (-값 = 아래로 밀림)
- * - tiltDeg: 시계방향 회전(양수). 거의 0에 가까움.
+ * 폰을 캔버스의 **좌하단(중앙 가까이)**에 직립으로 크게 배치. 폰의 약 40-45%가 캔버스 하단을 넘어 잘린다.
+ * - widthRatio: 캔버스 폭 대비 폰 폭 (~78%)
+ * - leftInsetRatio: 캔버스 좌측 안쪽으로 들여쓴 거리(양의 left)
+ * - bottomOverflowRatio: 캔버스 하단 밖으로 밀려나간 비율(폰 height 기준 잘림 분량을 캔버스 height 비율로)
+ * - tiltDeg: 회전각. 0이 기본.
  */
 export const PHONE_LAYOUT: Record<
   Platform,
-  { widthRatio: number; leftOffsetRatio: number; bottomOffsetRatio: number; tiltDeg: number }
+  { widthRatio: number; leftInsetRatio: number; bottomOverflowRatio: number; tiltDeg: number }
 > = {
-  ios: { widthRatio: 0.5, leftOffsetRatio: 0.04, bottomOffsetRatio: 0.05, tiltDeg: 0 },
-  android: { widthRatio: 0.42, leftOffsetRatio: 0.04, bottomOffsetRatio: 0.05, tiltDeg: 0 },
+  ios: { widthRatio: 0.78, leftInsetRatio: 0.08, bottomOverflowRatio: 0.34, tiltDeg: 0 },
+  android: { widthRatio: 0.66, leftInsetRatio: 0.07, bottomOverflowRatio: 0.32, tiltDeg: 0 },
 };
 
 const HEADLINE_FONT =
@@ -72,7 +72,7 @@ export const TYPO = {
   pageNumberColor: 'rgba(58,39,48,0.7)',
   pageNumberTracking: '0.18em',
   /** 푸터(좌하단) — 모노 */
-  footerPx: 22,
-  footerColor: 'rgba(58,39,48,0.55)',
-  footerTracking: '0.18em',
+  footerPx: 26,
+  footerColor: 'rgba(58,39,48,0.68)',
+  footerTracking: '0.16em',
 };

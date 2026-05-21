@@ -18,7 +18,7 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
   const layout = PHONE_LAYOUT[platform];
   const phoneWidth = width * layout.widthRatio;
   const padX = width * 0.07;
-  const padY = height * 0.06;
+  const padY = height * 0.045;
 
   return (
     <div
@@ -48,6 +48,7 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
           color: TYPO.pageNumberColor,
           letterSpacing: TYPO.pageNumberTracking,
           fontWeight: 500,
+          zIndex: 4,
         }}
       >
         {String(panel.index).padStart(2, '0')} / {String(TOTAL_PANELS).padStart(2, '0')}
@@ -59,10 +60,11 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
           position: 'absolute',
           top: padY,
           left: padX,
-          right: width * 0.32, // 우측 큰 꽃 자리 비워두기
+          right: width * 0.12,
           display: 'flex',
           flexDirection: 'column',
           gap: width * 0.022,
+          zIndex: 3,
         }}
       >
         {panel.isNew ? (
@@ -105,20 +107,22 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
             lineHeight: TYPO.subheadLineHeight,
             fontWeight: TYPO.subheadWeight,
             color: TYPO.subheadColor,
+            marginTop: width * 0.01,
           }}
         >
           {panel.subhead}
         </p>
       </div>
 
-      {/* 좌하단: 폰 목업 */}
+      {/* 좌하단: 폰 목업 (캔버스 폭의 ~78%, 하단 ~34% 잘림) */}
       <div
         style={{
           position: 'absolute',
-          left: -width * layout.leftOffsetRatio,
-          bottom: -height * layout.bottomOffsetRatio,
+          left: width * layout.leftInsetRatio,
+          bottom: -height * layout.bottomOverflowRatio,
           transform: layout.tiltDeg ? `rotate(${layout.tiltDeg}deg)` : undefined,
           transformOrigin: 'bottom left',
+          zIndex: 2,
         }}
       >
         <PhoneFrame width={phoneWidth} screenshotDataUrl={screenshotDataUrl} />
@@ -129,7 +133,7 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
         data-testid="footer-label"
         style={{
           position: 'absolute',
-          bottom: padY * 0.6,
+          bottom: height * 0.045,
           left: padX,
           fontFamily: FONT.mono,
           fontSize: TYPO.footerPx,
@@ -137,7 +141,7 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
           letterSpacing: TYPO.footerTracking,
           fontWeight: 500,
           textTransform: 'uppercase',
-          lineHeight: 1.6,
+          lineHeight: 1.7,
           zIndex: 5,
         }}
       >
@@ -151,27 +155,34 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
 }
 
 /**
- * 꽃잎·작은 꽃 어센트. SVG로 그려 PNG 캡처에서도 깨지지 않게 한다.
+ * 꽃잎·꽃 어센트. 큰 꽃잎 위주로 임팩트 있게 배치하고, 사실감을 위해 SVG blur·다중 그라데이션 적용.
  * 좌표는 캔버스 비율 기준이라 iOS/Android 모두 동일 위치 비율로 흩뿌려진다.
  */
 function BloomAccents({ width, height }: { width: number; height: number }) {
-  // 큰 꽃(우측 상단, 헤드라인 옆)
-  const bigFlower = { cx: 0.82, cy: 0.13, r: 0.07 };
-  // 작은 꽃(곳곳에 강조)
-  const smallFlowers = [
-    { cx: 0.55, cy: 0.18, r: 0.025 },
-    { cx: 0.88, cy: 0.55, r: 0.022 },
+  // 큰 임팩트 꽃잎 — 우상단 카피 옆, 좌중단 폰 옆 등 시선을 끄는 위치 (선명)
+  const bigPetals = [
+    { cx: 0.82, cy: 0.07, r: 0.085, rot: 25, opacity: 0.95, blur: 0 },
+    { cx: 0.95, cy: 0.16, r: 0.055, rot: -30, opacity: 0.85, blur: 0 },
+    { cx: 0.03, cy: 0.53, r: 0.085, rot: -25, opacity: 0.92, blur: 0 },
+    { cx: 0.06, cy: 0.65, r: 0.075, rot: 50, opacity: 0.85, blur: 1 },
+    { cx: 0.78, cy: 0.92, r: 0.06, rot: -15, opacity: 0.85, blur: 0 },
   ];
-  // 꽃잎(체리블라썸 잎 모양, 여러 개 흩뿌림)
-  const petals = [
-    { cx: 0.04, cy: 0.32, r: 0.045, rot: -20, opacity: 0.7 },
-    { cx: 0.74, cy: 0.06, r: 0.055, rot: 28, opacity: 0.85 },
-    { cx: 0.92, cy: 0.16, r: 0.038, rot: -35, opacity: 0.7 },
-    { cx: 0.18, cy: 0.45, r: 0.035, rot: 50, opacity: 0.55 },
-    { cx: 0.62, cy: 0.4, r: 0.04, rot: -10, opacity: 0.6 },
-    { cx: 0.95, cy: 0.48, r: 0.032, rot: 25, opacity: 0.55 },
-    { cx: 0.38, cy: 0.92, r: 0.04, rot: 15, opacity: 0.6 },
-    { cx: 0.92, cy: 0.78, r: 0.045, rot: -40, opacity: 0.6 },
+  // 약한 블러 꽃잎 — 깊이감을 더하되 형태는 보이게
+  const blurPetals = [
+    { cx: 0.18, cy: 0.4, r: 0.05, rot: 60, opacity: 0.7, blur: 2 },
+    { cx: 0.92, cy: 0.42, r: 0.04, rot: 15, opacity: 0.65, blur: 2 },
+    { cx: 0.4, cy: 0.8, r: 0.05, rot: -10, opacity: 0.7, blur: 2 },
+    { cx: 0.92, cy: 0.78, r: 0.045, rot: 30, opacity: 0.7, blur: 1 },
+    { cx: 0.2, cy: 0.92, r: 0.04, rot: 20, opacity: 0.65, blur: 2 },
+  ];
+  const allPetals = [...bigPetals, ...blurPetals];
+
+  // 큰 꽃(우상단 헤드라인 옆)
+  const bigFlower = { cx: 0.88, cy: 0.13, r: 0.055 };
+  // 작은 강조 점꽃
+  const smallFlowers = [
+    { cx: 0.97, cy: 0.42, r: 0.018 },
+    { cx: 0.95, cy: 0.78, r: 0.02 },
   ];
 
   return (
@@ -182,37 +193,49 @@ function BloomAccents({ width, height }: { width: number; height: number }) {
       aria-hidden
     >
       <defs>
-        <radialGradient id="petalFill" cx="35%" cy="30%" r="70%">
-          <stop offset="0%" stopColor="#FFF6F8" />
-          <stop offset="55%" stopColor="#FFC0D2" />
-          <stop offset="100%" stopColor="#F590B0" />
+        <radialGradient id="petalFill" cx="32%" cy="28%" r="78%">
+          <stop offset="0%" stopColor="#FFFAFB" />
+          <stop offset="35%" stopColor="#FFD0DD" />
+          <stop offset="75%" stopColor="#F59FB8" />
+          <stop offset="100%" stopColor="#DC7A99" />
         </radialGradient>
         <radialGradient id="flowerFill" cx="50%" cy="50%" r="60%">
           <stop offset="0%" stopColor="#FFE0E8" />
-          <stop offset="100%" stopColor="#F38FAE" />
+          <stop offset="100%" stopColor="#E78FAE" />
         </radialGradient>
+        <filter id="petalBlur1" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2.5" />
+        </filter>
+        <filter id="petalBlur2" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="5" />
+        </filter>
       </defs>
 
-      {petals.map((p, i) => {
+      {allPetals.map((p, i) => {
         const cx = width * p.cx;
         const cy = height * p.cy;
         const r = width * p.r;
+        const filter = p.blur >= 2 ? 'url(#petalBlur2)' : p.blur >= 1 ? 'url(#petalBlur1)' : undefined;
         return (
-          <g key={`petal-${i}`} transform={`translate(${cx} ${cy}) rotate(${p.rot})`} opacity={p.opacity}>
+          <g
+            key={`petal-${i}`}
+            transform={`translate(${cx} ${cy}) rotate(${p.rot})`}
+            opacity={p.opacity}
+            filter={filter}
+          >
             <path
-              d={`M0 ${-r} C ${r * 0.95} ${-r * 0.35}, ${r * 0.95} ${r * 0.35}, 0 ${r} C ${-r * 0.95} ${r * 0.35}, ${-r * 0.95} ${-r * 0.35}, 0 ${-r} Z`}
+              d={`M 0 ${-r} C ${r * 0.55} ${-r * 0.75}, ${r * 0.6} ${r * 0.4}, 0 ${r} C ${-r * 0.6} ${r * 0.4}, ${-r * 0.55} ${-r * 0.75}, 0 ${-r} Z`}
               fill="url(#petalFill)"
             />
           </g>
         );
       })}
 
-      {/* 큰 꽃: 5장 꽃잎 + 중앙 점 */}
       <FlowerBlossom
         cx={width * bigFlower.cx}
         cy={height * bigFlower.cy}
         r={width * bigFlower.r}
-        opacity={0.95}
+        opacity={0.92}
       />
 
       {smallFlowers.map((f, i) => (
@@ -221,7 +244,7 @@ function BloomAccents({ width, height }: { width: number; height: number }) {
           cx={width * f.cx}
           cy={height * f.cy}
           r={width * f.r}
-          opacity={0.85}
+          opacity={0.9}
         />
       ))}
     </svg>
@@ -241,22 +264,22 @@ function FlowerBlossom({
 }) {
   const petalCount = 5;
   const petalLen = r;
-  const petalWide = r * 0.6;
-  const petals = Array.from({ length: petalCount }, (_, i) => (360 / petalCount) * i);
+  const petalWide = r * 0.62;
+  const angles = Array.from({ length: petalCount }, (_, i) => (360 / petalCount) * i);
   return (
     <g transform={`translate(${cx} ${cy})`} opacity={opacity}>
-      {petals.map((deg, i) => (
+      {angles.map((deg, i) => (
         <ellipse
           key={i}
           cx={0}
           cy={-petalLen * 0.55}
           rx={petalWide / 2}
-          ry={petalLen * 0.55}
+          ry={petalLen * 0.58}
           fill="url(#flowerFill)"
           transform={`rotate(${deg})`}
         />
       ))}
-      <circle cx={0} cy={0} r={r * 0.18} fill="#E78FAE" opacity={0.85} />
+      <circle cx={0} cy={0} r={r * 0.2} fill="#9A5E78" opacity={0.9} />
     </g>
   );
 }
