@@ -201,9 +201,9 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
             </Pressable>
           </>
         ) : null}
-        <Text style={styles.bookingQueryLabel}>예약 검색어: "{bookingQuery}"</Text>
+        <Text style={styles.bookingQueryLabel}>아고다 검색어: "{bookingQuery}"</Text>
         <Pressable testID="stay-detail-book" onPress={handleBook} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>네이버에서 예약 정보 보기 →</Text>
+          <Text style={styles.primaryButtonText}>아고다에서 호텔 예약하기 →</Text>
         </Pressable>
       </SectionCard>
 
