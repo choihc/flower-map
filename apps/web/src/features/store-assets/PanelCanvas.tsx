@@ -143,23 +143,6 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
         />
       </div>
 
-      <div
-        data-testid="brand-signature"
-        style={{
-          position: 'absolute',
-          left: edge,
-          bottom: TYPO_BASE.brandBottom * scale,
-          fontFamily: FONT.mono,
-          fontSize: TYPO_BASE.brandPx * scale,
-          letterSpacing: 1.5 * scale,
-          textTransform: 'uppercase',
-          color: palette.ink,
-          opacity: TYPO_BASE.brandOpacity,
-          zIndex: 4,
-        }}
-      >
-        SPRING · 2026
-      </div>
     </div>
   );
 }

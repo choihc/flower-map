@@ -59,12 +59,12 @@ describe('PanelCanvas', () => {
     });
   });
 
-  it('폰에 다이내믹 아일랜드와 홈 인디케이터가 있다', () => {
-    const { getByTestId } = render(
+  it('폰에 홈 인디케이터가 있다 (다이내믹 아일랜드는 표시하지 않음)', () => {
+    const { getByTestId, queryByTestId } = render(
       <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
     );
-    expect(getByTestId('dynamic-island')).toBeDefined();
     expect(getByTestId('home-indicator')).toBeDefined();
+    expect(queryByTestId('dynamic-island')).toBeNull();
   });
 
   it('우상단에 페이지 번호("NN / 06")를 렌더한다', () => {
@@ -76,12 +76,11 @@ describe('PanelCanvas', () => {
     expect(text).toContain(String(ordinaryPanel.index).padStart(2, '0'));
   });
 
-  it('좌하단에 브랜드 서명(SPRING · 2026)을 렌더한다', () => {
-    const { getByTestId } = render(
+  it('SPRING 브랜드 서명은 표시하지 않는다', () => {
+    const { queryByTestId } = render(
       <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
     );
-    expect(getByTestId('brand-signature').textContent).toContain('SPRING');
-    expect(getByTestId('brand-signature').textContent).toContain('2026');
+    expect(queryByTestId('brand-signature')).toBeNull();
   });
 
   it('스크린샷이 없을 때 폰 내부에 phoneNote와 screenshot.png를 렌더한다', () => {

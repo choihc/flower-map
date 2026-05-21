@@ -22,8 +22,8 @@ export const PHONE_FRAME = {
   aspect: 420 / 200,
   /** 캔버스 폭 대비 폰 폭 (디자인 200/308) */
   widthRatio: 200 / DESIGN_BASE_W,
-  /** 폰을 캔버스 하단에서 아래로 밀어내는 양 (디자인 -180px @ scale=1) */
-  bottomOffsetBase: -180,
+  /** 폰을 캔버스 하단에서 아래로 밀어내는 양. -60(@scale=1) ≈ 캔버스의 54%가 폰 영역으로 노출 */
+  bottomOffsetBase: -60,
   /** 폰 회전각(반시계, 도) */
   tiltDeg: -6,
 };
@@ -78,8 +78,4 @@ export const TYPO_BASE = {
   subheadLineHeight: 1.45,
   subheadMarginTop: 14,
   subheadOpacity: 0.7,
-  /** 브랜드 서명(SPRING · 2026) */
-  brandPx: 10,
-  brandBottom: 24,
-  brandOpacity: 0.55,
 };

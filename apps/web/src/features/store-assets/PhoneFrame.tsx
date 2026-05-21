@@ -73,22 +73,6 @@ export function PhoneFrame({ width, screenshotDataUrl, ink, softBg, phoneNote }:
           </div>
         )}
 
-        {/* 다이내믹 아일랜드 */}
-        <div
-          data-testid="dynamic-island"
-          style={{
-            position: 'absolute',
-            top: width * 0.04,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: width * 0.32,
-            height: width * 0.075,
-            borderRadius: 999,
-            background: '#0a0a0a',
-            zIndex: 2,
-          }}
-        />
-
         {/* 홈 인디케이터 */}
         <div
           data-testid="home-indicator"
