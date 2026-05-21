@@ -67,13 +67,11 @@ describe('PanelCanvas', () => {
     expect(queryByTestId('dynamic-island')).toBeNull();
   });
 
-  it('우상단에 페이지 번호("NN / 06")를 렌더한다', () => {
-    const { getByTestId } = render(
+  it('페이지 번호는 표시하지 않는다', () => {
+    const { queryByTestId } = render(
       <PanelCanvas panel={ordinaryPanel} platform="ios" screenshotDataUrl={null} />,
     );
-    const text = getByTestId('page-number').textContent ?? '';
-    expect(text).toMatch(/\d{2}\s*\/\s*06/);
-    expect(text).toContain(String(ordinaryPanel.index).padStart(2, '0'));
+    expect(queryByTestId('page-number')).toBeNull();
   });
 
   it('SPRING 브랜드 서명은 표시하지 않는다', () => {

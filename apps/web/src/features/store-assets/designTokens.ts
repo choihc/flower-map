@@ -63,9 +63,6 @@ export const TYPO_BASE = {
   newBadgePadX: 12,
   newBadgePadY: 5,
   newBadgePx: 11,
-  /** 페이지 번호(우상단) */
-  pageNumberPx: 11,
-  pageNumberOpacity: 0.5,
   /** 헤드라인 */
   headlinePx: 38,
   headlineLineHeight: 1.12,

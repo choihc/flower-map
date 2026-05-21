@@ -11,15 +11,13 @@ import {
   type Platform,
 } from './designTokens';
 import { PhoneFrame } from './PhoneFrame';
-import { PANELS, type PanelConfig } from './panels';
+import type { PanelConfig } from './panels';
 
 type PanelCanvasProps = {
   panel: PanelConfig;
   platform: Platform;
   screenshotDataUrl: string | null;
 };
-
-const TOTAL_PANELS = PANELS.length;
 
 export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasProps) {
   const { width, height } = DESIGN_SIZE[platform];
@@ -65,24 +63,6 @@ export function PanelCanvas({ panel, platform, screenshotDataUrl }: PanelCanvasP
           NEW
         </span>
       ) : null}
-
-      <div
-        data-testid="page-number"
-        style={{
-          position: 'absolute',
-          top: edge,
-          right: edge,
-          fontFamily: FONT.mono,
-          fontSize: TYPO_BASE.pageNumberPx * scale,
-          fontWeight: 500,
-          color: palette.ink,
-          opacity: TYPO_BASE.pageNumberOpacity,
-          letterSpacing: 1 * scale,
-          zIndex: 3,
-        }}
-      >
-        {String(panel.index).padStart(2, '0')} / {String(TOTAL_PANELS).padStart(2, '0')}
-      </div>
 
       <div
         style={{
