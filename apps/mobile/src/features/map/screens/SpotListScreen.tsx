@@ -53,7 +53,7 @@ export function SpotListScreen() {
 
   if (isLoading) {
     return (
-      <ScreenShell title={title} subtitle={subtitle}>
+      <ScreenShell titleText={title} subtitle={subtitle}>
         <SkeletonBox height={72} borderRadius={16} />
         <SkeletonBox height={72} borderRadius={16} />
         <SkeletonBox height={72} borderRadius={16} />
@@ -63,7 +63,7 @@ export function SpotListScreen() {
   }
 
   return (
-    <ScreenShell title={title} subtitle={subtitle}>
+    <ScreenShell titleText={title} subtitle={subtitle}>
       <View style={styles.filterRow}>
         <Pressable onPress={() => setSheetOpen(true)} style={styles.flowerFilterButton}>
           <Text style={styles.flowerFilterButtonText}>

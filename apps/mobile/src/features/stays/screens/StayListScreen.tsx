@@ -19,7 +19,7 @@ export function StayListScreen() {
 
   if (isLoading) {
     return (
-      <ScreenShell title="호캉스" subtitle="이번 주말 어디로 떠날까">
+      <ScreenShell titleText="호캉스" subtitle="이번 주말 어디로 떠날까">
         <SkeletonBox height={120} borderRadius={18} />
         <SkeletonBox height={120} borderRadius={18} />
         <SkeletonBox height={120} borderRadius={18} />
@@ -29,14 +29,14 @@ export function StayListScreen() {
 
   if (stays.length === 0) {
     return (
-      <ScreenShell title="호캉스" subtitle="준비 중인 큐레이션이에요">
+      <ScreenShell titleText="호캉스" subtitle="준비 중인 큐레이션이에요">
         <Text style={styles.emptyText}>곧 새로운 큐레이션이 올라올 거예요.</Text>
       </ScreenShell>
     );
   }
 
   return (
-    <ScreenShell title="호캉스" subtitle="이번 주말 어디로 떠날까">
+    <ScreenShell titleText="호캉스" subtitle="이번 주말 어디로 떠날까">
       <View style={styles.intro}>
         <Text style={styles.introText}>{stays.length}곳을 큐레이션했어요</Text>
       </View>

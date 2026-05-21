@@ -34,7 +34,7 @@ export function MoreScreen() {
   const router = useRouter();
 
   return (
-    <ScreenShell title="더보기" subtitle="저장한 명소와 내 정보를 한 곳에서 관리해요.">
+    <ScreenShell titleText="더보기" subtitle="저장한 명소와 내 정보를 한 곳에서 관리해요.">
       <View style={styles.menuList}>
         {MENU_ITEMS.map((item) => (
           <Pressable

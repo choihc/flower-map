@@ -244,7 +244,7 @@ export function MapScreen() {
 
   if (isLoading) {
     return (
-      <ScreenShell title="지도 탐색">
+      <ScreenShell titleText="지도 탐색">
         <SkeletonBox height={400} borderRadius={24} />
         <SkeletonBox height={80} borderRadius={20} />
         <SkeletonBox height={80} borderRadius={20} />
@@ -254,7 +254,7 @@ export function MapScreen() {
 
   if (spots.length === 0) {
     return (
-      <ScreenShell title="지도 탐색" subtitle="등록된 명소가 없습니다.">
+      <ScreenShell titleText="지도 탐색" subtitle="등록된 명소가 없습니다.">
         <View style={{ alignItems: 'center', paddingTop: 60 }}>
           <Text style={{ color: colors.textMuted, fontSize: 16, marginTop: 20 }}>
             {error ? '데이터를 불러오지 못했습니다' : '곧 새로운 명소가 등록될 예정이에요'}
@@ -265,7 +265,7 @@ export function MapScreen() {
   }
 
   return (
-    <ScreenShell title="지도 탐색" subtitle="지금 갈 만한 꽃 명소를 지도와 리스트 흐름으로 바로 비교해보세요.">
+    <ScreenShell titleText="지도 탐색" subtitle="지금 갈 만한 꽃 명소를 지도와 리스트 흐름으로 바로 비교해보세요.">
       <View style={styles.mapFrame}>
         {Platform.OS === 'web' ? (
           <WebMapFallback />

@@ -46,7 +46,7 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
 
   if (isLoading) {
     return (
-      <ScreenShell showBack title="">
+      <ScreenShell showBack hideTitleHeader>
         <SkeletonBox height={280} borderRadius={28} />
         <SkeletonBox height={100} borderRadius={20} />
         <SkeletonBox height={80} borderRadius={20} />
@@ -57,14 +57,14 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
 
   if (!spot) {
     return (
-      <ScreenShell showBack title="명소를 찾을 수 없어요" subtitle="다른 명소를 탐색해 보세요.">
+      <ScreenShell showBack titleText="명소를 찾을 수 없어요" subtitle="다른 명소를 탐색해 보세요.">
         {null}
       </ScreenShell>
     );
   }
 
   return (
-    <ScreenShell showBack title={spot.place} subtitle={`${spot.flower} · ${spot.location}`}>
+    <ScreenShell showBack hideTitleHeader>
       <SpotHeroCard
         badge={spot.badge}
         description={spot.description}

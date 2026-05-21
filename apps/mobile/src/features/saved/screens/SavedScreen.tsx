@@ -42,7 +42,7 @@ export function SavedScreen() {
 
   return (
     <ScreenShell
-      title="좋아요한 명소"
+      titleText="좋아요한 명소"
       subtitle="내가 좋아요 누른 꽃 명소를 모아봤어요."
     >
       <View style={styles.filterRow}>

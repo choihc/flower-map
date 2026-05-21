@@ -62,7 +62,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
 
   if (isLoading) {
     return (
-      <ScreenShell showBack title="">
+      <ScreenShell showBack hideTitleHeader>
         <SkeletonBox height={320} borderRadius={28} />
         <SkeletonBox height={120} borderRadius={20} />
         <SkeletonBox height={100} borderRadius={20} />
@@ -75,7 +75,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
     return (
       <ScreenShell
         showBack
-        title="호캉스 정보를 찾을 수 없어요"
+        titleText="호캉스 정보를 찾을 수 없어요"
         subtitle="다른 호텔을 탐색해 보세요."
       >
         {null}
@@ -121,8 +121,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   return (
     <ScreenShell
       showBack
-      title={stay.name}
-      subtitle={`${stay.regionPrimary} · ${stay.regionSecondary}`}
+      hideTitleHeader
     >
       <SpotHeroCard
         badge={formatStayTypeBadge(stay.stayType)}
