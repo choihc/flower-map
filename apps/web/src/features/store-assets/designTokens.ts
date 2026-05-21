@@ -10,55 +10,69 @@ export const PLATFORM_LABEL: Record<Platform, string> = {
   android: 'Android',
 };
 
-/**
- * 폰 프레임: 9:19.5 비율. 최신 스토어 스크린샷 트렌드를 반영해 다이내믹 아일랜드는 그리지 않는다.
- * 클로즈업 사선 배치로 폰 상단 자체가 화면 밖으로 잘리므로 추가 safe area도 불필요.
- */
+/** 폰 프레임: 9:19.5 비율 + 다이내믹 아일랜드. 레퍼런스 디자인 따름. */
 export const PHONE_FRAME = {
   aspect: 19.5 / 9,
-  cornerRadiusRatio: 0.07,
-  bezelRatio: 0.012,
+  cornerRadiusRatio: 0.085,
+  bezelRatio: 0.014,
+  islandWidthRatio: 0.32,
+  islandHeightRatio: 0.085,
+  islandTopRatio: 0.035,
 };
 
 /**
- * 클로즈업 폰 배치 계수. 폰을 우하단에서 살짝 기울인 사선으로 들어오게 배치한다.
+ * 폰을 캔버스의 **좌하단**에 거의 직립으로 배치. 캔버스 좌측을 살짝 벗어나며 하단이 잘린다.
  * - widthRatio: 캔버스 폭 대비 폰 폭
- * - rightOffsetRatio / bottomOffsetRatio: 캔버스 우/하단을 기준으로 폰이 밖으로 밀려나간 비율(음의 right/bottom 값)
- * - tiltDeg: 폰의 반시계 방향 회전각(절댓값)
+ * - leftOffsetRatio: 캔버스 좌측 기준 음의 left (-값 = 왼쪽 밖으로 밀림)
+ * - bottomOffsetRatio: 캔버스 하단 기준 음의 bottom (-값 = 아래로 밀림)
+ * - tiltDeg: 시계방향 회전(양수). 거의 0에 가까움.
  */
 export const PHONE_LAYOUT: Record<
   Platform,
-  { widthRatio: number; rightOffsetRatio: number; bottomOffsetRatio: number; tiltDeg: number }
+  { widthRatio: number; leftOffsetRatio: number; bottomOffsetRatio: number; tiltDeg: number }
 > = {
-  // iOS(1242×2688, 비율 2.16): 폰 ~969×2099, 폰의 좌상단이 캔버스의 우측 절반 아래쪽에서 시작
-  ios: { widthRatio: 0.78, rightOffsetRatio: 0.18, bottomOffsetRatio: 0.2, tiltDeg: 8 },
-  // Android(1080×1920, 비율 1.78): 가로 비율이 더 크므로 폰을 더 좁게
-  android: { widthRatio: 0.65, rightOffsetRatio: 0.13, bottomOffsetRatio: 0.15, tiltDeg: 8 },
+  ios: { widthRatio: 0.5, leftOffsetRatio: 0.04, bottomOffsetRatio: 0.05, tiltDeg: 0 },
+  android: { widthRatio: 0.42, leftOffsetRatio: 0.04, bottomOffsetRatio: 0.05, tiltDeg: 0 },
+};
+
+const HEADLINE_FONT =
+  '"Gowun Batang", "Nanum Myeongjo", "AppleGothic", "Apple SD Gothic Neo", serif';
+const SANS_FONT =
+  'Pretendard, "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", system-ui, sans-serif';
+const MONO_FONT = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+
+export const FONT = {
+  headline: HEADLINE_FONT,
+  sans: SANS_FONT,
+  mono: MONO_FONT,
 };
 
 export const TYPO = {
-  /** closeup 레이아웃: 좌상단 카피 영역 */
-  headlinePx: 130,
-  headlineLineHeight: 1.12,
-  headlineWeight: 800,
-  subheadPx: 50,
-  subheadLineHeight: 1.32,
+  /** 헤드라인: 굵은 명조체 */
+  headlinePx: 132,
+  headlineLineHeight: 1.18,
+  headlineWeight: 700,
+  headlineColor: '#3a2730',
+  headlineLetterSpacing: '-0.02em',
+  /** 서브헤드: 산세리프 한글 */
+  subheadPx: 42,
+  subheadLineHeight: 1.4,
   subheadWeight: 500,
   subheadColor: '#5a3f4a',
-  /** impact 레이아웃(1번 NEW 패널): 가운데 거대 타이포 */
-  impactHeadlinePx: 168,
-  impactHeadlineLineHeight: 1.08,
-  impactSubheadPx: 56,
-  /** NEW 배지 */
-  newBadgePx: 52,
-  newBadgePadX: 0.034,
-  newBadgePadY: 0.016,
-  newBadgeBg: '#FF7B9C',
+  /** NEW 배지: 보라 */
+  newBadgePx: 38,
+  newBadgePadX: 0.03,
+  newBadgePadY: 0.014,
+  newBadgeBg: '#6B5BD2',
   newBadgeFg: '#FFFFFF',
-  /** 해시태그 칩 */
-  tagPx: 42,
-  tagPadX: 0.026,
-  tagPadY: 0.012,
-  tagBg: 'rgba(255,255,255,0.78)',
-  tagFg: '#8b3d5f',
+  newBadgeRadius: 0.022,
+  newBadgeTracking: '0.08em',
+  /** 페이지 번호(우상단) — 모노 */
+  pageNumberPx: 28,
+  pageNumberColor: 'rgba(58,39,48,0.7)',
+  pageNumberTracking: '0.18em',
+  /** 푸터(좌하단) — 모노 */
+  footerPx: 22,
+  footerColor: 'rgba(58,39,48,0.55)',
+  footerTracking: '0.18em',
 };

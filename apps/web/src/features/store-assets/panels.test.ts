@@ -22,11 +22,12 @@ describe('PANELS', () => {
     expect(new Set(slugs).size).toBe(slugs.length);
   });
 
-  it('모든 패널이 헤드라인/서브헤드/배경을 갖는다', () => {
+  it('모든 패널이 헤드라인/서브헤드/배경/푸터 라벨을 갖는다', () => {
     PANELS.forEach((p: PanelConfig) => {
       expect(p.headline.length).toBeGreaterThan(0);
       expect(p.subhead.length).toBeGreaterThan(0);
       expect(p.background.length).toBeGreaterThan(0);
+      expect(p.footerLabel.length).toBeGreaterThan(0);
     });
   });
 });

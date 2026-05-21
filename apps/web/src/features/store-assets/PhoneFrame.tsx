@@ -8,9 +8,8 @@ type PhoneFrameProps = {
 };
 
 /**
- * 9:19.5 비율의 검정 라운드 폰 목업. 최신 스토어 스크린샷 트렌드를 반영해
- * 다이내믹 아일랜드는 그리지 않는다(클로즈업 사선 배치로 상단이 자연스레 잘리므로 불필요).
- * 모든 사이즈는 props.width 기준으로 비율 계산되어 캔버스 스케일에 의존하지 않는다.
+ * 9:19.5 비율 검정 라운드 폰 + 다이내믹 아일랜드. 레퍼런스 디자인을 따라 복원했다.
+ * 사이즈는 props.width 기준 비율 계산.
  */
 export function PhoneFrame({ width, screenshotDataUrl }: PhoneFrameProps) {
   const height = width * PHONE_FRAME.aspect;
@@ -20,16 +19,20 @@ export function PhoneFrame({ width, screenshotDataUrl }: PhoneFrameProps) {
   const innerHeight = height - bezel * 2;
   const innerCorner = corner - bezel;
 
+  const islandWidth = width * PHONE_FRAME.islandWidthRatio;
+  const islandHeight = width * PHONE_FRAME.islandHeightRatio;
+  const islandTop = bezel + width * PHONE_FRAME.islandTopRatio;
+
   return (
     <div
       data-testid="phone-frame"
       style={{
         width,
         height,
-        background: '#0a0a0a',
+        background: '#0d0d0f',
         borderRadius: corner,
         position: 'relative',
-        boxShadow: '0 30px 60px rgba(0,0,0,0.22)',
+        boxShadow: '0 36px 80px rgba(50,30,55,0.25), 0 8px 20px rgba(50,30,55,0.18)',
       }}
     >
       <div
@@ -41,7 +44,7 @@ export function PhoneFrame({ width, screenshotDataUrl }: PhoneFrameProps) {
           height: innerHeight,
           borderRadius: innerCorner,
           overflow: 'hidden',
-          background: '#ffffff',
+          background: '#FAF4F2',
         }}
       >
         {screenshotDataUrl ? (
@@ -51,23 +54,20 @@ export function PhoneFrame({ width, screenshotDataUrl }: PhoneFrameProps) {
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: width * 0.04,
-              color: '#9b9b9b',
-              background: '#f3f3f3',
-            }}
-          >
-            스크린샷 업로드
-          </div>
-        )}
+        ) : null}
       </div>
+      <div
+        data-testid="dynamic-island"
+        style={{
+          position: 'absolute',
+          top: islandTop,
+          left: (width - islandWidth) / 2,
+          width: islandWidth,
+          height: islandHeight,
+          background: '#0a0a0a',
+          borderRadius: islandHeight / 2,
+        }}
+      />
     </div>
   );
 }
