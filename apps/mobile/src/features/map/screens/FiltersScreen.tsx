@@ -20,7 +20,7 @@ export function FiltersScreen() {
   const regionSummaries = deriveRegionSummaries(spots);
 
   return (
-    <ScreenShell title="필터" subtitle="꽃 종류와 지역 조건을 조합해서 지금 가기 좋은 명소만 추려보세요.">
+    <ScreenShell titleText="필터" subtitle="꽃 종류와 지역 조건을 조합해서 지금 가기 좋은 명소만 추려보세요.">
       <SectionCard title="꽃 종류">
         <View style={styles.wrap}>
           {flowerLabels.map((label, index) => (

@@ -62,7 +62,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
 
   if (isLoading) {
     return (
-      <ScreenShell showBack title="">
+      <ScreenShell showBack hideTitleHeader>
         <SkeletonBox height={320} borderRadius={28} />
         <SkeletonBox height={120} borderRadius={20} />
         <SkeletonBox height={100} borderRadius={20} />
@@ -75,7 +75,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
     return (
       <ScreenShell
         showBack
-        title="호캉스 정보를 찾을 수 없어요"
+        titleText="호캉스 정보를 찾을 수 없어요"
         subtitle="다른 호텔을 탐색해 보세요."
       >
         {null}
@@ -121,8 +121,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   return (
     <ScreenShell
       showBack
-      title={stay.name}
-      subtitle={`${stay.regionPrimary} · ${stay.regionSecondary}`}
+      hideTitleHeader
     >
       <SpotHeroCard
         badge={formatStayTypeBadge(stay.stayType)}
@@ -202,9 +201,9 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
             </Pressable>
           </>
         ) : null}
-        <Text style={styles.bookingQueryLabel}>예약 검색어: "{bookingQuery}"</Text>
+        <Text style={styles.bookingQueryLabel}>아고다 검색어: "{bookingQuery}"</Text>
         <Pressable testID="stay-detail-book" onPress={handleBook} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>네이버에서 예약 정보 보기 →</Text>
+          <Text style={styles.primaryButtonText}>아고다에서 호텔 예약하기 →</Text>
         </Pressable>
       </SectionCard>
 

@@ -25,7 +25,7 @@ const withLocalProperties: ConfigPlugin = (config) => {
 const config: ExpoConfig = {
   name: '꽃 어디',
   slug: 'kkoteodi',
-  version: '1.0.4',
+  version: '1.0.5',
   runtimeVersion: {
     policy: 'appVersion',
   },

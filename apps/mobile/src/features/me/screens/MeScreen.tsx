@@ -42,12 +42,12 @@ export function MeScreen() {
   const { user, signOut, isLoading } = useAuth();
 
   if (isLoading) {
-    return <ScreenShell title="내 정보" />;
+    return <ScreenShell titleText="내 정보" />;
   }
 
   if (!user) {
     return (
-      <ScreenShell title="내 정보" subtitle="로그인하면 후기를 남길 수 있어요.">
+      <ScreenShell titleText="내 정보" subtitle="로그인하면 후기를 남길 수 있어요.">
         <Pressable onPress={signInWithKakao} style={styles.kakaoButton}>
           <Text style={styles.kakaoButtonText}>카카오로 로그인</Text>
         </Pressable>
@@ -73,7 +73,7 @@ export function MeScreen() {
     '카카오 로그인됨';
 
   return (
-    <ScreenShell title="내 정보" subtitle={displayName}>
+    <ScreenShell titleText="내 정보" subtitle={displayName}>
       <NativeSpotAd />
       <AppInfoSection />
       <Pressable onPress={signOut} style={styles.signOutButton}>

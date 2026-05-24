@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>앱스토어 스크린샷 생성기 (Admin) 설계 문서</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --text: #2a2a2a;
+    --muted: #6b6b6b;
+    --accent: #d96b8a;
+    --new: #ff7b9c;
+    --border: #e6e2dc;
+    --code-bg: #f4f1ec;
+    --section-bg: #ffffff;
+    --tag-info-bg: #e7f1fb;
+    --tag-info-fg: #1f6fb4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Helvetica Neue", sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 28px 96px;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  header.hero h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  header.hero .meta {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .summary-box {
+    background: #fff5f6;
+    border: 1px solid #f7d5dc;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 0 0 28px;
+  }
+  .summary-box h2 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .summary-box ul { margin: 0; padding-left: 20px; }
+  .summary-box li { margin-bottom: 4px; }
+  nav.toc {
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin-bottom: 32px;
+  }
+  nav.toc h2 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  nav.toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    columns: 2;
+    column-gap: 24px;
+  }
+  nav.toc li {
+    margin: 4px 0;
+    font-size: 14px;
+  }
+  nav.toc a {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px dotted transparent;
+  }
+  nav.toc a:hover {
+    border-bottom-color: var(--accent);
+    color: var(--accent);
+  }
+  section {
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    margin: 0 0 14px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    scroll-margin-top: 16px;
+  }
+  section h2 .num {
+    color: var(--accent);
+    margin-right: 8px;
+    font-weight: 800;
+  }
+  section h3 {
+    margin: 22px 0 10px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  p { margin: 8px 0 12px; }
+  ul, ol { margin: 8px 0 12px; padding-left: 22px; }
+  ul li, ol li { margin: 4px 0; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  pre code { background: transparent; padding: 0; font-size: inherit; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0 16px;
+    font-size: 13.5px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #f6f1ec; font-weight: 700; }
+  tr:nth-child(even) td { background: #fbfaf6; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+  .badge.new { background: var(--new); color: white; }
+  .badge.info { background: var(--tag-info-bg); color: var(--tag-info-fg); }
+  .badge.warn { background: #fff1d0; color: #946400; }
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: #fbf2f4;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+  .color-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <h1>앱스토어 스크린샷 생성기 (Admin) 설계 문서</h1>
+  <div class="meta">작성일 2026-05-20 · 대상 <code>apps/web</code> 어드민 · 신규 페이지 <code>/admin/store-assets</code></div>
+</header>
+
+<div class="summary-box">
+  <h2>핵심 요약</h2>
+  <ul>
+    <li><strong>이번 릴리즈용 고정 템플릿</strong>의 어드민 셀프 서비스 스크린샷 생성기. 7개 패널, iOS 6.5″(1242×2688) + Android(1080×1920) 동시 생성.</li>
+    <li><strong>NEW: 명소와 한번에 호텔까지</strong> 기능을 1번 패널로 배치 (App Store 검색 노출 상위 3장에 포함).</li>
+    <li>관리자가 화면 스크린샷 7장을 업로드 → 폰 목업 + 카피와 합성된 PNG를 패널별/일괄(ZIP) 다운로드.</li>
+    <li>순수 프런트 작업: <code>apps/mobile</code>, <code>apps/toss-mini</code>, 공유 패키지, DB, API 모두 영향 없음.</li>
+    <li>신규 의존성 3개: <code>html-to-image</code>, <code>jszip</code>, <code>file-saver</code>. 모두 핸들러 내 lazy load.</li>
+  </ul>
+</div>
+
+<nav class="toc">
+  <h2>목차</h2>
+  <ol>
+    <li><a href="#s1">1. 배경 / 목적</a></li>
+    <li><a href="#s2">2. 비목표</a></li>
+    <li><a href="#s3">3. 사용 시나리오</a></li>
+    <li><a href="#s4">4. 패널 구성 (7장)</a></li>
+    <li><a href="#s5">5. 출력 사양</a></li>
+    <li><a href="#s6">6. 시각 디자인</a></li>
+    <li><a href="#s7">7. 기술 아키텍처</a></li>
+    <li><a href="#s8">8. 페이지 레이아웃</a></li>
+    <li><a href="#s9">9. 어드민 사이드바 등록</a></li>
+    <li><a href="#s10">10. 엣지 케이스 / 상태</a></li>
+    <li><a href="#s11">11. 테스트 전략</a></li>
+    <li><a href="#s12">12. 작업 범위 / 변경 영향</a></li>
+    <li><a href="#s13">13. 향후 고려</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <h2><span class="num">1</span>배경 / 목적</h2>
+  <p>앱스토어·플레이스토어 등록·갱신 시 사용할 마케팅 스크린샷(폰 목업 + 카피 + 배경)을 어드민에서 즉시 생성·다운로드한다. 이번 릴리즈에는 <strong>명소 ↔ 호텔 연결</strong> 기능이 새로 추가되었고, 이를 가장 앞에 노출해야 한다. 홈 화면도 함께 개편되어 기존 스크린샷은 전면 재촬영이 필요하다.</p>
+  <p>기존 등록물은 외주/디자이너 협업으로 만들어졌으나, 이번 릴리즈 시점에는 어드민에서 셀프 서비스로 빠르게 만들고자 한다.</p>
+</section>
+
+<section id="s2">
+  <h2><span class="num">2</span>비목표 <span class="badge warn">Non-goals</span></h2>
+  <ul>
+    <li>범용 에디터가 아니다. <strong>이번 릴리즈용 고정 템플릿</strong>이며, 다음 릴리즈에 문구·구성이 바뀌면 코드를 수정한다.</li>
+    <li>디자이너 수준의 자유 편집(드래그·자르기·필터 등)은 제공하지 않는다.</li>
+    <li>등록물의 자동 업로드/배포(App Store Connect API, Play Console API 연동 등)는 포함하지 않는다. 어드민은 PNG 파일만 생산한다.</li>
+  </ul>
+</section>
+
+<section id="s3">
+  <h2><span class="num">3</span>사용 시나리오</h2>
+  <ol>
+    <li>어드민이 디바이스(iOS 시뮬레이터 또는 실기기)에서 7개 화면 스크린샷을 PNG로 저장한다.</li>
+    <li><code>/admin/store-assets</code> 페이지에 접속한다.</li>
+    <li>좌측 7개 패널 카드에 각각 자기 화면 스크린샷을 업로드한다(드래그&amp;드롭 또는 파일 선택).</li>
+    <li>우측 상단에서 플랫폼(iOS 6.5″ / Android)을 토글하며 미리보기 확인.</li>
+    <li>패널별 "PNG 다운로드" 버튼 또는 우측 상단 "전체 ZIP 다운로드"로 결과물 수집.</li>
+    <li>App Store Connect / Play Console에 업로드.</li>
+  </ol>
+  <div class="callout">업로드된 스크린샷은 <strong>세션 동안만 메모리에 보관</strong>한다(localStorage 저장 X — 용량 이슈, 일회성 작업이라는 성격).</div>
+</section>
+
+<section id="s4">
+  <h2><span class="num">4</span>패널 구성 (확정 7장)</h2>
+  <table>
+    <thead>
+      <tr><th>순서</th><th>슬러그</th><th>헤드라인</th><th>서브헤드</th><th>폰 내부 화면(권장)</th><th>배경 톤</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><code>hotel</code></td><td>명소와 한번에 호텔까지 <span class="badge new">NEW</span></td><td>꽃 명소 주변 숙소를 바로 예약</td><td>명소 상세 하단 호텔 섹션</td><td><span class="color-swatch" style="background:#E6DCEE"></span>라일락 핑크</td></tr>
+      <tr><td>2</td><td><code>detail</code></td><td>명소 상세를 풍부하게</td><td>영상과 블로그 글을 함께 확인</td><td>명소 상세 + 콘텐츠</td><td><span class="color-swatch" style="background:#FCE4EC"></span>연한 봄 핑크</td></tr>
+      <tr><td>3</td><td><code>home</code></td><td>오늘, 꽃 보러 갈까?</td><td>지금 피는 꽃을 한 눈에</td><td>새 홈화면</td><td><span class="color-swatch" style="background:#F7C8D4"></span>진한 벚꽃 핑크</td></tr>
+      <tr><td>4</td><td><code>bloom</code></td><td>실시간 개화정보</td><td>전국 명소 개화율을 한 화면에</td><td>개화 현황 화면</td><td><span class="color-swatch" style="background:#FCE0C8"></span>살구 톤</td></tr>
+      <tr><td>5</td><td><code>nearby</code></td><td>주변 꽃 명소 추천</td><td>현재 위치 기반 명소 지도</td><td>지도/탐색 화면</td><td><span class="color-swatch" style="background:#D6EDD9"></span>민트</td></tr>
+      <tr><td>6</td><td><code>direction</code></td><td>길찾기까지 한번에</td><td>지금 바로 찾아가는 꽃 나들이</td><td>길찾기/지도</td><td><span class="color-swatch" style="background:#DDD6F0"></span>라벤더</td></tr>
+      <tr><td>7</td><td><code>saved</code></td><td>나만의 꽃 명소</td><td>다시 찾고 싶은 장소 쉽게 저장</td><td>저장 목록</td><td><span class="color-swatch" style="background:#F0E6D2"></span>베이지</td></tr>
+    </tbody>
+  </table>
+  <p>이 메타데이터는 <code>panels.ts</code>에 <code>PanelConfig[]</code> 형태로 그대로 코딩한다. 슬러그 유니크 보장을 위해 dev 환경에서 모듈 로드 시 <code>Set</code> 크기 단언 어설션을 추가한다.</p>
+  <p>문구·순서는 코드에 하드코딩한다(다음 릴리즈에서 변경되면 코드 수정).</p>
+  <div class="callout"><strong>App Store 검색 노출(상위 3장) 우선순위:</strong> NEW 호텔 → 콘텐츠 풍부 → 브랜드 훅.</div>
+</section>
+
+<section id="s5">
+  <h2><span class="num">5</span>출력 사양</h2>
+  <table>
+    <thead><tr><th>플랫폼</th><th>해상도</th><th>비율</th><th>파일명</th></tr></thead>
+    <tbody>
+      <tr><td>iOS 6.5″</td><td>1242 × 2688</td><td>9:19.5</td><td><code>ios-{n}-{slug}.png</code></td></tr>
+      <tr><td>Android</td><td>1080 × 1920</td><td>9:16</td><td><code>android-{n}-{slug}.png</code></td></tr>
+    </tbody>
+  </table>
+  <p><code>{n}</code>은 1~7, <code>{slug}</code>는 §4의 슬러그 컬럼.</p>
+  <p><strong>패널별 PNG 다운로드:</strong> 우상단 토글에서 <strong>현재 선택된 플랫폼 1장만</strong> 다운로드한다(1회 클릭 = 1개 PNG). 두 플랫폼 모두 받고 싶으면 토글을 바꿔 다시 누르거나 ZIP을 사용한다.</p>
+  <p><strong>ZIP 다운로드:</strong> 두 플랫폼 14장 전체를 하나로 묶는다.</p>
+<pre>store-assets-{YYYYMMDD}.zip
+├── ios/
+│   ├── ios-1-hotel.png
+│   └── ...
+└── android/
+    ├── android-1-hotel.png
+    └── ...</pre>
+</section>
+
+<section id="s6">
+  <h2><span class="num">6</span>시각 디자인</h2>
+  <h3>레이아웃 (공통)</h3>
+  <ul>
+    <li>패널 배경: 단색 또는 부드러운 그라데이션</li>
+    <li>상단 1/3: 헤드라인(굵은 한글, Pretendard Bold 또는 프로젝트 기본 폰트) + 서브헤드(라이트 톤)</li>
+    <li>우상단: 작은 벚꽃 SVG 1~2개(NEW 패널만 톤 강조)</li>
+    <li>중하단: 폰 목업(검정 라운드 프레임, 다이내믹 아일랜드 포함), <strong>정면·수직</strong>, 화면 중앙 정렬</li>
+    <li>NEW 라벨: 1번 패널 헤드라인 옆에 분홍 배지로 표기</li>
+  </ul>
+  <h3>폰 프레임 비율</h3>
+  <p>양 플랫폼 동일하게 9:19.5(iPhone 비례)로 그린다. Android에서도 일관성을 위해 동일 프레임 사용. 캔버스 배경 크기만 플랫폼별로 다름.</p>
+  <h3>타이포 스케일 (iOS 1242 기준)</h3>
+  <ul>
+    <li>헤드라인 100~120px / line-height 1.15 / weight 800</li>
+    <li>서브헤드 48~56px / line-height 1.3 / weight 500 / 색 <code>#6B5B5B</code></li>
+    <li>NEW 배지 36px / 분홍 <code>#FF7B9C</code> 배경 / 흰색 글자</li>
+  </ul>
+  <h3>배경 색상</h3>
+  <p>패널별 의미에 맞는 파스텔 톤(§4 표). 코드에 토큰화.</p>
+</section>
+
+<section id="s7">
+  <h2><span class="num">7</span>기술 아키텍처</h2>
+
+  <h3>7.1 디렉터리</h3>
+<pre>apps/web/
+├── app/admin/(dashboard)/store-assets/
+│   └── page.tsx               # 라우트 진입점
+└── src/features/store-assets/
+    ├── StoreAssetsPage.tsx    # 메인 컴포넌트 (클라이언트)
+    ├── panels.ts              # 7개 패널 메타데이터
+    ├── PanelCanvas.tsx        # 한 패널의 실제 렌더링
+    ├── PhoneFrame.tsx         # 폰 목업 컴포넌트
+    ├── PanelCard.tsx          # 좌측 리스트의 카드
+    ├── PlatformToggle.tsx     # iOS/Android 토글
+    ├── useExportPanel.ts      # html-to-image PNG 변환 hook
+    └── useExportZip.ts        # 전체 ZIP 묶음 hook</pre>
+
+  <h3>7.2 핵심 컴포넌트 인터페이스</h3>
+<pre>type Platform = 'ios' | 'android';
+
+type PanelConfig = {
+  index: number;            // 1~7
+  slug: string;             // 'hotel', 'detail', ...
+  headline: string;
+  subhead: string;
+  isNew?: boolean;
+  background: string;       // CSS color or gradient
+  flowerAccent?: 'sakura' | 'lilac' | 'none';
+};
+
+type PanelCanvasProps = {
+  panel: PanelConfig;
+  platform: Platform;
+  screenshotDataUrl: string | null;
+};
+
+const DESIGN_SIZE = {
+  ios:     { width: 1242, height: 2688 },
+  android: { width: 1080, height: 1920 },
+};</pre>
+
+  <h3>7.3 렌더링 &amp; 다운로드</h3>
+  <ul>
+    <li><strong>렌더 노드 분리:</strong> 미리보기와 PNG 추출은 같은 DOM 노드를 공유하지 않는다.
+      <ul>
+        <li><strong>추출용 노드:</strong> 실제 출력 픽셀 그대로 <code>&lt;div&gt;</code>로 렌더링하되, 화면 밖(<code>position: fixed; left: -99999px</code>)에 둔다. <code>html-to-image.toPng</code>는 이 노드를 그대로 캡처한다.</li>
+        <li><strong>미리보기 노드:</strong> 같은 트리를 한 번 더 마운트하고 <code>transform: scale(0.18)</code> 등으로 축소.</li>
+        <li>이중 마운트의 메모리 비용은 React가 동일 컴포넌트를 두 인스턴스로 들고 있는 정도라 미미하다.</li>
+      </ul>
+    </li>
+    <li><strong>PNG 추출:</strong> <code>toPng(extractionNode, { pixelRatio: 1, width, height })</code>. 추출 전 사전 조건:
+      <ol>
+        <li><code>await document.fonts.ready</code> 로 웹폰트 로딩 보장</li>
+        <li>폰 내부 <code>&lt;img&gt;</code>는 <code>await img.decode()</code> 또는 <code>onload</code> 대기로 디코드 완료 보장</li>
+      </ol>
+    </li>
+    <li><strong>ZIP 묶음:</strong> <code>jszip</code>으로 14장 blob 추가 → §5의 디렉터리 구조대로 폴더 분리 → <code>file-saver.saveAs</code>.</li>
+    <li><strong>업로드 처리:</strong> <code>FileReader.readAsDataURL</code>로 dataURL 변환 후 React state(<code>Record&lt;slug, dataURL&gt;</code>)에 보관(메모리). 새로고침 시 사라진다.</li>
+  </ul>
+
+  <h3>7.4 신규 의존성</h3>
+  <ul>
+    <li><code>html-to-image</code> (~30KB)</li>
+    <li><code>jszip</code> (~100KB)</li>
+    <li><code>file-saver</code> (~5KB)</li>
+  </ul>
+  <p><strong>번들 영향 최소화:</strong></p>
+  <ul>
+    <li>페이지 컴포넌트 자체는 <code>next/dynamic(..., { ssr: false })</code>로 admin 라우트에서만 로드.</li>
+    <li><code>html-to-image</code>/<code>jszip</code>/<code>file-saver</code> 모듈은 각 버튼 핸들러 내부에서 <code>const { toPng } = await import('html-to-image')</code> 형태로 lazy load.</li>
+  </ul>
+
+  <h3>7.5 상태 관리</h3>
+<pre>const [platform, setPlatform] = useState&lt;Platform&gt;('ios');
+const [screenshots, setScreenshots] = useState&lt;Record&lt;string, string&gt;&gt;({});
+// key: panel.slug → value: dataURL</pre>
+  <p>전역 상태 도구 불필요(zustand/redux 없음).</p>
+</section>
+
+<section id="s8">
+  <h2><span class="num">8</span>페이지 레이아웃 (와이어프레임)</h2>
+<pre>┌──────────────────────────────────────────────────────────────┐
+│  스토어 스크린샷               [iOS 6.5″ | Android] [ZIP↓]   │
+├──────────────────────────────────────────────────────────────┤
+│ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌────┐ │
+│ │ 1    │ │ 2    │ │ 3    │ │ 4    │ │ 5    │ │ 6    │ │ 7  │ │
+│ │ NEW  │ │ 상세 │ │ 훅   │ │ 개화 │ │ 주변 │ │ 길찾 │ │ 저장│ │
+│ │ 프리뷰│ │ ...  │ │      │ │      │ │      │ │      │ │    │ │
+│ │ [업로드][PNG↓]                                          │ │ │
+│ └──────┘ └──────┘ ...                                        │
+└──────────────────────────────────────────────────────────────┘</pre>
+  <p>7개 카드는 가로 스크롤 또는 grid-2/3-column으로 배치(반응형). 데스크톱 기준 3열 그리드 권장.</p>
+</section>
+
+<section id="s9">
+  <h2><span class="num">9</span>어드민 사이드바 등록</h2>
+  <p><code>apps/web/app/admin/(dashboard)/layout.tsx</code>(또는 사이드바 정의 파일)에 메뉴 추가:</p>
+<pre>대시보드
+- 꽃
+- 명소
+- 호텔
+- 알림
+- 설정
+- 스토어 스크린샷  ← 신규</pre>
+  <p>권한은 기존 admin guard 그대로 적용.</p>
+</section>
+
+<section id="s10">
+  <h2><span class="num">10</span>엣지 케이스 / 상태</h2>
+  <ul>
+    <li><strong>업로드 안 된 패널:</strong> 폰 프레임 안에 placeholder("스크린샷 업로드") 표시. PNG 다운로드는 가능(빈 폰 상태) — 의도된 동작.</li>
+    <li><strong>잘못된 이미지 포맷:</strong> <code>image/*</code> accept로 1차 차단. FileReader 에러 시 toast 노출.</li>
+    <li><strong>매우 큰 파일(&gt;10MB):</strong> 경고 토스트 후 그대로 사용. 압축은 하지 않는다.</li>
+    <li><strong>ZIP 생성 중:</strong> 버튼 disabled + 진행률 인디케이터.</li>
+    <li><strong>모바일 브라우저 접근:</strong> 데스크톱 권장 안내 배너.</li>
+    <li><strong>폰트 미로딩 상태에서 캡처:</strong> <code>document.fonts.ready</code>를 await하지 않으면 헤드라인이 시스템 폰트로 캡처될 수 있음. §7.3의 사전 조건에서 처리.</li>
+    <li><strong>이미지 디코드 미완료 캡처:</strong> 업로드 직후 즉시 다운로드를 누르면 <code>&lt;img&gt;</code>가 디코드 완료 전일 수 있음. §7.3의 <code>img.decode()</code> 대기로 처리.</li>
+  </ul>
+</section>
+
+<section id="s11">
+  <h2><span class="num">11</span>테스트 전략</h2>
+  <p>본 페이지는 시각적 결과물이 본질이고 외부 라이브러리에 강하게 의존하므로 <strong>유닛 테스트는 최소화</strong>한다.</p>
+  <ul>
+    <li>단위 테스트: <code>panels.ts</code> 메타데이터가 7개 패널을 빠짐없이 가지고 슬러그가 유니크한지.</li>
+    <li>컴포넌트 스모크 테스트: <code>PanelCanvas</code>가 iOS/Android prop에 따라 다른 width/height를 가진 DOM을 렌더하는지.</li>
+    <li>E2E/시각 회귀 테스트: 도입하지 않음(투자 대비 효용 낮음).</li>
+    <li>수동 검증: 7개 패널 × 2 플랫폼 = 14장 PNG 다운로드해 실제 픽셀 사이즈 확인(미리보기는 신뢰 X).</li>
+  </ul>
+</section>
+
+<section id="s12">
+  <h2><span class="num">12</span>작업 범위 / 변경 영향</h2>
+  <p><strong>신규 추가</strong></p>
+  <ul>
+    <li><code>apps/web/app/admin/(dashboard)/store-assets/page.tsx</code></li>
+    <li><code>apps/web/src/features/store-assets/*</code></li>
+    <li><code>apps/web/package.json</code> (의존성 3개)</li>
+  </ul>
+  <p><strong>수정</strong></p>
+  <ul>
+    <li><code>apps/web/app/admin/(dashboard)/layout.tsx</code> 사이드바 메뉴</li>
+  </ul>
+  <p><strong>영향 없음</strong></p>
+  <ul>
+    <li><code>apps/mobile/</code>, <code>apps/toss-mini/</code>, 공유 패키지(<code>packages/*</code>), DB 스키마, API 라우트, 백엔드 어디에도 영향 없음. <span class="badge info">순수 프런트 어드민 작업</span></li>
+  </ul>
+</section>
+
+<section id="s13">
+  <h2><span class="num">13</span>향후 고려 (이번 릴리즈 범위 외)</h2>
+  <ul>
+    <li>다국어(영어) 버전 스크린샷 생성: 패널 메타데이터에 locale을 추가하면 확장 가능.</li>
+    <li>iPad용 사이즈(2064×2752): App Store iPad 카테고리 노출 필요 시 별도 작업.</li>
+    <li>디자인 토큰 외부화: 다음 릴리즈에 자주 갱신될 가능성이 보이면 패널 메타데이터를 별도 JSON으로 분리 검토.</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>
