@@ -66,7 +66,7 @@ export function StayListScreen() {
                 })
               }
             />
-            {(idx + 1) % 3 === 0 && idx < stays.length - 1 ? <NativeSpotAd /> : null}
+            {(idx + 1) % 10 === 0 && idx < stays.length - 1 ? <NativeSpotAd /> : null}
           </View>
         );
       })}
