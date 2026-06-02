@@ -22,7 +22,7 @@ vi.mock('expo-router', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
 }));
 vi.mock('../../stays/lib/affiliateHotel', () => ({
-  openAgodaHotelSearch: vi.fn(),
+  openTripcomHotel: vi.fn(),
 }));
 
 import { getPublishedStays } from '../../../shared/data/stayRepository';
@@ -36,7 +36,7 @@ function makeStay(over: Partial<Stay> & { id: string; latitude?: number; longitu
     stayType: 'city', seasonTags: [],
     seasonWindowStart: null, seasonWindowEnd: null, shortTagline: '',
     description: '', recommendationPoints: [], thumbnailUrl: null,
-    agodaHotelId: null, bookingQueryOverride: null, naverRating: { score: 4.5, url: '' },
+    tripcomBookingUrl: null, bookingQueryOverride: null, naverRating: { score: 4.5, url: '' },
     googleRating: null, ratingCapturedAt: null, isFeatured: false, displayOrder: 0,
   };
   return { ...base, ...over };

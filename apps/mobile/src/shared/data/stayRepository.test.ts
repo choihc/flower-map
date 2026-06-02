@@ -18,7 +18,7 @@ const stayRow: StayRow = {
   short_tagline: '겨울에 가장 빛나는 호캉스',
   description: '온천과 함께 쉬어가는 제주 호캉스',
   recommendation_points: ['실내 온천'],
-  agoda_hotel_id: null,
+  tripcom_booking_url: null,
   thumbnail_url: null,
   booking_query_override: null,
   naver_rating_score: 4.5,
