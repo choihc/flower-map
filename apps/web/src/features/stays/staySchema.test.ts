@@ -143,18 +143,19 @@ describe('staySchema', () => {
     }).success).toBe(false);
   });
 
-  it('agoda_hotel_id null/undefined/생략 모두 허용', () => {
+  it('tripcom_booking_url null/생략 모두 허용', () => {
     expect(staySchema.safeParse({ ...baseStay }).success).toBe(true);
-    expect(staySchema.safeParse({ ...baseStay, agoda_hotel_id: null }).success).toBe(true);
+    expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: null }).success).toBe(true);
   });
 
-  it('agoda_hotel_id 유효한 문자열 허용', () => {
-    const r = staySchema.parse({ ...baseStay, agoda_hotel_id: '1234567' });
-    expect(r.agoda_hotel_id).toBe('1234567');
+  it('tripcom_booking_url 유효한 https URL 허용', () => {
+    const url = 'https://kr.trip.com/hotels/detail/?hotelId=123&Allianceid=456&SID=789';
+    const r = staySchema.parse({ ...baseStay, tripcom_booking_url: url });
+    expect(r.tripcom_booking_url).toBe(url);
   });
 
-  it('agoda_hotel_id 공백 문자열 차단', () => {
-    expect(staySchema.safeParse({ ...baseStay, agoda_hotel_id: '   ' }).success).toBe(false);
-    expect(staySchema.safeParse({ ...baseStay, agoda_hotel_id: '' }).success).toBe(false);
+  it('tripcom_booking_url의 비-http(s) 스킴 차단 (XSS 방지)', () => {
+    expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'javascript:alert(1)' }).success).toBe(false);
+    expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'not-a-url' }).success).toBe(false);
   });
 });
