@@ -156,6 +156,8 @@ describe('staySchema', () => {
 
   it('tripcom_booking_url의 비-http(s) 스킴 차단 (XSS 방지)', () => {
     expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'javascript:alert(1)' }).success).toBe(false);
+    expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'data:text/html,<script>alert(1)</script>' }).success).toBe(false);
+    expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'file:///etc/passwd' }).success).toBe(false);
     expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'not-a-url' }).success).toBe(false);
   });
 });

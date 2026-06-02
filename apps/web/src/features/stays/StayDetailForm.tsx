@@ -150,7 +150,7 @@ export function StayDetailForm({ stay }: Props) {
                 <a
                   href={stay.tripcom_booking_url}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="mt-2 block break-all text-sm text-blue-600 underline"
                 >
                   {stay.tripcom_booking_url}
