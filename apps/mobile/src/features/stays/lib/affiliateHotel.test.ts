@@ -64,4 +64,16 @@ describe('openTripcomHotel', () => {
     expect(alertSpy).toHaveBeenCalledTimes(1);
     expect(alertSpy.mock.calls[0][0]).toContain('예약');
   });
+
+  it('직링크 URL도 Linking 실패 시 Alert.alert가 호출된다', async () => {
+    vi.spyOn(Linking, 'openURL').mockRejectedValue(new Error('cannot open'));
+    const alertSpy = vi.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await openTripcomHotel({
+      name: '호텔 나루',
+      queryOverride: null,
+      tripcomBookingUrl: 'https://kr.trip.com/hotels/detail/?hotelId=123',
+    });
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(alertSpy.mock.calls[0][0]).toContain('예약');
+  });
 });

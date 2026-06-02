@@ -59,7 +59,7 @@ export function StayListScreen() {
               boostBadge={boostBadge}
               onPress={() => router.push(`/stays/${stay.slug}` as never)}
               onPressBook={() =>
-                openTripcomHotel({
+                void openTripcomHotel({
                   name: stay.name,
                   queryOverride: stay.bookingQueryOverride,
                   tripcomBookingUrl: stay.tripcomBookingUrl,

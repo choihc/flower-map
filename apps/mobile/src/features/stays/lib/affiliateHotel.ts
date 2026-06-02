@@ -23,6 +23,8 @@ export function buildTripcomHotelSearchUrl(query: string): string {
 
 async function copyToClipboardSilent(text: string): Promise<void> {
   try {
+    // expo-clipboard는 선택 의존성. 'expo-clipboard' as string 캐스트로 TS 정적 모듈 존재 체크를
+    // 우회하고, 미설치 시 아래 catch에서 silent fail 처리한다.
     const mod = (await import('expo-clipboard' as string)) as {
       setStringAsync?: (value: string) => Promise<unknown>;
     };

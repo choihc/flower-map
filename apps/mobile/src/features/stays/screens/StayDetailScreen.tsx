@@ -111,7 +111,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   };
 
   const handleBook = () => {
-    openTripcomHotel({
+    void openTripcomHotel({
       name: stay.name,
       queryOverride: stay.bookingQueryOverride,
       tripcomBookingUrl: stay.tripcomBookingUrl,

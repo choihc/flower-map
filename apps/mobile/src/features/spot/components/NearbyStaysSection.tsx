@@ -60,7 +60,7 @@ export function NearbyStaysSection({ spot }: Props) {
             boostBadge={{ label: formatProximity(distanceKm, '이 명소') }}
             onPress={() => router.push(staysDetailPath(stay.slug))}
             onPressBook={() =>
-              openTripcomHotel({
+              void openTripcomHotel({
                 name: stay.name,
                 queryOverride: stay.bookingQueryOverride,
                 tripcomBookingUrl: stay.tripcomBookingUrl,

@@ -44,7 +44,7 @@ export function HocanceTop5Section() {
               boostBadge={boostBadge}
               onPress={() => router.push(staysDetailPath(stay.slug))}
               onPressBook={() =>
-                openTripcomHotel({
+                void openTripcomHotel({
                   name: stay.name,
                   queryOverride: stay.bookingQueryOverride,
                   tripcomBookingUrl: stay.tripcomBookingUrl,
