@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { bulkUpdateStayStatus, updateStayAgodaHotelId, updateStayThumbnail } from '@/lib/data/stays';
-import { parseAgodaHotelId } from './agodaHidParser';
+import { bulkUpdateStayStatus, updateStayTripcomUrl, updateStayThumbnail } from '@/lib/data/stays';
 import type { Database, StayStatus } from '@/lib/types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
@@ -41,29 +40,24 @@ export async function updateStayThumbnailAction(id: string, thumbnailUrl: string
 }
 
 /**
- * 호텔 Agoda hotel id(hid) 업데이트.
- * 입력은 다음 중 하나:
- * - Agoda Partner Search 결과 URL (예: https://www.agoda.com/partners/partnersearch.aspx?...hid=24180119)
- * - hid 숫자만 (예: "24180119")
- * - 빈 문자열 → null로 정규화 (hid 제거)
- *
- * 유효하지 않은 입력이면 Error throw — 폼이 에러 메시지 표시.
+ * 호텔 trip.com 예약 URL 업데이트.
+ * 입력은 전체 URL 또는 빈 문자열(→ null, 검색 fallback).
+ * http(s) 스킴만 허용 — XSS 방어. 비-http(s)면 Error throw(폼이 메시지 표시).
  */
-export async function updateStayAgodaHotelIdAction(id: string, rawInput: string): Promise<void> {
+export async function updateStayTripcomUrlAction(id: string, rawUrl: string): Promise<void> {
   const supabase = await createServerSupabaseClient();
   const client = supabase as unknown as SupabaseClient<Database>;
 
-  const trimmed = rawInput.trim();
-  let hid: string | null = null;
+  const trimmed = rawUrl.trim();
+  let url: string | null = null;
   if (trimmed.length > 0) {
-    const parsed = parseAgodaHotelId(trimmed);
-    if (parsed == null) {
-      throw new Error('Agoda 호텔 ID를 인식할 수 없습니다. Agoda Partner Search 결과 URL 또는 hid 숫자만 입력하세요.');
+    if (!/^https?:\/\//i.test(trimmed)) {
+      throw new Error('예약 URL은 http(s)로 시작하는 전체 URL이어야 합니다.');
     }
-    hid = parsed;
+    url = trimmed;
   }
 
-  await updateStayAgodaHotelId(client, id, hid);
+  await updateStayTripcomUrl(client, id, url);
 
   revalidatePath('/admin/stays');
   revalidatePath(`/admin/stays/${id}`);
