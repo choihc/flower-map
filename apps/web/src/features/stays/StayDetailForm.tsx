@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ImageUploader } from '@/features/spots/ImageUploader';
 import type { StayRow } from '@/lib/types';
 
-import { updateStayAgodaHotelIdAction, updateStayThumbnailAction } from './actions';
+import { updateStayThumbnailAction, updateStayTripcomUrlAction } from './actions';
 
 type Props = {
   stay: StayRow;
@@ -25,21 +25,21 @@ export function StayDetailForm({ stay }: Props) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
-  const [agodaPending, startAgodaTransition] = useTransition();
-  const [agodaMessage, setAgodaMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+  const [tripcomPending, startTripcomTransition] = useTransition();
+  const [tripcomMessage, setTripcomMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
-  function handleAgodaSubmit(formData: FormData) {
-    const raw = String(formData.get('agoda_hotel_id_input') ?? '');
-    setAgodaMessage(null);
-    startAgodaTransition(async () => {
+  function handleTripcomSubmit(formData: FormData) {
+    const raw = String(formData.get('tripcom_booking_url_input') ?? '');
+    setTripcomMessage(null);
+    startTripcomTransition(async () => {
       try {
-        await updateStayAgodaHotelIdAction(stay.id, raw);
-        setAgodaMessage({ kind: 'success', text: 'Agoda 호텔 ID를 저장했습니다.' });
+        await updateStayTripcomUrlAction(stay.id, raw);
+        setTripcomMessage({ kind: 'success', text: 'trip.com 예약 URL을 저장했습니다.' });
         router.refresh();
       } catch (error) {
-        setAgodaMessage({
+        setTripcomMessage({
           kind: 'error',
-          text: error instanceof Error ? error.message : 'Agoda 호텔 ID 저장 중 오류가 발생했습니다.',
+          text: error instanceof Error ? error.message : 'trip.com 예약 URL 저장 중 오류가 발생했습니다.',
         });
       }
     });
@@ -126,18 +126,17 @@ export function StayDetailForm({ stay }: Props) {
 
       <Card className="overflow-hidden xl:col-span-full">
         <CardHeader className="px-6 py-6">
-          <CardTitle>Agoda 호텔 ID (예약 직링크)</CardTitle>
+          <CardTitle>trip.com 예약 URL</CardTitle>
           <CardDescription>
-            Agoda Partners 검색 결과 페이지 URL을 그대로 붙여넣거나 hid 숫자만 입력하세요.
-            비우면 호텔명 검색으로 자동 fallback됩니다.
+            trip.com 제휴 예약 URL 전체를 붙여넣으세요. 비우면 호텔명으로 trip.com 검색이 열립니다.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          <form action={handleAgodaSubmit} className="space-y-4">
+          <form action={handleTripcomSubmit} className="space-y-4">
             <div className="rounded-2xl border border-border bg-background px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-foreground">현재 상태</span>
-                {stay.agoda_hotel_id ? (
+                {stay.tripcom_booking_url ? (
                   <Badge variant="default" className="rounded-full px-2.5 py-1">
                     직링크 활성
                   </Badge>
@@ -147,46 +146,48 @@ export function StayDetailForm({ stay }: Props) {
                   </Badge>
                 )}
               </div>
-              {stay.agoda_hotel_id ? (
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">저장된 hid</span>
-                  <code className="rounded bg-blue-600 px-2 py-1 text-base font-semibold text-white">
-                    {stay.agoda_hotel_id}
-                  </code>
-                </div>
+              {stay.tripcom_booking_url ? (
+                <a
+                  href={stay.tripcom_booking_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 block break-all text-sm text-blue-600 underline"
+                >
+                  {stay.tripcom_booking_url}
+                </a>
               ) : (
                 <p className="mt-2 text-sm text-muted-foreground">
-                  hid가 설정되지 않아 호텔명 검색으로 fallback됩니다.
+                  URL이 없어 호텔명 검색으로 fallback됩니다.
                 </p>
               )}
             </div>
             <div className="space-y-2">
-              <label htmlFor="agoda_hotel_id_input" className="text-sm font-medium text-foreground">
-                Agoda URL 또는 hid 입력
+              <label htmlFor="tripcom_booking_url_input" className="text-sm font-medium text-foreground">
+                trip.com 예약 URL 입력
               </label>
               <input
-                id="agoda_hotel_id_input"
-                name="agoda_hotel_id_input"
+                id="tripcom_booking_url_input"
+                name="tripcom_booking_url_input"
                 type="text"
-                defaultValue={stay.agoda_hotel_id ?? ''}
-                placeholder="https://www.agoda.com/partners/partnersearch.aspx?...hid=24180119 또는 24180119"
+                defaultValue={stay.tripcom_booking_url ?? ''}
+                placeholder="https://kr.trip.com/hotels/detail/?hotelId=...&Allianceid=...&SID=..."
                 className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm"
               />
             </div>
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={agodaPending}>
+              <Button type="submit" disabled={tripcomPending}>
                 저장
               </Button>
-              {agodaMessage ? (
+              {tripcomMessage ? (
                 <p
                   className={
-                    agodaMessage.kind === 'success'
+                    tripcomMessage.kind === 'success'
                       ? 'text-sm text-foreground'
                       : 'text-sm text-destructive'
                   }
-                  role={agodaMessage.kind === 'error' ? 'alert' : undefined}
+                  role={tripcomMessage.kind === 'error' ? 'alert' : undefined}
                 >
-                  {agodaMessage.text}
+                  {tripcomMessage.text}
                 </p>
               ) : null}
             </div>
