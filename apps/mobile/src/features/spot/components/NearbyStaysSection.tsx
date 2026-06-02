@@ -8,7 +8,7 @@ import type { FlowerSpot } from '../../../shared/data/types';
 import { formatProximity } from '../../../shared/lib/proximityLabel';
 import { colors } from '../../../shared/theme/colors';
 import { StayCard } from '../../stays/components/StayCard';
-import { openAgodaHotelSearch } from '../../stays/lib/affiliateHotel';
+import { openTripcomHotel } from '../../stays/lib/affiliateHotel';
 import { STAYS_ROUTE, staysDetailPath } from '../../stays/routes';
 import { findNearbyStays } from '../lib/findNearbyStays';
 
@@ -60,10 +60,10 @@ export function NearbyStaysSection({ spot }: Props) {
             boostBadge={{ label: formatProximity(distanceKm, '이 명소') }}
             onPress={() => router.push(staysDetailPath(stay.slug))}
             onPressBook={() =>
-              openAgodaHotelSearch({
+              openTripcomHotel({
                 name: stay.name,
                 queryOverride: stay.bookingQueryOverride,
-                agodaHotelId: stay.agodaHotelId,
+                tripcomBookingUrl: stay.tripcomBookingUrl,
               })
             }
           />

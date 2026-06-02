@@ -23,7 +23,7 @@ import { SectionCard } from '../../../shared/ui/SectionCard';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { StoriesSection } from '../../../shared/ui/StoriesSection';
-import { openAgodaHotelSearch, resolveBookingQuery } from '../lib/affiliateHotel';
+import { openTripcomHotel, resolveBookingQuery } from '../lib/affiliateHotel';
 import { formatStayTypeBadge } from '../lib/stayType';
 
 type StayDetailScreenProps = {
@@ -111,10 +111,10 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   };
 
   const handleBook = () => {
-    openAgodaHotelSearch({
+    openTripcomHotel({
       name: stay.name,
       queryOverride: stay.bookingQueryOverride,
-      agodaHotelId: stay.agodaHotelId,
+      tripcomBookingUrl: stay.tripcomBookingUrl,
     });
   };
 
@@ -201,9 +201,9 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
             </Pressable>
           </>
         ) : null}
-        <Text style={styles.bookingQueryLabel}>아고다 검색어: "{bookingQuery}"</Text>
+        <Text style={styles.bookingQueryLabel}>trip.com 검색어: "{bookingQuery}"</Text>
         <Pressable testID="stay-detail-book" onPress={handleBook} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>아고다에서 호텔 예약하기 →</Text>
+          <Text style={styles.primaryButtonText}>trip.com에서 호텔 예약하기 →</Text>
         </Pressable>
       </SectionCard>
 
