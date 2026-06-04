@@ -159,5 +159,8 @@ describe('staySchema', () => {
     expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'data:text/html,<script>alert(1)</script>' }).success).toBe(false);
     expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'file:///etc/passwd' }).success).toBe(false);
     expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'not-a-url' }).success).toBe(false);
+    // 스킴은 맞지만 malformed URL — 직링크 실패를 방지하기 위해 차단되어야 한다 (P2 회귀 방지)
+    expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'https://' }).success).toBe(false);
+    expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'https://foo bar' }).success).toBe(false);
   });
 });

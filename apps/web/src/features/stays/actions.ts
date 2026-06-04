@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { bulkUpdateStayStatus, updateStayTripcomUrl, updateStayThumbnail } from '@/lib/data/stays';
 import type { Database, StayStatus } from '@/lib/types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { httpsOnlyUrlSchema } from './staySchema';
 
 export async function bulkUpdateStayStatusAction(ids: string[], status: StayStatus): Promise<void> {
   if (ids.length === 0) return;
@@ -51,10 +52,11 @@ export async function updateStayTripcomUrlAction(id: string, rawUrl: string): Pr
   const trimmed = rawUrl.trim();
   let url: string | null = null;
   if (trimmed.length > 0) {
-    if (!/^https?:\/\//i.test(trimmed)) {
-      throw new Error('예약 URL은 http(s)로 시작하는 전체 URL이어야 합니다.');
+    const parsed = httpsOnlyUrlSchema.safeParse(trimmed);
+    if (!parsed.success) {
+      throw new Error('예약 URL은 http(s)로 시작하는 올바른 전체 URL이어야 합니다.');
     }
-    url = trimmed;
+    url = parsed.data;
   }
 
   await updateStayTripcomUrl(client, id, url);
