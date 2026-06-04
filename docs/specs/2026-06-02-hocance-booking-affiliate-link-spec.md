@@ -38,7 +38,7 @@
 
 ## 3. 비기능 요구사항 (NFR)
 
-- **NFR-1 (URL 스킴 안전성)** — `tripcom_booking_url` 저장·import 시 **http(s) 스킴만 허용**한다(XSS 방어, 기존 `httpsOnlyUrlSchema`와 동일 규칙). 특정 도메인(trip.com 등)은 **강제하지 않는다** — 제휴 링크가 추적/리다이렉트 도메인을 거칠 수 있기 때문이다.
+- **NFR-1 (URL 스킴 안전성)** — `tripcom_booking_url` 저장·import 시 **http(s) 스킴만 허용**한다(XSS 방어, 기존 `httpsOnlyUrlSchema`와 동일 규칙). 특정 도메인(trip.com 등)은 **강제하지 않는다** — 제휴 링크가 추적/리다이렉트 도메인을 거칠 수 있기 때문이다. 모바일 읽기 경로(`openTripcomHotel`)도 동일 규칙으로 **방어선**을 둔다: 저장된 값이 http(s)가 아니면(레거시·오염 데이터 등) `Linking.openURL`에 넘기지 않고 호텔명 검색으로 fallback한다.
 - **NFR-2 (앱 업데이트 없는 목적지 갱신)** — 예약 목적지는 DB에 저장된 URL이므로, 신버전 앱은 앱 재배포 없이 DB 값 변경만으로 목적지를 바꿀 수 있어야 한다(앱 바이너리에는 "어떤 필드를 읽고 어떻게 fallback 하는지"만 박힌다).
 - **NFR-3 (두 앱 격리)** — 본 기능은 `apps/web`(어드민)과 `apps/mobile`에만 존재한다. **토스 미니앱(`apps/toss-mini`)과 공유 패키지는 무관**하며 영향이 없어야 한다.
 - **NFR-4 (쿼리 견고성)** — 모바일 stays 조회는 `select('*')`를 사용한다. 컬럼 구성이 바뀌어도 조회가 깨지지 않고, 매퍼는 없는 필드를 안전하게 `null`로 처리한다.
@@ -108,7 +108,7 @@ export function openTripcomHotel(opts: {
 ```
 
 계약:
-- `openTripcomHotel`은 `tripcomBookingUrl`이 비어있지 않으면(trim 후 길이>0) 그 값을, 아니면 `buildTripcomHotelSearchUrl(resolveBookingQuery(name, queryOverride))`를 오픈한다.
+- `openTripcomHotel`은 `tripcomBookingUrl`이 **http(s) URL이면**(trim 후 `^https?://`) 그 값을, 아니면(비어있거나 비-http(s)) `buildTripcomHotelSearchUrl(resolveBookingQuery(name, queryOverride))`를 오픈한다(NFR-1 방어선).
 - 전역 제휴 ID(환경변수)를 읽지 않는다.
 
 ### 5.2 모바일 — 타입 / 매퍼
