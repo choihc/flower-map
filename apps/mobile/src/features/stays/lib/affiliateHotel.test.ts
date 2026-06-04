@@ -65,6 +65,15 @@ describe('openTripcomHotel', () => {
     expect(alertSpy.mock.calls[0][0]).toContain('예약');
   });
 
+  it('tripcomBookingUrl이 비-http(s) 스킴이면 검색 URL로 fallback (방어선)', async () => {
+    const openSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as unknown as void);
+    await openTripcomHotel({ name: '호텔 나루', queryOverride: null, tripcomBookingUrl: 'javascript:alert(1)' });
+    const calledUrl = openSpy.mock.calls[0][0] as string;
+    expect(calledUrl.startsWith('https://kr.trip.com/hotels/list')).toBe(true);
+    expect(calledUrl).toContain('keyword=');
+    expect(calledUrl).not.toContain('javascript:');
+  });
+
   it('직링크 URL도 Linking 실패 시 Alert.alert가 호출된다', async () => {
     vi.spyOn(Linking, 'openURL').mockRejectedValue(new Error('cannot open'));
     const alertSpy = vi.spyOn(Alert, 'alert').mockImplementation(() => {});

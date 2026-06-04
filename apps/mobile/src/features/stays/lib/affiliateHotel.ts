@@ -40,8 +40,9 @@ export async function openTripcomHotel(opts: {
   tripcomBookingUrl: string | null;
 }): Promise<void> {
   const direct = (opts.tripcomBookingUrl ?? '').trim();
+  // 방어선: 저장된 URL이 http(s)가 아니면(레거시·오염 데이터 등) openURL에 넘기지 않고 검색으로 fallback.
   const url =
-    direct.length > 0
+    /^https?:\/\//i.test(direct)
       ? direct
       : buildTripcomHotelSearchUrl(resolveBookingQuery(opts.name, opts.queryOverride));
 
