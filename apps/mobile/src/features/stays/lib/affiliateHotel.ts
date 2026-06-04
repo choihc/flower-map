@@ -1,15 +1,12 @@
 import { Alert, Linking } from 'react-native';
 
-// Agoda Partners 호텔명 검색 / 호텔 직링크 딥링크.
-// cid는 EXPO_PUBLIC_AGODA_CID (.env.local)로 주입. 미설정 시 cid 없이 진입(수익 추적 불가).
-const AGODA_PARTNER_SEARCH_BASE = 'https://www.agoda.com/partners/partnersearch.aspx';
+// trip.com 제휴 예약 링크.
+// 호텔별 tripcom_booking_url(전체 제휴 URL)이 있으면 그대로 열고,
+// 없으면 kr.trip.com 호텔명 검색으로 fallback (검색은 제휴 추적 없음).
+const TRIPCOM_HOTEL_SEARCH_BASE = 'https://kr.trip.com/hotels/list';
 
 function encode(value: string): string {
   return encodeURIComponent(value);
-}
-
-function resolveCid(): string {
-  return process.env.EXPO_PUBLIC_AGODA_CID?.trim() ?? '';
 }
 
 export function resolveBookingQuery(name: string, override: string | null): string {
@@ -18,24 +15,16 @@ export function resolveBookingQuery(name: string, override: string | null): stri
   return name;
 }
 
-/** 호텔명으로 검색 결과 페이지 진입 (호텔 페이지 도달까지 한 번 더 클릭 필요) */
-export function buildAgodaHotelSearchUrl(query: string): string {
-  const cid = resolveCid();
-  const parts = [`hl=ko-kr`, `hname=${encode(query)}`];
-  if (cid.length > 0) parts.unshift(`cid=${encode(cid)}`);
-  return `${AGODA_PARTNER_SEARCH_BASE}?${parts.join('&')}`;
-}
-
-/** Agoda hotel id(hid)로 해당 호텔 페이지 직접 진입 */
-export function buildAgodaHotelDeepLink(hotelId: string): string {
-  const cid = resolveCid();
-  const parts = [`hl=ko-kr`, `hid=${encode(hotelId)}`];
-  if (cid.length > 0) parts.unshift(`cid=${encode(cid)}`);
-  return `${AGODA_PARTNER_SEARCH_BASE}?${parts.join('&')}`;
+/** 호텔명으로 trip.com 호텔 검색 페이지 진입 */
+export function buildTripcomHotelSearchUrl(query: string): string {
+  const parts = [`keyword=${encode(query)}`, 'locale=ko-KR', 'curr=KRW'];
+  return `${TRIPCOM_HOTEL_SEARCH_BASE}?${parts.join('&')}`;
 }
 
 async function copyToClipboardSilent(text: string): Promise<void> {
   try {
+    // expo-clipboard는 선택 의존성. 'expo-clipboard' as string 캐스트로 TS 정적 모듈 존재 체크를
+    // 우회하고, 미설치 시 아래 catch에서 silent fail 처리한다.
     const mod = (await import('expo-clipboard' as string)) as {
       setStringAsync?: (value: string) => Promise<unknown>;
     };
@@ -45,15 +34,17 @@ async function copyToClipboardSilent(text: string): Promise<void> {
   }
 }
 
-export async function openAgodaHotelSearch(opts: {
+export async function openTripcomHotel(opts: {
   name: string;
   queryOverride: string | null;
-  agodaHotelId: string | null;
+  tripcomBookingUrl: string | null;
 }): Promise<void> {
-  const hid = (opts.agodaHotelId ?? '').trim();
-  const url = hid.length > 0
-    ? buildAgodaHotelDeepLink(hid)
-    : buildAgodaHotelSearchUrl(resolveBookingQuery(opts.name, opts.queryOverride));
+  const direct = (opts.tripcomBookingUrl ?? '').trim();
+  // 방어선: 저장된 URL이 http(s)가 아니면(레거시·오염 데이터 등) openURL에 넘기지 않고 검색으로 fallback.
+  const url =
+    /^https?:\/\//i.test(direct)
+      ? direct
+      : buildTripcomHotelSearchUrl(resolveBookingQuery(opts.name, opts.queryOverride));
 
   try {
     await Linking.openURL(url);

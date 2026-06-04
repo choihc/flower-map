@@ -10,7 +10,7 @@ import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { colors } from '../../../shared/theme/colors';
 import { StayCard } from '../components/StayCard';
-import { openAgodaHotelSearch } from '../lib/affiliateHotel';
+import { openTripcomHotel } from '../lib/affiliateHotel';
 import { findClosestSpot } from '../lib/findClosestSpot';
 
 export function StayListScreen() {
@@ -59,10 +59,10 @@ export function StayListScreen() {
               boostBadge={boostBadge}
               onPress={() => router.push(`/stays/${stay.slug}` as never)}
               onPressBook={() =>
-                openAgodaHotelSearch({
+                void openTripcomHotel({
                   name: stay.name,
                   queryOverride: stay.bookingQueryOverride,
-                  agodaHotelId: stay.agodaHotelId,
+                  tripcomBookingUrl: stay.tripcomBookingUrl,
                 })
               }
             />

@@ -16,7 +16,7 @@ vi.mock('expo-router', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
 }));
 vi.mock('../../stays/lib/affiliateHotel', () => ({
-  openAgodaHotelSearch: vi.fn(),
+  openTripcomHotel: vi.fn(),
 }));
 
 import { getPublishedStays } from '../../../shared/data/stayRepository';
@@ -30,7 +30,7 @@ function makeStay(o: Partial<Stay> & { id: string; latitude: number; longitude: 
     seasonWindowStart: null, seasonWindowEnd: null,
     shortTagline: '', description: '', recommendationPoints: [],
     thumbnailUrl: null, bookingQueryOverride: null,
-    agodaHotelId: null,
+    tripcomBookingUrl: null,
     naverRating: null, googleRating: null, ratingCapturedAt: null,
     isFeatured: false, displayOrder: 0,
     ...o,

@@ -8,7 +8,7 @@ import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository
 import { formatProximity } from '../../../shared/lib/proximityLabel';
 import { colors } from '../../../shared/theme/colors';
 import { StayCard } from '../../stays/components/StayCard';
-import { openAgodaHotelSearch } from '../../stays/lib/affiliateHotel';
+import { openTripcomHotel } from '../../stays/lib/affiliateHotel';
 import { staysDetailPath } from '../../stays/routes';
 import { rankStaysForHome } from '../lib/rankStays';
 
@@ -44,10 +44,10 @@ export function HocanceTop5Section() {
               boostBadge={boostBadge}
               onPress={() => router.push(staysDetailPath(stay.slug))}
               onPressBook={() =>
-                openAgodaHotelSearch({
+                void openTripcomHotel({
                   name: stay.name,
                   queryOverride: stay.bookingQueryOverride,
-                  agodaHotelId: stay.agodaHotelId,
+                  tripcomBookingUrl: stay.tripcomBookingUrl,
                 })
               }
             />

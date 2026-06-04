@@ -231,6 +231,7 @@ export type StayRow = {
   thumbnail_url: string | null;
   booking_query_override: string | null;
   agoda_hotel_id: string | null;
+  tripcom_booking_url: string | null;
   naver_rating_score: number | null;
   naver_rating_url: string | null;
   google_rating_score: number | null;
@@ -263,6 +264,7 @@ export type StayInsert = {
   thumbnail_url?: string | null;
   booking_query_override?: string | null;
   agoda_hotel_id?: string | null;
+  tripcom_booking_url?: string | null;
   naver_rating_score?: number | null;
   naver_rating_url?: string | null;
   google_rating_score?: number | null;
