@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>홈 로딩 스켈레톤 스펙</title>
+<style>
+  :root {
+    --bg:#FBF8F3; --card:#FFFFFF; --border:#E7DECF; --ink:#2B2620; --muted:#7C7468;
+    --accent:#B07A4B; --accent-soft:#F3E9DD; --code-bg:#F5F0E8; --sk:#ECE4D8;
+    --ok:#3F8F5B; --warn:#C08A2E; --info:#5A7FB0;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.7; }
+  .wrap { max-width:920px; margin:0 auto; padding:40px 24px 80px; }
+  header.doc { border-bottom:2px solid var(--border); padding-bottom:20px; margin-bottom:28px; }
+  header.doc h1 { font-size:28px; margin:0 0 8px; letter-spacing:-0.5px; }
+  .tag { display:inline-block; font-size:12px; font-weight:700; color:var(--accent);
+    background:var(--accent-soft); border-radius:999px; padding:4px 12px; margin-right:6px; }
+  .meta { color:var(--muted); font-size:14px; margin-top:10px; }
+  .summary { background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:20px 24px; margin:24px 0; box-shadow:0 6px 20px rgba(160,140,110,0.06); }
+  .summary h2 { margin-top:0; font-size:16px; color:var(--accent); }
+  nav.toc { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px 24px; margin-bottom:32px; }
+  nav.toc h2 { font-size:14px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:0 0 12px; }
+  nav.toc ol { margin:0; padding-left:20px; }
+  nav.toc a { color:var(--ink); text-decoration:none; }
+  nav.toc a:hover { color:var(--accent); text-decoration:underline; }
+  section { margin-bottom:36px; }
+  h2.sec { font-size:21px; border-left:4px solid var(--accent); padding-left:12px; margin:32px 0 14px; }
+  h3 { font-size:16px; margin:22px 0 8px; }
+  table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; background:var(--card);
+    border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  th,td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { background:var(--accent-soft); font-size:13px; }
+  tr:last-child td { border-bottom:none; }
+  code { background:var(--code-bg); padding:2px 6px; border-radius:6px; font-size:13px;
+    font-family:"SF Mono",Menlo,Consolas,monospace; }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:12px; padding:16px 18px;
+    overflow-x:auto; font-size:13px; line-height:1.55; }
+  pre code { background:none; padding:0; }
+  .badge { display:inline-block; font-size:11px; font-weight:700; border-radius:6px; padding:2px 8px; color:#fff; margin-right:4px; }
+  .b-fr { background:var(--info); } .b-nfr { background:var(--warn); }
+  ul.fr { list-style:none; padding-left:0; }
+  ul.fr > li { padding:10px 0; border-bottom:1px dashed var(--border); }
+  ul.fr > li:last-child { border-bottom:none; }
+  .fr-id { font-weight:700; color:var(--accent); }
+  .pill { display:inline-block; background:var(--sk); border-radius:8px; height:14px; vertical-align:middle; }
+  footer { color:var(--muted); font-size:13px; border-top:1px solid var(--border); padding-top:18px; margin-top:40px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <h1>홈 로딩 스켈레톤 스펙</h1>
+  <div>
+    <span class="tag">apps/mobile</span>
+    <span class="tag">2026-06-05</span>
+    <span class="tag">SDD · 결과물 명세</span>
+  </div>
+  <div class="meta">대상: Expo 모바일 앱 · web · toss-mini · 공유 패키지와 무관</div>
+</header>
+
+<div class="summary">
+  <h2>핵심 요약</h2>
+  <p>홈 화면의 <b>섹션별 제각각 로딩(pop-in)</b>을 제거하고, 핵심 데이터 4종이 <b>모두 준비될 때까지 하나의 통합 스켈레톤</b>을 보여준 뒤 실제 홈을 <b>한 번에 노출</b>한다. 일부 쿼리가 실패하거나 느려도 안전 타임아웃(5초)으로 갇히지 않는다. 애니메이션은 신규 의존성 없이 <code>react-native-reanimated</code> 펄스로 구현하며, 공용 <code>SkeletonBox</code>를 업그레이드해 8개 화면의 로딩을 일관되게 개선한다.</p>
+</div>
+
+<nav class="toc">
+  <h2>목차</h2>
+  <ol>
+    <li><a href="#s1">개요</a></li>
+    <li><a href="#s2">기능 요구사항 (FR)</a></li>
+    <li><a href="#s3">비기능 요구사항 (NFR)</a></li>
+    <li><a href="#s4">구조 · 데이터 흐름</a></li>
+    <li><a href="#s5">구성 요소별 책임과 계약</a></li>
+    <li><a href="#s6">타입 · 의존성 · 가정</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <h2 class="sec">1. 개요</h2>
+  <p>홈은 서로 다른 시점에 끝나는 여러 데이터 쿼리에 의존한다. 각 섹션이 개별 로딩 상태를 노출하는 대신, <b><code>useHomeReady</code></b>가 핵심 쿼리를 일원화해 "노출 준비됨"을 판정하고, 준비 전에는 <b><code>HomeSkeleton</code></b>(차분한 단순 블록)만 보여준다. <b><code>SkeletonBox</code></b>는 펄스 애니메이션을 가진 공용 프리미티브다.</p>
+</section>
+
+<section id="s2">
+  <h2 class="sec">2. 기능 요구사항 <span class="badge b-fr">FR</span></h2>
+  <ul class="fr">
+    <li><span class="fr-id">FR-1 핵심 쿼리 일원화</span> — <code>useHomeReady</code>는 핵심 4종을 섹션과 동일 키/함수/staleTime으로 실행. 섹션이 같은 키를 재사용 → 캐시 공유 → 준비 후 섹션 자체 스켈레톤 미발동.
+      <table>
+        <tr><th>데이터</th><th>쿼리 키</th><th>조회 함수</th><th>staleTime</th></tr>
+        <tr><td>명소 목록</td><td><code>spotKeys.all</code></td><td><code>getPublishedSpots</code></td><td>기본</td></tr>
+        <tr><td>홈 큐레이션</td><td><code>homeCurationKeys.active</code></td><td><code>getActiveHomeCurationSlots</code></td><td>30분</td></tr>
+        <tr><td>꽃 명소 TOP10</td><td><code>spotKeys.top(10)</code></td><td><code>getTopSpots(10)</code></td><td>30분</td></tr>
+        <tr><td>호캉스 호텔</td><td><code>stayKeys.all</code></td><td><code>getPublishedStays</code></td><td>기본</td></tr>
+      </table>
+    </li>
+    <li><span class="fr-id">FR-2 준비 판정</span> — <code>ready</code>는 4쿼리가 모두 settled(<code>status !== 'pending'</code>, 성공 <b>또는 에러</b>)일 때 true. 실패 영역은 각 섹션의 빈/에러 상태가 처리.</li>
+    <li><span class="fr-id">FR-3 안전 타임아웃</span> — settled 미완이라도 <code>HOME_SKELETON_TIMEOUT_MS = 5000</code>ms 경과 시 <code>ready</code> 강제 true.</li>
+    <li><span class="fr-id">FR-4 통합 노출</span> — <code>ready=false</code> 동안 실제 섹션 미렌더, <code>HomeSkeleton</code>만. <code>ready=true</code> 시 전체 동시 노출.</li>
+    <li><span class="fr-id">FR-5 캐시 적중 무플래시</span> — 재방문 등 4쿼리 이미 settled면 최초 렌더에서 즉시 <code>ready=true</code> → 깜빡임 없음.</li>
+    <li><span class="fr-id">FR-6 스켈레톤 레이아웃</span> — 히어로 블록 1 + 동일 너비 카드 3(가로) + 와이드 카드 2(세로). 실제 섹션과 1:1 대응 아님; 정돈된 단일 면이 목적.
+      <div style="margin-top:10px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:240px;">
+        <div class="pill" style="width:100%;height:46px;border-radius:12px;"></div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <span class="pill" style="flex:1;height:26px;border-radius:8px;"></span>
+          <span class="pill" style="flex:1;height:26px;border-radius:8px;"></span>
+          <span class="pill" style="flex:1;height:26px;border-radius:8px;"></span>
+        </div>
+        <div class="pill" style="width:100%;height:32px;border-radius:10px;margin-top:10px;"></div>
+        <div class="pill" style="width:100%;height:32px;border-radius:10px;margin-top:8px;"></div>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<section id="s3">
+  <h2 class="sec">3. 비기능 요구사항 <span class="badge b-nfr">NFR</span></h2>
+  <ul class="fr">
+    <li><span class="fr-id">NFR-1 무신규 의존성</span> — 펄스는 설치본 <code>react-native-reanimated</code>로. <code>expo-linear-gradient</code> 등 추가 금지.</li>
+    <li><span class="fr-id">NFR-2 테스트 안전성</span> — 애니메이션은 순수 시각 효과. vitest + react-native mock에서 렌더를 깨지 않으며 정적 렌더 허용. 기존 <code>getAllByTestId('skeleton-box')</code> 테스트 무변경 통과.</li>
+    <li><span class="fr-id">NFR-3 섹션 비침습</span> — 섹션 props·로직·테스트 무변경. <code>TopSpotsSection</code> 내부 <code>isLoading</code> 분기 유지(안전망).</li>
+    <li><span class="fr-id">NFR-4 앱 격리</span> — 변경은 <code>apps/mobile/</code>에 국한.</li>
+    <li><span class="fr-id">NFR-5 성능</span> — 추가 쿼리는 섹션과 키 동일 → 중복 네트워크 없음(디둑·staleTime).</li>
+  </ul>
+</section>
+
+<section id="s4">
+  <h2 class="sec">4. 구조 · 데이터 흐름</h2>
+  <h3>합성 트리</h3>
+<pre><code>HomeScreen
+├─ useHomeReady()                      // 핵심 4쿼리 + 타임아웃 → { ready }
+├─ ready=false → ScreenShell
+│                 └─ HomeSkeleton      // 히어로 + 카드3 + 와이드2 (SkeletonBox)
+└─ ready=true  → ScreenShell
+                  ├─ SeasonCurationSlot[]
+                  ├─ TopSpotsSection        // 같은 키 재사용 → 캐시 적중
+                  ├─ HocanceTop5Section     // 같은 키 재사용 → 캐시 적중
+                  ├─ (곧 끝나는 축제 카드)
+                  ├─ NativeSpotAd
+                  └─ (지역별 추천 그리드)</code></pre>
+  <h3>데이터 흐름</h3>
+<pre><code>useHomeReady ──fires──▶ [spots.all, curation.active, top(10), stays.all]
+                              │ (React Query 캐시 적재)
+   ready = 모든 쿼리 settled  OR  timeoutMs 경과
+        ready=false ─▶ HomeSkeleton (펄스)
+        ready=true  ─▶ 섹션들 ─ 동일 키 useQuery ─▶ 캐시 적중(즉시)</code></pre>
+  <h3>디렉터리</h3>
+  <table>
+    <tr><th>파일</th><th>종류</th><th>비고</th></tr>
+    <tr><td><code>src/shared/ui/SkeletonBox.tsx</code></td><td>수정</td><td>펄스 애니메이션 추가(공용)</td></tr>
+    <tr><td><code>src/features/home/components/HomeSkeleton.tsx</code></td><td>신규</td><td>통합 스켈레톤</td></tr>
+    <tr><td><code>src/features/home/lib/useHomeReady.ts</code></td><td>신규</td><td>준비 판정 훅</td></tr>
+    <tr><td><code>src/features/home/screens/HomeScreen.tsx</code></td><td>수정</td><td>게이트 분기 추가</td></tr>
+  </table>
+</section>
+
+<section id="s5">
+  <h2 class="sec">5. 구성 요소별 책임과 계약</h2>
+  <h3>5.1 SkeletonBox (공용, 수정)</h3>
+<pre><code>type SkeletonBoxProps = {
+  height: number;
+  borderRadius?: number;   // 기본 16
+  width?: string | number; // 기본 '100%'
+  testID?: string;
+};
+export function SkeletonBox(props: SkeletonBoxProps): JSX.Element;</code></pre>
+  <p>둥근 플레이스홀더 + 부드러운 펄스. props·배경색(<code>#F2EDE6</code>)·testID·외형 계약 유지(애니메이션만 가산). 동작 불가 환경에선 정적 degrade.</p>
+  <h3>5.2 HomeSkeleton (신규)</h3>
+<pre><code>export function HomeSkeleton(): JSX.Element;</code></pre>
+  <p>props 없음. <code>SkeletonBox</code>로 FR-6 레이아웃 구성. 루트 <code>testID="home-skeleton"</code>. <code>ScreenShell</code> 내부 배치 전제(자체 패딩/스크롤 미관리).</p>
+  <h3>5.3 useHomeReady (신규)</h3>
+<pre><code>export const HOME_SKELETON_TIMEOUT_MS = 5000;
+export function useHomeReady(options?: { timeoutMs?: number }): { ready: boolean };</code></pre>
+  <p>FR-1의 4쿼리 실행. <code>ready</code> = (4쿼리 모두 <code>status !== 'pending'</code>) <b>또는</b> (<code>timeoutMs</code> 경과). 타임아웃은 마운트 시 1회 설정, 언마운트 시 해제.</p>
+  <h3>5.4 HomeScreen (수정)</h3>
+  <p>최상단 <code>const { ready } = useHomeReady();</code> → <code>!ready</code>면 <code>&lt;ScreenShell&gt;&lt;HomeSkeleton/&gt;&lt;/ScreenShell&gt;</code>, 아니면 기존 렌더 유지. 기존 <code>spots.all</code>·<code>curation.active</code> 조회는 그대로(데이터 사용), 훅과 캐시 공유.</p>
+</section>
+
+<section id="s6">
+  <h2 class="sec">6. 타입 · 의존성 · 가정</h2>
+  <h3>외부 의존성</h3>
+  <table>
+    <tr><th>의존</th><th>용도</th></tr>
+    <tr><td>@tanstack/react-query</td><td>쿼리 실행·캐시·상태</td></tr>
+    <tr><td>react-native-reanimated 4.2.x</td><td>펄스 애니메이션</td></tr>
+    <tr><td>spotRepository / homeCurationRepository / stayRepository</td><td>조회 함수·쿼리 키</td></tr>
+  </table>
+  <h3>명시적 가정</h3>
+  <ul>
+    <li>조회 함수·쿼리 키는 현행대로 존재하며 섹션이 동일 키 사용(캐시 공유 전제).</li>
+    <li>React Query v5의 <code>status</code>/<code>isPending</code> 의미를 따른다(에러 시 <code>pending</code> 해제).</li>
+    <li>reanimated는 디바이스/시뮬레이터에서 동작, 테스트 mock에선 정적일 수 있음(허용).</li>
+  </ul>
+</section>
+
+<footer>
+  원본 Markdown: <code>docs/specs/2026-06-05-home-loading-skeleton-spec.md</code> · 후속 플랜: <code>docs/plans/2026-06-05-home-loading-skeleton.md</code> (작성 예정)
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>홈 로딩 스켈레톤 구현 플랜</title>
+<style>
+  :root {
+    --bg: #faf7f2; --card: #ffffff; --ink: #2b2620; --muted: #7a7064;
+    --line: #e7decf; --accent: #b9748a; --accent2: #4c7a86;
+    --code-bg: #2d2a26; --code-ink: #f3ede2;
+    --ok: #2f7d4f; --warn: #b06f1d; --crit: #b03a3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 22px 90px; }
+  header.doc {
+    border-bottom: 2px solid var(--line); padding-bottom: 20px; margin-bottom: 26px;
+  }
+  h1 { font-size: 30px; letter-spacing: -0.5px; margin: 0 0 8px; }
+  h2 { font-size: 22px; letter-spacing: -0.4px; margin: 38px 0 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+  h3 { font-size: 17px; margin: 22px 0 8px; }
+  p { margin: 8px 0; }
+  .meta { color: var(--muted); font-size: 14px; }
+  .lead { background: #f3ede3; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 16px 0; }
+  .lead b { color: var(--accent2); }
+  code { background: #efe7da; padding: 1px 6px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); color: var(--code-ink); padding: 14px 16px; border-radius: 12px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
+  th { background: #f1e9dc; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 20px; }
+  .toc a { color: var(--accent2); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .task { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 22px; margin: 18px 0; box-shadow: 0 6px 18px rgba(150,130,100,0.06); }
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; margin-right: 6px; }
+  .b-new { background: #e4f0e8; color: var(--ok); }
+  .b-mod { background: #f3ead6; color: var(--warn); }
+  .b-fr { background: #ece1f0; color: #7a4f8e; }
+  .b-nfr { background: #dfeaee; color: var(--accent2); }
+  .b-test { background: #f0e3e7; color: var(--accent); }
+  .callout { border-left: 4px solid var(--accent); background: #f7eef1; padding: 10px 14px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 14.5px; }
+  .callout.warn { border-color: var(--warn); background: #fbf2e3; }
+  .step { font-weight: 600; margin-top: 10px; }
+  footer { margin-top: 50px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <h1>홈 로딩 스켈레톤 — 구현 플랜</h1>
+  <p class="meta">2026-06-05 · 대상 앱: <code>apps/mobile</code> (Expo) · 스펙: <code>docs/specs/2026-06-05-home-loading-skeleton-spec.md</code></p>
+</header>
+
+<section class="lead">
+  <p><b>목표</b> — 홈 화면의 흩어진 섹션별 로딩 표시를 없애고, 핵심 데이터가 모두 준비될 때까지 <b>단일 통합 스켈레톤</b>을 보여준 뒤 실제 홈을 <b>한 번에</b> 노출한다.</p>
+  <p><b>아키텍처</b> — <code>useHomeReady</code> 훅이 홈 핵심 4쿼리를 섹션과 <b>동일한 키</b>로 관찰해 "모두 settled OR 타임아웃" 게이트를 만든다. 게이트 전엔 <code>HomeSkeleton</code>만, 후엔 기존 섹션을 그대로 렌더. 섹션이 같은 키를 재사용하므로 React Query 캐시가 공유되어 게이트 통과 직후 자체 스켈레톤 없이 즉시 렌더된다.</p>
+  <p><b>기술</b> — React Native(Expo SDK 55), React Query v5, react-native-reanimated 4.2.x(펄스), Vitest 3 + jsdom(테스트). <b>신규 의존성 없음.</b></p>
+</section>
+
+<nav class="toc">
+  <strong>목차</strong>
+  <ul>
+    <li><a href="#rules">운용 규칙</a></li>
+    <li><a href="#files">파일 구조</a></li>
+    <li><a href="#t0">Task 0 — 베이스라인 &amp; 브랜치 분리</a></li>
+    <li><a href="#t1">Task 1 — reanimated 테스트 mock + alias</a></li>
+    <li><a href="#t2">Task 2 — SkeletonBox 펄스 애니메이션</a></li>
+    <li><a href="#t3">Task 3 — useHomeReady 준비 판정 훅</a></li>
+    <li><a href="#t4">Task 4 — HomeSkeleton 통합 스켈레톤</a></li>
+    <li><a href="#t5">Task 5 — HomeScreen 게이트 통합</a></li>
+    <li><a href="#t6">Task 6 — 통합 검증 &amp; 스모크 체크</a></li>
+    <li><a href="#review">Self-Review</a></li>
+  </ul>
+</nav>
+
+<h2 id="rules">운용 규칙</h2>
+<ul>
+  <li><b>커밋/푸시</b>: 전역 규칙상 <b>지시자 요청 시에만</b> 수행. 각 Task의 "Commit"은 권장 분할 단위일 뿐, 실제 시점은 승인에 따른다.</li>
+  <li><b>앱 격리(NFR-4)</b>: 모든 변경은 <code>apps/mobile/</code> 내부 한정.</li>
+  <li><b>타입체크</b>: <code>npx tsc</code> 금지 → <code>./node_modules/.bin/tsc --noEmit</code>.</li>
+  <li><b>테스트</b>: 전체 <code>pnpm test</code>, 단일 <code>npx vitest run &lt;경로&gt;</code> (모두 <code>apps/mobile/</code>에서).</li>
+</ul>
+
+<h2 id="files">파일 구조</h2>
+<table>
+  <tr><th>파일</th><th>종류</th><th>책임</th></tr>
+  <tr><td><code>src/__mocks__/react-native-reanimated.ts</code></td><td><span class="badge b-new">신규</span></td><td>테스트용 reanimated mock(정적 graceful degrade)</td></tr>
+  <tr><td><code>vitest.config.ts</code></td><td><span class="badge b-mod">수정</span></td><td>reanimated alias 등록(1줄)</td></tr>
+  <tr><td><code>src/shared/ui/SkeletonBox.tsx</code></td><td><span class="badge b-mod">수정</span></td><td>공용 프리미티브에 펄스 추가</td></tr>
+  <tr><td><code>src/shared/ui/SkeletonBox.test.tsx</code></td><td><span class="badge b-new">신규</span></td><td>렌더/testID/degrade 검증</td></tr>
+  <tr><td><code>src/features/home/lib/useHomeReady.ts</code></td><td><span class="badge b-new">신규</span></td><td>4쿼리 관찰 + 준비 판정</td></tr>
+  <tr><td><code>src/features/home/lib/useHomeReady.test.tsx</code></td><td><span class="badge b-new">신규</span></td><td>settled/타임아웃 검증</td></tr>
+  <tr><td><code>src/features/home/components/HomeSkeleton.tsx</code></td><td><span class="badge b-new">신규</span></td><td>통합 스켈레톤 레이아웃</td></tr>
+  <tr><td><code>src/features/home/components/HomeSkeleton.test.tsx</code></td><td><span class="badge b-new">신규</span></td><td>통합 스켈레톤 렌더 검증</td></tr>
+  <tr><td><code>src/features/home/screens/HomeScreen.tsx</code></td><td><span class="badge b-mod">수정</span></td><td>게이트 분기 추가</td></tr>
+  <tr><td><code>src/features/home/screens/HomeScreen.test.tsx</code></td><td><span class="badge b-mod">수정</span></td><td>게이트 테스트 추가(기존 보존)</td></tr>
+</table>
+
+<div class="task" id="t0">
+  <h3>Task 0 — 베이스라인 &amp; 브랜치 분리</h3>
+  <p class="meta">코드 변경 없음. 안전망 확보 단계.</p>
+  <p class="step">Step 1 — 격리 브랜치 생성</p>
+  <p>현재 W2 브랜치(<code>feat/stays-hide-booking-query-label</code>) 위에 있고 스펙 문서가 untracked로 남아 있다. untracked 파일은 브랜치 전환 시 따라오므로 <code>main</code>에서 새 브랜치를 판다.</p>
+  <pre><code>git checkout main
+git pull --ff-only
+git checkout -b feat/home-loading-skeleton</code></pre>
+  <p class="step">Step 2~3 — 단위 테스트 / tsc 베이스라인 기록</p>
+  <p><code>pnpm test</code> 전체 PASS 확인, <code>./node_modules/.bin/tsc --noEmit</code> 사전 에러 개수(약 31)와 에러 파일 목록을 기록(회귀 비교용). 이번에 만질 파일은 목록에 없어야 한다.</p>
+  <p class="step">Step 4 — reanimated 툴체인 점검</p>
+  <p><code>react-native-reanimated@4.2.1</code> · <code>react-native-worklets@0.7.2</code> 설치 확인. <code>babel.config.js</code> 부재 시 Expo 기본 preset이 worklets 플러그인을 자동 적용한다는 전제(런타임 위험 → Task 6 스모크에서 검증).</p>
+</div>
+
+<div class="task" id="t1">
+  <h3>Task 1 — reanimated 테스트 mock + vitest alias <span class="badge b-test">테스트 인프라</span></h3>
+  <div class="callout">목적: <code>SkeletonBox</code>가 곧 reanimated를 import하므로, alias가 없으면 vitest가 실제 네이티브 패키지를 로드하다 깨진다. 정적 degrade mock으로 <span class="badge b-nfr">NFR-2</span> 보장. 앱 런타임 영향 없음.</div>
+  <ul>
+    <li><b>Step 1</b>: <code>src/__mocks__/react-native-reanimated.ts</code> 작성 — <code>useSharedValue</code>/<code>useAnimatedStyle</code>(try-catch)/<code>withTiming</code>/<code>withRepeat</code>/<code>Easing</code> 정적 구현 + <code>Animated.View</code>(<code>view</code> 태그, <code>data-testid</code> 전달).</li>
+    <li><b>Step 2</b>: <code>vitest.config.ts</code> alias에 <code>'react-native-reanimated'</code> 한 줄 추가(<code>'react-native'</code> 바로 아래).</li>
+    <li><b>Step 3</b>: <code>pnpm test</code> 전체 PASS(아직 import하는 소스 없어 변화 없음).</li>
+  </ul>
+</div>
+
+<div class="task" id="t2">
+  <h3>Task 2 — SkeletonBox 펄스 애니메이션</h3>
+  <p class="meta">스펙 5.1 · <span class="badge b-fr">FR-6</span> <span class="badge b-nfr">NFR-1</span> <span class="badge b-nfr">NFR-2</span></p>
+  <div class="callout">계약 보존: props 시그니처·배경색 <code>#F2EDE6</code>·<code>testID</code>·외형은 그대로, <b>펄스(opacity breathing)만 가산</b>. 기존 사용처 8곳과 테스트(<code>top-spots-skeleton</code>, <code>skeleton-box</code>)는 무변경 통과.</div>
+  <p>핵심 구현: <code>useSharedValue(1)</code> → <code>useEffect</code>에서 <code>withRepeat(withTiming(0.45, …), -1, true)</code> → <code>useAnimatedStyle({opacity})</code> 를 <code>Animated.View</code>에 적용.</p>
+  <pre><code>const opacity = useSharedValue(1);
+useEffect(() =&gt; {
+  opacity.value = withRepeat(
+    withTiming(0.45, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+    -1, true,
+  );
+}, [opacity]);
+const animatedStyle = useAnimatedStyle(() =&gt; ({ opacity: opacity.value }));</code></pre>
+  <p><b>회귀 가드</b>: <code>TopSpotsSection.test</code> / <code>SearchScreen.test</code> 실행해 스켈레톤 testID 조회가 그대로 잡히는지 확인(Step 5).</p>
+</div>
+
+<div class="task" id="t3">
+  <h3>Task 3 — useHomeReady 준비 판정 훅</h3>
+  <p class="meta">스펙 5.3 · <span class="badge b-fr">FR-1</span> <span class="badge b-fr">FR-2</span> <span class="badge b-fr">FR-3</span> <span class="badge b-fr">FR-5</span> <span class="badge b-nfr">NFR-5</span></p>
+  <p>핵심 4쿼리를 섹션과 <b>동일 키/함수/staleTime</b>으로 <code>useQuery</code> 실행. <code>ready = 모두 settled(status !== 'pending') OR timeoutMs 경과</code>. 기본 타임아웃 <code>HOME_SKELETON_TIMEOUT_MS = 5000</code>.</p>
+  <pre><code>const allSettled = [spots, curation, topSpots, stays]
+  .every((q) =&gt; q.status !== 'pending');
+const [timedOut, setTimedOut] = useState(false);
+useEffect(() =&gt; {
+  const id = setTimeout(() =&gt; setTimedOut(true), timeoutMs);
+  return () =&gt; clearTimeout(id);
+}, [timeoutMs]);
+return { ready: allSettled || timedOut };</code></pre>
+  <p><b>테스트(5)</b> — 전부 pending→false / 전부 success→true(무플래시) / 일부 error라도 settled→true / 하나라도 pending→false / 타임아웃 경과→강제 true. <code>useQuery</code>를 queryKey 기준 mockImplementation으로 제어(호출 순서 비의존). 파일은 <code>.test.tsx</code>(jsdom).</p>
+</div>
+
+<div class="task" id="t4">
+  <h3>Task 4 — HomeSkeleton 통합 스켈레톤</h3>
+  <p class="meta">스펙 5.2 · <span class="badge b-fr">FR-6</span></p>
+  <p>props 없음, 루트 <code>testID="home-skeleton"</code>. 레이아웃 = 히어로 1 + 가로 카드 3(<code>home-skeleton-card</code>) + 와이드 2. <code>ScreenShell</code> 내부 전제(자체 패딩/스크롤 없음).</p>
+  <pre><code>&lt;View testID="home-skeleton" style={styles.container}&gt;
+  &lt;SkeletonBox height={150} borderRadius={20} /&gt;
+  &lt;View style={styles.row}&gt;
+    {/* home-skeleton-card × 3, width 31% */}
+  &lt;/View&gt;
+  &lt;SkeletonBox height={92} borderRadius={18} /&gt;
+  &lt;SkeletonBox height={92} borderRadius={18} /&gt;
+&lt;/View&gt;</code></pre>
+  <p><b>테스트(1)</b> — <code>home-skeleton</code> 루트 + <code>home-skeleton-card</code> 3개 렌더.</p>
+</div>
+
+<div class="task" id="t5">
+  <h3>Task 5 — HomeScreen 게이트 통합</h3>
+  <p class="meta">스펙 5.4 · <span class="badge b-fr">FR-4</span> <span class="badge b-nfr">NFR-3</span></p>
+  <div class="callout">Rules of Hooks 준수: 모든 훅(<code>useHomeReady</code>, 기존 2×<code>useQuery</code>, 2×<code>useMemo</code>)은 매 렌더 무조건 호출되고, 스켈레톤 early return은 모든 훅 호출 <b>이후</b>에 둔다.</div>
+  <pre><code>const { ready } = useHomeReady();
+// …기존 useQuery/useMemo…
+if (!ready) {
+  return (&lt;ScreenShell&gt;&lt;HomeSkeleton /&gt;&lt;/ScreenShell&gt;);
+}
+return (&lt;ScreenShell&gt;{/* 기존 섹션 전체 */}&lt;/ScreenShell&gt;);</code></pre>
+  <p><b>테스트</b> — 기존 3개는 <code>useHomeReady</code>를 <code>ready:true</code> 기본 mock으로 보존. 신규 2개: <code>ready=false</code>→<code>home-skeleton</code> 노출 &amp; <code>top-spots-section</code> 없음 / <code>ready=true</code>→섹션 노출 &amp; 스켈레톤 없음.</p>
+</div>
+
+<div class="task" id="t6">
+  <h3>Task 6 — 통합 검증 &amp; 스모크 체크</h3>
+  <ul>
+    <li><b>Step 1</b>: <code>pnpm test</code> 전체 PASS(신규 10테스트 증가, 기존 유지).</li>
+    <li><b>Step 2</b>: <code>tsc --noEmit</code> 에러 개수 = Task 0 베이스라인과 동일(신규/수정 파일 무에러).</li>
+    <li><b>Step 3 (수동)</b>: <code>pnpm expo start</code> — 콜드 로드 통합 스켈레톤+펄스 동작, 준비 후 섹션 일괄 노출, 캐시 적중 무플래시, 5초 타임아웃 해제 확인.</li>
+  </ul>
+  <div class="callout warn">Step 3에서 reanimated 워크릿 런타임 크래시가 나면 babel/worklets 툴체인 미구성 신호. 즉시 멈추고 지시자에게 에스컬레이션(스펙 NFR-1 reanimated 채택 전제 재검토).</div>
+  <p><b>Step 4</b> — 스펙 FR-1~6 / NFR-1~5 ID 기준 충족 보고.</p>
+</div>
+
+<h2 id="review">Self-Review</h2>
+<table>
+  <tr><th>점검</th><th>결과</th></tr>
+  <tr><td>스펙 커버리지</td><td>FR-1~6 / NFR-1~5 모두 대응 Task 존재(Task 6 매핑). 누락 없음.</td></tr>
+  <tr><td>플레이스홀더</td><td>모든 코드 단계에 실제 코드·명령·기대 출력 명시. TBD 없음.</td></tr>
+  <tr><td>식별자 일관성</td><td><code>useHomeReady</code>/<code>HOME_SKELETON_TIMEOUT_MS</code>/<code>HomeSkeleton</code>/testID/쿼리 키가 스펙·코드·테스트 전반 일치.</td></tr>
+  <tr><td>앱 격리</td><td>모든 경로 <code>apps/mobile/</code> 하위. 타 앱·공유 패키지 무변경.</td></tr>
+</table>
+
+<footer>
+  원본 플랜: <code>docs/plans/2026-06-05-home-loading-skeleton.md</code> · 스펙: <code>docs/specs/2026-06-05-home-loading-skeleton-spec.md</code>
+</footer>
+
+</div>
+</body>
+</html>
