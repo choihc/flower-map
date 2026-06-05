@@ -9,6 +9,10 @@ export default defineConfig({
     alias: {
       '@testing-library/react-native': new URL('./src/__mocks__/testing-library-react-native.tsx', import.meta.url).pathname,
       'react-native': new URL('./src/__mocks__/react-native.ts', import.meta.url).pathname,
+      'react-native-reanimated': new URL(
+        './src/__mocks__/react-native-reanimated.ts',
+        import.meta.url,
+      ).pathname,
       'expo-location': new URL('./src/__mocks__/expo-location.ts', import.meta.url).pathname,
       'expo-notifications': new URL('./src/__mocks__/expo-notifications.ts', import.meta.url).pathname,
       'expo-device': new URL('./src/__mocks__/expo-device.ts', import.meta.url).pathname,
