@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { act } from 'react';
 import { render } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -31,12 +31,23 @@ vi.mock('../../../shared/data/homeCurationRepository', () => ({
   homeCurationKeys: { active: ['home-curation', 'active'] },
 }));
 
+vi.mock('../lib/useHomeReady', () => ({
+  useHomeReady: vi.fn(() => ({ ready: true })),
+}));
+
+import { useHomeReady } from '../lib/useHomeReady';
+const readyMock = useHomeReady as unknown as ReturnType<typeof vi.fn>;
+
 function wrap(node: ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return <QueryClientProvider client={client}>{node}</QueryClientProvider>;
 }
 
 describe('HomeScreen', () => {
+  beforeEach(() => {
+    readyMock.mockReturnValue({ ready: true });
+  });
+
   it('헤더에 로고 이미지를 노출한다', async () => {
     const { getByTestId } = render(wrap(<HomeScreen />));
     await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
@@ -56,5 +67,21 @@ describe('HomeScreen', () => {
     expect(queryByText('지금 보기 좋은 명소')).toBeNull();
     expect(queryByText('📍 내 주변 명소 보기')).toBeNull();
     expect(queryByText('내 주변 명소')).toBeNull();
+  });
+
+  it('ready=false면 통합 스켈레톤만 노출하고 섹션은 렌더하지 않는다', async () => {
+    readyMock.mockReturnValue({ ready: false });
+    const { getByTestId, queryByTestId } = render(wrap(<HomeScreen />));
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    expect(getByTestId('home-skeleton')).toBeTruthy();
+    expect(queryByTestId('top-spots-section')).toBeNull();
+  });
+
+  it('ready=true면 스켈레톤 대신 섹션을 노출한다', async () => {
+    readyMock.mockReturnValue({ ready: true });
+    const { getByTestId, queryByTestId } = render(wrap(<HomeScreen />));
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    expect(getByTestId('top-spots-section')).toBeTruthy();
+    expect(queryByTestId('home-skeleton')).toBeNull();
   });
 });

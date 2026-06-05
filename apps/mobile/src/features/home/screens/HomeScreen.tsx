@@ -19,11 +19,14 @@ import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { SeasonCurationSlot } from '../components/SeasonCurationSlot';
 import { TopSpotsSection } from '../components/TopSpotsSection';
 import { HocanceTop5Section } from '../components/HocanceTop5Section';
+import { HomeSkeleton } from '../components/HomeSkeleton';
+import { useHomeReady } from '../lib/useHomeReady';
 
 const HOME_STATIC_STALE_MS = 1000 * 60 * 30;
 
 export function HomeScreen() {
   const router = useRouter();
+  const { ready } = useHomeReady();
   const { data: featuredSpots = [], error } = useQuery({
     queryKey: spotKeys.all,
     queryFn: getPublishedSpots,
@@ -56,6 +59,14 @@ export function HomeScreen() {
         )[0] ?? featuredSpots[0],
     [featuredSpots],
   );
+
+  if (!ready) {
+    return (
+      <ScreenShell>
+        <HomeSkeleton />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell>
