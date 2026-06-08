@@ -31,6 +31,7 @@ function makeStay(o: Partial<Stay> & { id: string; latitude: number; longitude: 
     shortTagline: '', description: '', recommendationPoints: [],
     thumbnailUrl: null, bookingQueryOverride: null,
     tripcomBookingUrl: null,
+    agodaHotelId: null,
     naverRating: null, googleRating: null, ratingCapturedAt: null,
     isFeatured: false, displayOrder: 0,
     ...o,

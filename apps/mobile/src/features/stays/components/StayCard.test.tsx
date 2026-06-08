@@ -25,6 +25,7 @@ const baseStay: Stay = {
   description: '인천 앞바다와 야경을 동시에 누리는 도심 호텔이에요.',
   recommendationPoints: [],
   tripcomBookingUrl: null,
+  agodaHotelId: null,
   thumbnailUrl: null,
   bookingQueryOverride: null,
   naverRating: null,
