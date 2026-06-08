@@ -163,4 +163,19 @@ describe('staySchema', () => {
     expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'https://' }).success).toBe(false);
     expect(staySchema.safeParse({ ...baseStay, tripcom_booking_url: 'https://foo bar' }).success).toBe(false);
   });
+
+  it('agoda_hotel_id null/생략 모두 허용', () => {
+    expect(staySchema.safeParse({ ...baseStay }).success).toBe(true);
+    expect(staySchema.safeParse({ ...baseStay, agoda_hotel_id: null }).success).toBe(true);
+  });
+
+  it('agoda_hotel_id 숫자 문자열 허용', () => {
+    const r = staySchema.parse({ ...baseStay, agoda_hotel_id: '24180119' });
+    expect(r.agoda_hotel_id).toBe('24180119');
+  });
+
+  it('agoda_hotel_id 비숫자 차단', () => {
+    expect(staySchema.safeParse({ ...baseStay, agoda_hotel_id: 'abc' }).success).toBe(false);
+    expect(staySchema.safeParse({ ...baseStay, agoda_hotel_id: 'https://agoda.com/x?hid=1' }).success).toBe(false);
+  });
 });

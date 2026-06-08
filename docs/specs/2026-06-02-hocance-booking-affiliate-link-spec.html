@@ -3,204 +3,218 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>호캉스 예약 제휴 링크 스펙 (trip.com)</title>
+<title>호캉스 예약 제휴 링크 스펙 (trip.com + Agoda)</title>
 <style>
-  :root{
-    --bg:#f7f7f5; --card:#fff; --ink:#1f2328; --muted:#6b7280;
-    --line:#e5e7eb; --brand:#2a7d6f; --brand-soft:#e6f3f0;
-    --fr:#2563eb; --fr-bg:#eff5ff; --nfr:#7c3aed; --nfr-bg:#f4efff;
-    --warn:#b45309; --warn-bg:#fff7ed;
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1f2933; --muted: #6b7280;
+    --border: #e5e7eb; --accent: #2563eb; --accent-soft: #eff6ff;
+    --green: #2e6b35; --green-soft: #e8f5e9; --pink: #8b3a4a; --pink-soft: #fdecef;
+    --amber: #92600a; --amber-soft: #fff4e0; --code-bg: #0f172a; --code-ink: #e2e8f0;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-    line-height:1.65;font-size:15px}
-  .wrap{max-width:900px;margin:0 auto;padding:40px 24px 80px}
-  header.doc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 30px;margin-bottom:24px}
-  header.doc h1{margin:0 0 6px;font-size:25px;letter-spacing:-.02em}
-  header.doc .meta{color:var(--muted);font-size:13px}
-  header.doc .meta code{background:#f1f1ef;padding:1px 6px;border-radius:5px;font-size:12px}
-  .summary{background:var(--brand-soft);border:1px solid #cfe7e1;border-radius:14px;padding:18px 22px;margin-bottom:26px}
-  .summary h2{margin:0 0 8px;font-size:15px;color:var(--brand)}
-  .summary p{margin:6px 0}
-  .summary .lead{font-weight:600;font-size:16px}
-  nav.toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 22px;margin-bottom:28px}
-  nav.toc h2{margin:0 0 8px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-  nav.toc ol{margin:0;padding-left:20px;columns:2;gap:24px}
-  nav.toc a{color:var(--ink);text-decoration:none}
-  nav.toc a:hover{color:var(--brand);text-decoration:underline}
-  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 28px;margin-bottom:20px}
-  section h2{margin:0 0 14px;font-size:19px;letter-spacing:-.01em;border-bottom:2px solid var(--brand-soft);padding-bottom:8px}
-  section h3{margin:18px 0 8px;font-size:15px;color:var(--brand)}
-  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px}
-  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
-  th{background:#fafafa;font-weight:600}
-  code{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
-  p code,td code,li code{background:#f1f1ef;padding:1px 5px;border-radius:5px}
-  pre{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:16px 18px;overflow:auto;font-size:12.5px;line-height:1.55}
-  pre code{background:none;padding:0;color:inherit}
-  .req{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
-  .req:last-child{border-bottom:none}
-  .badge{flex:none;align-self:flex-start;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
-  .b-fr{color:var(--fr);background:var(--fr-bg);border:1px solid #c7dbff}
-  .b-nfr{color:var(--nfr);background:var(--nfr-bg);border:1px solid #ddccff}
-  .note{background:var(--warn-bg);border:1px solid #fed7aa;border-radius:10px;padding:12px 16px;margin:14px 0;font-size:13.5px}
-  .note b{color:var(--warn)}
-  ul.tight{margin:6px 0;padding-left:20px}
-  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--brand-soft);color:var(--brand);border:1px solid #cfe7e1}
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    line-height: 1.65; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 20px 80px; }
+  header.doc { background: linear-gradient(135deg, #1f2933, #2563eb); color: #fff;
+    border-radius: 20px; padding: 28px 30px; margin-bottom: 24px; }
+  header.doc h1 { margin: 0 0 8px; font-size: 24px; letter-spacing: -0.4px; }
+  header.doc .meta { font-size: 13px; opacity: .9; }
+  header.doc .meta span { display: inline-block; margin-right: 14px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px 26px; margin-bottom: 20px; }
+  h2 { font-size: 19px; margin: 4px 0 14px; letter-spacing: -0.3px;
+    border-left: 4px solid var(--accent); padding-left: 10px; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: #111827; }
+  p, li { font-size: 14.5px; }
+  .toc { background: var(--accent-soft); border: 1px solid #dbeafe; }
+  .toc ol { margin: 6px 0 0; padding-left: 20px; columns: 2; column-gap: 28px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .summary li { margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; font-weight: 700; }
+  code { background: #f1f5f9; padding: 1.5px 5px; border-radius: 5px; font-size: 12.5px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; }
+  pre { background: var(--code-bg); color: var(--code-ink); padding: 16px 18px; border-radius: 12px;
+    overflow-x: auto; font-size: 12.5px; line-height: 1.55; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px;
+    border-radius: 999px; margin-right: 6px; vertical-align: middle; }
+  .fr { background: var(--green-soft); color: var(--green); }
+  .nfr { background: var(--amber-soft); color: var(--amber); }
+  .new { background: var(--pink-soft); color: var(--pink); }
+  .req { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: #fafafa; }
+  .req .t { font-weight: 700; margin-bottom: 4px; }
+  .note { background: var(--amber-soft); border: 1px solid #fde9c8; border-radius: 12px; padding: 14px 16px; font-size: 13.5px; }
+  .pill { display:inline-block; background:#eef2ff; color:#3730a3; border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; margin:2px 4px 2px 0; }
+  .flow { background:#0f172a; color:#cbd5e1; border-radius:12px; padding:16px; font-size:12px; overflow-x:auto; }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<header class="doc">
-  <h1>호캉스 예약 제휴 링크 스펙 — trip.com</h1>
-  <div class="meta">
-    문서 종류: 스펙(결과물 명세) · 도메인: 호캉스(stays) 예약 제휴 링크 · 최종 수정: 2026-06-02<br/>
-    연관 플랜: <code>docs/plans/2026-06-02-agoda-to-tripcom-affiliate.md</code>
+  <header class="doc">
+    <h1>호캉스 예약 제휴 링크 스펙 — trip.com + Agoda</h1>
+    <div class="meta">
+      <span>📄 결과물 명세 (살아있는 스펙)</span>
+      <span>🗓 최초 2026-06-02 · 갱신 2026-06-08</span>
+      <span>🔗 plan: 2026-06-08-stays-revive-agoda-booking</span>
+    </div>
+  </header>
+
+  <div class="card toc">
+    <strong>목차</strong>
+    <ol>
+      <li><a href="#s1">개요</a></li>
+      <li><a href="#s2">기능 요구사항 (FR)</a></li>
+      <li><a href="#s3">비기능 요구사항 (NFR)</a></li>
+      <li><a href="#s4">구조 · 데이터 흐름</a></li>
+      <li><a href="#s5">구성 요소 책임 · 계약</a></li>
+      <li><a href="#s6">타입 정의</a></li>
+      <li><a href="#s7">외부 의존성</a></li>
+      <li><a href="#s8">명시적 가정</a></li>
+    </ol>
   </div>
-</header>
 
-<div class="summary">
-  <h2>핵심 요약</h2>
-  <p class="lead">각 호텔은 자신의 trip.com 제휴 예약 URL 전체를 데이터로 보유하고, 모바일 예약 버튼은 그 URL을 그대로 연다. 없으면 trip.com 호텔명 검색으로 fallback.</p>
-  <p>예약 목적지 URL은 <b>DB에 저장된 값</b>이므로(앱이 조립하지 않음), 신버전 앱은 <b>앱 업데이트 없이 DB 변경만으로</b> 목적지를 갱신한다. 데이터 입력 경로는 ① 웹 어드민 stay 상세 폼, ② JSON import(단건/일괄). 영향 범위는 <span class="pill">apps/web</span> <span class="pill">apps/mobile</span>뿐이며 <b>토스 미니앱·공유 패키지는 무영향</b>.</p>
-</div>
+  <div class="card summary">
+    <h2 style="border:none;padding:0;margin-top:0">핵심 요약</h2>
+    <ul>
+      <li>각 호텔은 <b>두 provider 목적지</b>를 데이터로 보유: trip.com 전체 URL(<code>tripcom_booking_url</code>) + Agoda hid(<code>agoda_hotel_id</code>).</li>
+      <li>두 provider는 <b>항상 함께 제공</b>된다. 직링크 데이터가 없으면 각자 <b>검색 fallback</b>으로 동작하므로 진입점은 호텔별 데이터 유무와 무관.</li>
+      <li>노출: <span class="pill">콤팩트(Top5·리스트·근처·hero)</span> → provider 선택 <b>바텀시트</b>, <span class="pill">상세 예약 섹션</span> → <b>두 버튼 동시</b>.</li>
+      <li><b>DB 마이그레이션 불필요</b> — <code>agoda_hotel_id</code> 컬럼은 trip.com 전환 시 보존됨. 코드 배선만 복원.</li>
+      <li><b>NFR-5 개정</b>: trip.com은 전역 ID 비의존, Agoda는 의도적으로 <code>EXPO_PUBLIC_AGODA_CID</code> 전역 cid 사용.</li>
+      <li>두 앱 격리: 토스 미니앱·공유 패키지 무영향.</li>
+    </ul>
+  </div>
 
-<nav class="toc">
-  <h2>목차</h2>
-  <ol>
-    <li><a href="#s1">개요</a></li>
-    <li><a href="#s2">기능 요구사항 (FR)</a></li>
-    <li><a href="#s3">비기능 요구사항 (NFR)</a></li>
-    <li><a href="#s4">구조 · 데이터 흐름</a></li>
-    <li><a href="#s5">구성 요소 책임·계약</a></li>
-    <li><a href="#s6">타입 정의</a></li>
-    <li><a href="#s7">외부 의존성</a></li>
-    <li><a href="#s8">명시적 가정</a></li>
-  </ol>
-</nav>
+  <div class="card" id="s1">
+    <h2>1. 개요</h2>
+    <p>호캉스(<code>stays</code>)의 "예약하기" 액션이 사용하는 제휴 링크 기능. 각 호텔은 <b>두 예약 provider</b> 목적지를 데이터로 보유한다.</p>
+    <ul>
+      <li><b>trip.com</b> — 호텔별 제휴 예약 URL 전체(<code>tripcom_booking_url</code>)를 그대로 오픈. 없으면 kr.trip.com 호텔명 검색.</li>
+      <li><b>Agoda</b> — 호텔별 hid(<code>agoda_hotel_id</code>)와 전역 cid(<code>EXPO_PUBLIC_AGODA_CID</code>)로 Partner Search 호텔 페이지 URL을 조립해 오픈. hid 없으면 호텔명 검색.</li>
+    </ul>
+    <p><b>도메인 책임:</b> 호텔 → (provider별) 예약 목적지 URL 결정(직링크 우선, 없으면 검색) → 외부 브라우저 오픈.</p>
+  </div>
 
-<section id="s1">
-  <h2>1. 개요</h2>
-  <p>호캉스(<code>stays</code>) 도메인의 <b>"예약하기" 액션</b>이 사용하는 제휴 링크 기능. 각 호텔(stay)은 자신의 <b>trip.com 제휴 예약 URL</b> 전체를 데이터로 보유하며, 모바일 앱의 예약 버튼은 이 URL로 외부 브라우저를 연다. URL이 없는 호텔은 <b>trip.com 호텔명 검색 페이지</b>로 이동한다.</p>
-  <p>도메인 책임: <b>호텔 → 예약 목적지 URL 결정(저장된 제휴 URL 우선, 없으면 검색) → 외부 브라우저 오픈.</b> 예약 목적지 URL은 DB에 저장된 값이며 앱은 가공 없이 그대로 연다(전역 제휴 ID로 조립하지 않음). 데이터 입력 경로는 웹 어드민 폼과 JSON import 두 가지.</p>
-</section>
+  <div class="card" id="s2">
+    <h2>2. 기능 요구사항 (FR)</h2>
+    <div class="req"><div class="t"><span class="badge fr">FR-1</span> trip.com 호텔별 예약 URL</div>각 stay는 선택 필드 <code>tripcom_booking_url</code>(전체 URL). 없으면 <code>null</code>.</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-1A</span> Agoda 호텔별 hid</div>각 stay는 선택 필드 <code>agoda_hotel_id</code>(hid). 없으면 <code>null</code>.</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-2</span> 모바일 오픈 규칙</div>
+      <b>trip.com</b>: URL이 http(s)면 그대로 / 아니면 검색.<br>
+      <b>Agoda</b>: hid 있으면 직링크(cid+hid) / 없으면 검색(cid+hname).</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-3</span> 검색/직링크 URL 빌더</div>
+      <code>buildTripcomHotelSearchUrl</code> · <code>buildAgodaHotelSearchUrl</code> · <code>buildAgodaHotelDeepLink</code>.</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-4</span> 오픈 실패 처리</div><code>Linking.openURL</code> 실패 시 검색 키워드 클립보드 복사 + 안내 Alert (provider 공통).</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-5</span> 어드민 입력 — 카드 2개</div>trip.com URL 카드(전체 URL) + Agoda 호텔 ID 카드(전체 URL→hid 추출 또는 숫자 직접). 빈 입력 = 검색 fallback. 상태 배지·결과 메시지.</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-6</span> JSON import</div><code>tripcom_booking_url</code>·<code>agoda_hotel_id</code> 각각 옵션 필드(단건·일괄).</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-7</span> 예약 진입점</div><b>콤팩트</b>(Top5·리스트·근처 카드·상세 hero) → 선택 바텀시트. <b>상세 예약 섹션</b> → 두 버튼 동시.</div>
+    <div class="req"><div class="t"><span class="badge fr">FR-8</span> 상세 문구</div>검색어 라벨 일반화 <code>검색어: "&lt;query&gt;"</code>. 버튼 "trip.com에서 예약하기 →" / "Agoda에서 예약하기 →". hero "예약하기 →" 유지(시트).</div>
+    <div class="req"><div class="t"><span class="badge new">FR-9</span> provider 선택 바텀시트</div>공용 <code>BookingProviderSheet</code>(RN Modal). 두 행 항상 노출, 행 선택 시 해당 오픈 함수 호출 후 닫기.</div>
+  </div>
 
-<section id="s2">
-  <h2>2. 기능 요구사항 (FR)</h2>
-  <div class="req"><span class="badge b-fr">FR-1</span><div><b>호텔별 예약 URL 보유</b> — 각 stay는 선택적 <code>tripcom_booking_url</code>(전체 trip.com 제휴 URL)을 가진다. 없으면 <code>null</code>.</div></div>
-  <div class="req"><span class="badge b-fr">FR-2</span><div><b>모바일 오픈 규칙</b> — URL이 있으면 그 URL을 그대로 오픈, 없으면 <code>resolveBookingQuery(name, override)</code> 키워드로 trip.com 호텔 검색 URL 오픈.</div></div>
-  <div class="req"><span class="badge b-fr">FR-3</span><div><b>검색 URL 빌더</b> — <code>buildTripcomHotelSearchUrl(query)</code> → <code>https://kr.trip.com/hotels/list?keyword=&lt;enc&gt;&amp;locale=ko-KR&amp;curr=KRW</code></div></div>
-  <div class="req"><span class="badge b-fr">FR-4</span><div><b>오픈 실패 처리</b> — <code>Linking.openURL</code> 실패 시 키워드를 클립보드 복사 + 호텔명 안내 Alert(기존 동작 보존).</div></div>
-  <div class="req"><span class="badge b-fr">FR-5</span><div><b>어드민 입력</b> — stay 상세에서 전체 URL 붙여넣어 저장/수정/제거. 빈 입력 → <code>null</code>. 상태 배지(직링크/검색 fallback), 결과 메시지.</div></div>
-  <div class="req"><span class="badge b-fr">FR-6</span><div><b>JSON import</b> — stay import JSON에 <code>tripcom_booking_url</code> 옵션 필드(단건·일괄).</div></div>
-  <div class="req"><span class="badge b-fr">FR-7</span><div><b>예약 버튼 노출 지점</b> — 홈 Top5 · 호캉스 리스트 · 호캉스 상세 · 명소 "근처 호캉스" 4곳에서 공통 오픈 함수 호출.</div></div>
-  <div class="req"><span class="badge b-fr">FR-8</span><div><b>상세화면 문구</b> — "trip.com 검색어: …", "trip.com에서 호텔 예약하기 →". hero 주 버튼 "예약하기 →"는 유지.</div></div>
-</section>
+  <div class="card" id="s3">
+    <h2>3. 비기능 요구사항 (NFR)</h2>
+    <div class="req"><div class="t"><span class="badge nfr">NFR-1</span> URL 스킴 안전성</div>trip.com URL은 http(s)만(저장·import·모바일 방어선). Agoda hid는 숫자만 — 알려진 agoda.com 템플릿에만 끼워짐.</div>
+    <div class="req"><div class="t"><span class="badge nfr">NFR-2</span> 앱 업데이트 없는 목적지 갱신</div>trip.com: DB URL로 완전 제어. Agoda: 호텔별 hid는 DB로 제어(재배포 불필요), 단 URL 템플릿·전역 cid는 바이너리에 인라인.</div>
+    <div class="req"><div class="t"><span class="badge nfr">NFR-3</span> 두 앱 격리</div><code>apps/web</code>·<code>apps/mobile</code>에만 존재. 토스 미니앱·공유 패키지 무영향.</div>
+    <div class="req"><div class="t"><span class="badge nfr">NFR-4</span> 쿼리 견고성</div>모바일은 <code>select('*')</code>. 매퍼는 없는 필드를 안전하게 <code>null</code> 처리.</div>
+    <div class="req"><div class="t"><span class="badge nfr">NFR-5</span> 전역 제휴 ID — provider별</div>trip.com 경로는 전역 ID 비의존(추적은 저장 URL에 포함). <b>Agoda 경로는 의도적으로 <code>EXPO_PUBLIC_AGODA_CID</code> 사용</b>. 미설정 시 cid 없이 진입(추적 불가, 허용 degrade).</div>
+    <div class="note"><b>2026-06-08 개정 메모:</b> 최초 스펙은 trip.com 단일 provider 전제로 NFR-5를 "전역 ID 비의존"으로 두었다. Agoda 승인에 따라 두 provider 공존으로 갱신, NFR-5를 provider별로 재정의. <code>agoda_hotel_id</code> 컬럼은 보존되어 있어 <b>마이그레이션 불필요</b>.</div>
+  </div>
 
-<section id="s3">
-  <h2>3. 비기능 요구사항 (NFR)</h2>
-  <div class="req"><span class="badge b-nfr">NFR-1</span><div><b>URL 스킴 안전성</b> — 저장·import 시 <b>http(s) 스킴만 허용</b>(XSS 방어). 특정 도메인(trip.com)은 강제하지 않음(추적/리다이렉트 도메인 허용).</div></div>
-  <div class="req"><span class="badge b-nfr">NFR-2</span><div><b>앱 업데이트 없는 목적지 갱신</b> — 목적지는 DB 저장 URL이므로 신버전 앱은 재배포 없이 DB 변경만으로 목적지 변경 반영.</div></div>
-  <div class="req"><span class="badge b-nfr">NFR-3</span><div><b>두 앱 격리</b> — apps/web·apps/mobile에만 존재. 토스 미니앱·공유 패키지 무영향.</div></div>
-  <div class="req"><span class="badge b-nfr">NFR-4</span><div><b>쿼리 견고성</b> — 모바일 <code>select('*')</code> 유지, 매퍼는 없는 필드를 <code>null</code>로 안전 처리.</div></div>
-  <div class="req"><span class="badge b-nfr">NFR-5</span><div><b>전역 제휴 ID 비의존</b> — CID류 환경변수 불필요. 검색 fallback은 제휴 추적 없음(수익 미인정 허용).</div></div>
-</section>
+  <div class="card" id="s4">
+    <h2>4. 구조 · 데이터 흐름</h2>
+    <div class="flow"><pre style="background:none;margin:0;padding:0;color:#cbd5e1">[어드민 trip.com URL] ─┐
+[import tripcom]       ├─→ http(s) 검증 ─→ stays.tripcom_booking_url
+[어드민 Agoda ID]──────┐
+[import agoda]         ├─→ parseAgodaHotelId ─→ stays.agoda_hotel_id
+                       │ select('*')
+            [toStay] → Stay.tripcomBookingUrl / Stay.agodaHotelId
+   ┌───────────────────┴────────────────────────────┐
+   │ 콤팩트(Top5/리스트/근처/hero)                    │ 상세 예약 섹션
+   │  "예약" → BookingProviderSheet                  │  [trip.com] [Agoda]
+   │    ├ openTripcomHotel   └ openAgodaHotel        │   동일 오픈 함수
+   └───────────────────┬────────────────────────────┘
+   openTripcomHotel: url 있으면 그대로 / 없으면 kr.trip.com 검색
+   openAgodaHotel:   hid 있으면 partnersearch(cid+hid) / 없으면 (cid+hname)
+                          │ openURL 실패 → 클립보드 + Alert (공통)</pre></div>
+    <h3>영향 표면</h3>
+    <table>
+      <tr><th>영역</th><th>파일</th><th>책임</th></tr>
+      <tr><td>DB</td><td>(변경 없음)</td><td>두 컬럼 모두 기존</td></tr>
+      <tr><td>mobile</td><td><code>stays/lib/affiliateHotel.ts</code></td><td>trip.com·Agoda 결정·오픈</td></tr>
+      <tr><td>mobile</td><td><code>stays/components/BookingProviderSheet.tsx</code></td><td>선택 바텀시트 (신규)</td></tr>
+      <tr><td>mobile</td><td><code>shared/data/types.ts · stayMappers.ts</code></td><td>agoda 필드·매핑 재추가</td></tr>
+      <tr><td>mobile</td><td>StayDetail / StayList / HocanceTop5 / NearbyStays</td><td>두 버튼 / 시트 배선</td></tr>
+      <tr><td>mobile</td><td><code>.env.local</code> / 빌드 env</td><td><code>EXPO_PUBLIC_AGODA_CID</code> 재도입</td></tr>
+      <tr><td>web</td><td><code>stays/agodaHidParser.ts</code></td><td>hid 추출/검증 (복원)</td></tr>
+      <tr><td>web</td><td><code>StayDetailForm · actions · lib/data/stays · staySchema · ImportFormatGuide</code></td><td>Agoda 입력 경로 복원(trip.com 유지)</td></tr>
+    </table>
+  </div>
 
-<section id="s4">
-  <h2>4. 구조 · 데이터 흐름</h2>
-<pre><code>[어드민 폼] ──┐
-              ├─→ http(s) 검증 ─→ stays.tripcom_booking_url (DB)
-[JSON import]─┘                          │ select('*')
-                                         ▼
-                    stayMappers.toStay → Stay.tripcomBookingUrl
-                                         │
-   예약 버튼 탭 → openTripcomHotel({ name, queryOverride, tripcomBookingUrl })
-                                         │
-              ┌──────────────────────────┴──────────────────────────┐
-          URL 있음                                              URL 없음
-              │                                                     │
-       그 URL 그대로 오픈        buildTripcomHotelSearchUrl(resolveBookingQuery(name, override))
-              └────────────────→ Linking.openURL ←──────────────────┘
-                                         │ 실패 시
-                                 키워드 클립보드 복사 + Alert</code></pre>
-  <h3>영향 표면</h3>
-  <table>
-    <tr><th>영역</th><th>파일</th><th>책임</th></tr>
-    <tr><td>DB</td><td><code>supabase/migrations/*.sql</code></td><td><code>stays.tripcom_booking_url text</code></td></tr>
-    <tr><td>mobile</td><td><code>features/stays/lib/affiliateHotel.ts</code></td><td>URL 결정·검색 빌더·오픈</td></tr>
-    <tr><td>mobile</td><td><code>shared/data/types.ts</code>, <code>stayMappers.ts</code></td><td>타입·매핑</td></tr>
-    <tr><td>mobile</td><td>StayDetail / StayList / HocanceTop5 / NearbyStays</td><td>예약 버튼(4곳)·문구</td></tr>
-    <tr><td>web</td><td><code>features/stays/StayDetailForm.tsx</code></td><td>URL 입력 카드</td></tr>
-    <tr><td>web</td><td><code>features/stays/actions.ts</code>, <code>lib/data/stays.ts</code></td><td>저장 액션·데이터</td></tr>
-    <tr><td>web</td><td><code>features/stays/staySchema.ts</code>, <code>import/ImportFormatGuide.tsx</code>, <code>lib/types.ts</code></td><td>import 스키마·안내·타입</td></tr>
-  </table>
-</section>
+  <div class="card" id="s5">
+    <h2>5. 구성 요소 책임 · 계약</h2>
+    <h3>5.1 모바일 — affiliateHotel.ts</h3>
+    <pre><code>resolveBookingQuery(name, override): string
+buildTripcomHotelSearchUrl(query): string
+buildAgodaHotelSearchUrl(query): string      // cid+hname
+buildAgodaHotelDeepLink(hotelId): string     // cid+hid
+openTripcomHotel({ name, queryOverride, tripcomBookingUrl }): Promise&lt;void&gt;
+openAgodaHotel({ name, queryOverride, agodaHotelId }): Promise&lt;void&gt;</code></pre>
+    <p>Agoda 빌더는 <code>process.env.EXPO_PUBLIC_AGODA_CID</code>에서 cid를 읽는다. trip.com 경로는 전역 ID를 읽지 않는다. 두 오픈 함수는 실패 시 동일 클립보드+Alert.</p>
+    <h3>5.2 모바일 — BookingProviderSheet</h3>
+    <pre><code>props: { stay: Stay | null; onClose: () =&gt; void }   // stay=null → 닫힘</code></pre>
+    <p>두 행 항상 노출. 선택 시 해당 오픈 함수 호출 후 <code>onClose()</code>. 소비 화면은 <code>useState&lt;Stay|null&gt;</code> 보유, 화면당 인스턴스 1개.</p>
+    <h3>5.3 타입 / 매퍼</h3>
+    <p><code>Stay.agodaHotelId</code>·<code>StayRow.agoda_hotel_id</code> 재추가, <code>toStay</code>에 <code>agodaHotelId: row.agoda_hotel_id ?? null</code>.</p>
+    <h3>5.5 웹 — agodaHidParser</h3>
+    <p><code>parseAgodaHotelId(input)</code>: 숫자면 그대로, agoda.com URL이면 hid 추출, 그 외 <code>null</code>.</p>
+    <h3>5.6 웹 — 액션/데이터</h3>
+    <p><code>updateStayAgodaHotelIdAction</code>: trim 후 빈값→null, 비어있으면 파서로 hid 추출(실패 시 Error). <code>buildStayWriteInput</code>에 두 필드 <code>emptyToNull</code>.</p>
+    <h3>5.7 웹 — import 스키마</h3>
+    <pre><code>tripcom_booking_url: httpsOnlyUrlSchema.nullable().optional(),
+agoda_hotel_id: z.string().trim().regex(/^\d+$/).nullable().optional(),</code></pre>
+    <h3>5.8 웹 — 어드민 카드 2개</h3>
+    <p>"trip.com 예약 URL" 카드 + "Agoda 호텔 ID" 카드. 각각 입력·저장·상태 배지·결과 메시지.</p>
+  </div>
 
-<section id="s5">
-  <h2>5. 구성 요소별 책임과 계약</h2>
-  <h3>5.1 모바일 — affiliateHotel.ts</h3>
-<pre><code>export function resolveBookingQuery(name: string, override: string | null): string;
-export function buildTripcomHotelSearchUrl(query: string): string;
-export function openTripcomHotel(opts: {
-  name: string;
-  queryOverride: string | null;
-  tripcomBookingUrl: string | null;
-}): Promise&lt;void&gt;;</code></pre>
-  <ul class="tight">
-    <li><code>openTripcomHotel</code>: <code>tripcomBookingUrl</code> trim 후 길이&gt;0이면 그 값, 아니면 검색 URL 오픈. 전역 제휴 ID 미사용.</li>
-  </ul>
-  <h3>5.2 모바일 — 타입 / 매퍼</h3>
-  <ul class="tight">
-    <li><code>Stay.tripcomBookingUrl: string | null</code>, <code>StayRow.tripcom_booking_url: string | null</code></li>
-    <li><code>toStay(row)</code> → <code>tripcomBookingUrl: row.tripcom_booking_url ?? null</code></li>
-  </ul>
-  <h3>5.3 모바일 — 호출 지점 (4곳 공통)</h3>
-<pre><code>openTripcomHotel({ name: stay.name, queryOverride: stay.bookingQueryOverride, tripcomBookingUrl: stay.tripcomBookingUrl });</code></pre>
-  <h3>5.4 웹 — 서버 액션 / 데이터</h3>
-<pre><code>updateStayTripcomUrlAction(id: string, rawUrl: string): Promise&lt;void&gt;
-updateStayTripcomUrl(client, id: string, url: string | null): Promise&lt;void&gt;</code></pre>
-  <ul class="tight">
-    <li>trim → 빈 문자열 <code>null</code>; 값 있으면 http(s) 검증 실패 시 <code>Error</code> throw; <code>revalidatePath</code> 갱신.</li>
-  </ul>
-  <h3>5.5 웹 — import 스키마</h3>
-<pre><code>tripcom_booking_url: httpsOnlyUrlSchema.nullable().optional(),</code></pre>
-  <p><code>buildStayWriteInput</code>은 <code>emptyToNull</code>로 정규화.</p>
-  <h3>5.6 웹 — 어드민 폼 카드</h3>
-  <p>카드 제목 "trip.com 예약 URL". 입력 1개(전체 URL) + 저장 + 상태 배지 + 결과 메시지.</p>
-</section>
+  <div class="card" id="s6">
+    <h2>6. 타입 정의</h2>
+    <table>
+      <tr><th>키</th><th>타입</th><th>위치</th></tr>
+      <tr><td><code>tripcom_booking_url</code></td><td>text (nullable)</td><td>DB stays</td></tr>
+      <tr><td><code>agoda_hotel_id</code></td><td>text (nullable, 숫자)</td><td>DB stays</td></tr>
+      <tr><td><code>Stay.tripcomBookingUrl / agodaHotelId</code></td><td>string | null</td><td>mobile</td></tr>
+      <tr><td><code>StayRow.tripcom_booking_url / agoda_hotel_id</code></td><td>string | null</td><td>mobile/web</td></tr>
+      <tr><td><code>BookingProvider</code></td><td>'tripcom' | 'agoda'</td><td>mobile</td></tr>
+    </table>
+  </div>
 
-<section id="s6">
-  <h2>6. 타입 정의</h2>
-  <table>
-    <tr><th>키</th><th>타입</th><th>위치</th><th>비고</th></tr>
-    <tr><td><code>tripcom_booking_url</code></td><td><code>text</code> (nullable)</td><td>DB stays</td><td>전체 trip.com 제휴 URL</td></tr>
-    <tr><td><code>Stay.tripcomBookingUrl</code></td><td><code>string | null</code></td><td>mobile</td><td>camelCase</td></tr>
-    <tr><td><code>StayRow.tripcom_booking_url</code></td><td><code>string | null</code></td><td>mobile/web</td><td>snake_case</td></tr>
-    <tr><td><code>tripcom_booking_url</code></td><td><code>string | null</code> (http(s))</td><td>web schema/types</td><td>import·저장 검증</td></tr>
-  </table>
-</section>
+  <div class="card" id="s7">
+    <h2>7. 외부 의존성</h2>
+    <ul>
+      <li>trip.com 검색: <code>kr.trip.com/hotels/list?keyword=&amp;locale=ko-KR&amp;curr=KRW</code></li>
+      <li>Agoda Partner Search: <code>agoda.com/partners/partnersearch.aspx?cid=&amp;hl=ko-kr&amp;hid=</code>(직링크) / <code>&amp;hname=</code>(검색)</li>
+      <li>Agoda cid: <code>EXPO_PUBLIC_AGODA_CID</code> env (빌드 인라인)</li>
+      <li>react-native Linking·Alert·Modal, expo-clipboard(선택), supabase, zod</li>
+    </ul>
+  </div>
 
-<section id="s7">
-  <h2>7. 외부 의존성</h2>
-  <ul class="tight">
-    <li><b>trip.com 한국어 호텔 검색</b>: <code>https://kr.trip.com/hotels/list?keyword=&lt;query&gt;&amp;locale=ko-KR&amp;curr=KRW</code></li>
-    <li><b>trip.com 제휴 URL</b>: 사용자가 어드민/import로 제공, 앱은 가공 없이 오픈.</li>
-    <li><code>react-native</code> Linking/Alert, <code>expo-clipboard</code>(선택), <code>@supabase/supabase-js</code>.</li>
-  </ul>
-  <div class="note"><b>확인 대상:</b> <code>kr.trip.com</code> <code>keyword</code> 파라미터는 2026-06-02 기준 호텔 검색 UI 진입 확인. 빌더 함수에 캡슐화되어 구현 단계에서 손쉽게 재검증·조정.</div>
-</section>
-
-<section id="s8">
-  <h2>8. 명시적 가정</h2>
-  <ul class="tight">
-    <li>입력 <code>tripcom_booking_url</code>에는 제휴 추적 파라미터가 이미 포함(앱은 덧붙이지 않음).</li>
-    <li>검색 fallback은 제휴 추적 없음(수익 미인정) — 의도된 허용 동작(NFR-5).</li>
-    <li><code>kr.trip.com</code> 검색 <code>keyword</code> 파라미터 유효(§7 재검증 대상).</li>
-    <li>외부 오픈은 기기 기본 브라우저/앱 처리에 위임.</li>
-  </ul>
-</section>
+  <div class="card" id="s8">
+    <h2>8. 명시적 가정</h2>
+    <ul>
+      <li><code>tripcom_booking_url</code>에는 제휴 추적 파라미터가 이미 포함(앱은 덧붙이지 않음).</li>
+      <li><code>EXPO_PUBLIC_AGODA_CID</code>는 승인된 cid. 미설정 시 추적 불가(허용 degrade).</li>
+      <li>trip.com 검색 fallback은 추적 없음(수익 미인정, 의도된 허용).</li>
+      <li>trip.com <code>keyword</code>, Agoda <code>hid</code>/<code>hname</code> 파라미터 유효.</li>
+      <li><code>agoda_hotel_id</code> 컬럼이 DB에 이미 존재 — 마이그레이션 불필요.</li>
+    </ul>
+  </div>
 
 </div>
 </body>

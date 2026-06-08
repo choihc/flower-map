@@ -20,6 +20,7 @@ const baseStayRow: StayRow = {
   description: '온천과 함께 쉬어가는 제주 호캉스',
   recommendation_points: ['실내 온천', '오션뷰'],
   tripcom_booking_url: null,
+  agoda_hotel_id: null,
   thumbnail_url: 'https://blob.example.com/stay-1.jpg',
   booking_query_override: null,
   naver_rating_score: 4.5,
@@ -176,6 +177,16 @@ describe('toStay', () => {
     const url = 'https://kr.trip.com/hotels/detail/?hotelId=123';
     const stay = toStay({ ...baseStayRow, tripcom_booking_url: url });
     expect(stay.tripcomBookingUrl).toBe(url);
+  });
+
+  it('agoda_hotel_id가 null이면 agodaHotelId를 null로 매핑한다', () => {
+    const stay = toStay({ ...baseStayRow, agoda_hotel_id: null });
+    expect(stay.agodaHotelId).toBeNull();
+  });
+
+  it('agoda_hotel_id가 있으면 agodaHotelId로 그대로 매핑한다', () => {
+    const stay = toStay({ ...baseStayRow, agoda_hotel_id: '24180119' });
+    expect(stay.agodaHotelId).toBe('24180119');
   });
 
   it('returns naverRating null when score is NaN (defensive against malformed input)', () => {

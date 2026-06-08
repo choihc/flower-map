@@ -100,6 +100,7 @@ export type Stay = {
   description: string;
   recommendationPoints: string[];
   tripcomBookingUrl: string | null;
+  agodaHotelId: string | null;
   thumbnailUrl: string | null;
   bookingQueryOverride: string | null;
   naverRating: StayRating | null;
@@ -126,6 +127,7 @@ export type StayRow = {
   description: string;
   recommendation_points: string[] | null;
   tripcom_booking_url: string | null;
+  agoda_hotel_id: string | null;
   thumbnail_url: string | null;
   booking_query_override: string | null;
   naver_rating_score: number | null;

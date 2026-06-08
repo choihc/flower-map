@@ -1,20 +1,23 @@
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getPublishedSpots, spotKeys } from '../../../shared/data/spotRepository';
 import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository';
+import type { Stay } from '../../../shared/data/types';
 import { formatProximity } from '../../../shared/lib/proximityLabel';
 import { NativeSpotAd } from '../../../shared/ui/NativeSpotAd';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { colors } from '../../../shared/theme/colors';
+import { BookingProviderSheet } from '../components/BookingProviderSheet';
 import { StayCard } from '../components/StayCard';
-import { openTripcomHotel } from '../lib/affiliateHotel';
 import { findClosestSpot } from '../lib/findClosestSpot';
 
 export function StayListScreen() {
   const router = useRouter();
+  const [bookingStay, setBookingStay] = useState<Stay | null>(null);
   const { data: stays = [], isLoading } = useQuery({
     queryKey: stayKeys.all,
     queryFn: getPublishedStays,
@@ -58,18 +61,13 @@ export function StayListScreen() {
               stay={stay}
               boostBadge={boostBadge}
               onPress={() => router.push(`/stays/${stay.slug}` as never)}
-              onPressBook={() =>
-                void openTripcomHotel({
-                  name: stay.name,
-                  queryOverride: stay.bookingQueryOverride,
-                  tripcomBookingUrl: stay.tripcomBookingUrl,
-                })
-              }
+              onPressBook={() => setBookingStay(stay)}
             />
             {(idx + 1) % 10 === 0 && idx < stays.length - 1 ? <NativeSpotAd /> : null}
           </View>
         );
       })}
+      <BookingProviderSheet stay={bookingStay} onClose={() => setBookingStay(null)} />
     </ScreenShell>
   );
 }

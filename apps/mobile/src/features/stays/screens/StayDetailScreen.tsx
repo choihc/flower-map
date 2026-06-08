@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useQuery } from '@tanstack/react-query';
@@ -23,7 +24,8 @@ import { SectionCard } from '../../../shared/ui/SectionCard';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { SpotHeroCard } from '../../../shared/ui/SpotHeroCard';
 import { StoriesSection } from '../../../shared/ui/StoriesSection';
-import { openTripcomHotel, resolveBookingQuery } from '../lib/affiliateHotel';
+import { openAgodaHotel, openTripcomHotel, resolveBookingQuery } from '../lib/affiliateHotel';
+import { BookingProviderSheet } from '../components/BookingProviderSheet';
 import { formatStayTypeBadge } from '../lib/stayType';
 
 type StayDetailScreenProps = {
@@ -59,6 +61,8 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
     queryFn: () => getStayContent(slug),
     enabled: !!stay,
   });
+
+  const [bookingStay, setBookingStay] = useState<Stay | null>(null);
 
   if (isLoading) {
     return (
@@ -110,14 +114,6 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
     });
   };
 
-  const handleBook = () => {
-    void openTripcomHotel({
-      name: stay.name,
-      queryOverride: stay.bookingQueryOverride,
-      tripcomBookingUrl: stay.tripcomBookingUrl,
-    });
-  };
-
   return (
     <ScreenShell
       showBack
@@ -130,7 +126,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
         imageSource={stay.thumbnailUrl ? { uri: stay.thumbnailUrl } : undefined}
         infoPills={buildInfoPills(stay)}
         tone="ink"
-        primaryButton={{ label: '예약하기 →', onPress: handleBook }}
+        primaryButton={{ label: '예약하기 →', onPress: () => setBookingStay(stay) }}
         secondaryButton={{ label: '길찾기', onPress: handleDirections }}
       />
 
@@ -201,9 +197,32 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
             </Pressable>
           </>
         ) : null}
-        <Text style={styles.bookingQueryLabel}>trip.com 검색어: "{bookingQuery}"</Text>
-        <Pressable testID="stay-detail-book" onPress={handleBook} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>trip.com에서 호텔 예약하기 →</Text>
+        <Text style={styles.bookingQueryLabel}>검색어: "{bookingQuery}"</Text>
+        <Pressable
+          testID="stay-detail-book-tripcom"
+          onPress={() =>
+            void openTripcomHotel({
+              name: stay.name,
+              queryOverride: stay.bookingQueryOverride,
+              tripcomBookingUrl: stay.tripcomBookingUrl,
+            })
+          }
+          style={styles.primaryButton}
+        >
+          <Text style={styles.primaryButtonText}>trip.com에서 예약하기 →</Text>
+        </Pressable>
+        <Pressable
+          testID="stay-detail-book-agoda"
+          onPress={() =>
+            void openAgodaHotel({
+              name: stay.name,
+              queryOverride: stay.bookingQueryOverride,
+              agodaHotelId: stay.agodaHotelId,
+            })
+          }
+          style={styles.secondaryBookButton}
+        >
+          <Text style={styles.secondaryBookButtonText}>Agoda에서 예약하기 →</Text>
         </Pressable>
       </SectionCard>
 
@@ -214,6 +233,7 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
           <Text style={styles.bodyText}>{stay.description}</Text>
         </SectionCard>
       ) : null}
+      <BookingProviderSheet stay={bookingStay} onClose={() => setBookingStay(null)} />
     </ScreenShell>
   );
 }
@@ -284,6 +304,20 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  secondaryBookButton: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderColor: colors.primary,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 8,
+    paddingVertical: 14,
+  },
+  secondaryBookButtonText: {
+    color: colors.primary,
     fontSize: 14,
     fontWeight: '700',
   },

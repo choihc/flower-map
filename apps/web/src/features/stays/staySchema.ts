@@ -41,6 +41,7 @@ export const staySchema = z
     thumbnail_url: httpsOnlyUrlSchema.nullable().optional(),
     booking_query_override: z.string().trim().min(1).nullable().optional(),
     tripcom_booking_url: httpsOnlyUrlSchema.nullable().optional(),
+    agoda_hotel_id: z.string().trim().regex(/^\d+$/, { message: 'agoda_hotel_id는 숫자만 허용됩니다' }).nullable().optional(),
     naver_rating_score: ratingScoreSchema.nullable().optional(),
     naver_rating_url: httpsOnlyUrlSchema.nullable().optional(),
     google_rating_score: ratingScoreSchema.nullable().optional(),

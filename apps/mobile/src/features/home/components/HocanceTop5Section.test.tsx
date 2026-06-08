@@ -23,6 +23,7 @@ vi.mock('expo-router', () => ({
 }));
 vi.mock('../../stays/lib/affiliateHotel', () => ({
   openTripcomHotel: vi.fn(),
+  openAgodaHotel: vi.fn(),
 }));
 
 import { getPublishedStays } from '../../../shared/data/stayRepository';
@@ -36,7 +37,7 @@ function makeStay(over: Partial<Stay> & { id: string; latitude?: number; longitu
     stayType: 'city', seasonTags: [],
     seasonWindowStart: null, seasonWindowEnd: null, shortTagline: '',
     description: '', recommendationPoints: [], thumbnailUrl: null,
-    tripcomBookingUrl: null, bookingQueryOverride: null, naverRating: { score: 4.5, url: '' },
+    tripcomBookingUrl: null, agodaHotelId: null, bookingQueryOverride: null, naverRating: { score: 4.5, url: '' },
     googleRating: null, ratingCapturedAt: null, isFeatured: false, displayOrder: 0,
   };
   return { ...base, ...over };

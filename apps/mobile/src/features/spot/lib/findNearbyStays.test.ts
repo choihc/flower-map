@@ -13,6 +13,7 @@ function makeStay(overrides: Partial<Stay> & { id: string; latitude: number; lon
     shortTagline: '', description: '', recommendationPoints: [],
     thumbnailUrl: null, bookingQueryOverride: null,
     tripcomBookingUrl: null,
+    agodaHotelId: null,
     naverRating: null, googleRating: null, ratingCapturedAt: null,
     isFeatured: false, displayOrder: 0,
     ...overrides,

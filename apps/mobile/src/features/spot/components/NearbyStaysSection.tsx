@@ -1,14 +1,14 @@
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository';
-import type { FlowerSpot } from '../../../shared/data/types';
+import type { FlowerSpot, Stay } from '../../../shared/data/types';
 import { formatProximity } from '../../../shared/lib/proximityLabel';
 import { colors } from '../../../shared/theme/colors';
+import { BookingProviderSheet } from '../../stays/components/BookingProviderSheet';
 import { StayCard } from '../../stays/components/StayCard';
-import { openTripcomHotel } from '../../stays/lib/affiliateHotel';
 import { STAYS_ROUTE, staysDetailPath } from '../../stays/routes';
 import { findNearbyStays } from '../lib/findNearbyStays';
 
@@ -20,6 +20,7 @@ type Props = { spot: FlowerSpot };
 
 export function NearbyStaysSection({ spot }: Props) {
   const router = useRouter();
+  const [bookingStay, setBookingStay] = useState<Stay | null>(null);
   const { data: stays = [] } = useQuery({
     queryKey: stayKeys.all,
     queryFn: getPublishedStays,
@@ -59,13 +60,7 @@ export function NearbyStaysSection({ spot }: Props) {
             stay={stay}
             boostBadge={{ label: formatProximity(distanceKm, '이 명소') }}
             onPress={() => router.push(staysDetailPath(stay.slug))}
-            onPressBook={() =>
-              void openTripcomHotel({
-                name: stay.name,
-                queryOverride: stay.bookingQueryOverride,
-                tripcomBookingUrl: stay.tripcomBookingUrl,
-              })
-            }
+            onPressBook={() => setBookingStay(stay)}
           />
         ))}
       </View>
@@ -79,6 +74,7 @@ export function NearbyStaysSection({ spot }: Props) {
           <Text style={styles.moreText}>더보기 →</Text>
         </Pressable>
       ) : null}
+      <BookingProviderSheet stay={bookingStay} onClose={() => setBookingStay(null)} />
     </View>
   );
 }
