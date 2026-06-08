@@ -23,6 +23,7 @@ vi.mock('expo-router', () => ({
 }));
 vi.mock('../../stays/lib/affiliateHotel', () => ({
   openTripcomHotel: vi.fn(),
+  openAgodaHotel: vi.fn(),
 }));
 
 import { getPublishedStays } from '../../../shared/data/stayRepository';

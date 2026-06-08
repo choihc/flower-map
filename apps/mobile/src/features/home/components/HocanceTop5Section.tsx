@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import { getTopSpots, spotKeys } from '../../../shared/data/spotRepository';
 import { getPublishedStays, stayKeys } from '../../../shared/data/stayRepository';
+import type { Stay } from '../../../shared/data/types';
 import { formatProximity } from '../../../shared/lib/proximityLabel';
 import { colors } from '../../../shared/theme/colors';
+import { BookingProviderSheet } from '../../stays/components/BookingProviderSheet';
 import { StayCard } from '../../stays/components/StayCard';
-import { openTripcomHotel } from '../../stays/lib/affiliateHotel';
 import { staysDetailPath } from '../../stays/routes';
 import { rankStaysForHome } from '../lib/rankStays';
 
@@ -16,6 +17,7 @@ const HOCANCE_TOP_N_SPOTS = 10;
 
 export function HocanceTop5Section() {
   const router = useRouter();
+  const [bookingStay, setBookingStay] = useState<Stay | null>(null);
   const { data: stays = [] } = useQuery({
     queryKey: stayKeys.all,
     queryFn: getPublishedStays,
@@ -43,17 +45,12 @@ export function HocanceTop5Section() {
               stay={stay}
               boostBadge={boostBadge}
               onPress={() => router.push(staysDetailPath(stay.slug))}
-              onPressBook={() =>
-                void openTripcomHotel({
-                  name: stay.name,
-                  queryOverride: stay.bookingQueryOverride,
-                  tripcomBookingUrl: stay.tripcomBookingUrl,
-                })
-              }
+              onPressBook={() => setBookingStay(stay)}
             />
           );
         })}
       </View>
+      <BookingProviderSheet stay={bookingStay} onClose={() => setBookingStay(null)} />
     </View>
   );
 }
