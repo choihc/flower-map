@@ -69,7 +69,7 @@ const FORMATS: readonly FormatEntry[] = [
   {
     id: 'stay',
     title: '3) 호텔(호캉스) 단건 등록',
-    hint: '신규 호텔이면 INSERT, 같은 slug가 이미 있으면 UPDATE됩니다. stay_type 허용값: city / resort / poolvilla / onsen / kids / ocean / island. recommendation_points는 최대 10개. 평점이 있으면 score-url 쌍과 rating_captured_at이 모두 필요합니다. ⚠️ 예시 JSON의 cdn.example.com / place/12345 / tripcom_booking_url 같은 placeholder URL은 반드시 실제 값으로 교체하세요. tripcom_booking_url은 trip.com 제휴 예약 URL 전체로, 입력하면 그 URL로 바로 진입합니다. 없으면 호텔명으로 trip.com 검색 fallback됩니다.',
+    hint: '신규 호텔이면 INSERT, 같은 slug가 이미 있으면 UPDATE됩니다. stay_type 허용값: city / resort / poolvilla / onsen / kids / ocean / island. recommendation_points는 최대 10개. 평점이 있으면 score-url 쌍과 rating_captured_at이 모두 필요합니다. ⚠️ 예시 JSON의 cdn.example.com / place/12345 / tripcom_booking_url 같은 placeholder URL은 반드시 실제 값으로 교체하세요. tripcom_booking_url은 trip.com 제휴 예약 URL 전체로, 입력하면 그 URL로 바로 진입합니다. 없으면 호텔명으로 trip.com 검색 fallback됩니다. agoda_hotel_id는 Agoda 호텔 hid(숫자)로, 입력하면 Agoda 호텔 페이지로 직접 진입합니다. 없으면 호텔명으로 Agoda 검색 fallback됩니다.',
     snippet: `{
   "stay": {
     "slug": "hotel-naru-magok",
@@ -91,6 +91,7 @@ const FORMATS: readonly FormatEntry[] = [
     "thumbnail_url": "https://cdn.example.com/stays/naru-magok-hero.jpg",
     "booking_query_override": "호텔 나루 서울 숙박",
     "tripcom_booking_url": "https://kr.trip.com/hotels/detail/?hotelId=12345678&Allianceid=AAA&SID=BBB",
+    "agoda_hotel_id": "24180119",
     "naver_rating_score": 4.6,
     "naver_rating_url": "https://m.place.naver.com/place/12345/home",
     "google_rating_score": 4.4,
@@ -105,7 +106,7 @@ const FORMATS: readonly FormatEntry[] = [
   {
     id: 'stays-bulk',
     title: '4) 호텔(호캉스) 복수 일괄 등록',
-    hint: '한 번에 여러 호텔을 등록합니다. 부분 실패 허용 — 성공한 호텔은 저장되고 실패한 호텔만 결과 패널에 오류로 표시됩니다. 동일 payload 내 slug 중복은 검증 단계에서 차단됩니다. 평점/URL/booking_query_override/thumbnail_url/tripcom_booking_url 등 옵션 필드는 3번 카드 예시 참고. tripcom_booking_url을 입력하면 그 URL로 직접 진입 (없으면 호텔명 검색 fallback). ⚠️ 슬러그·위경도·주소 등은 반드시 실제 값으로 교체하세요.',
+    hint: '한 번에 여러 호텔을 등록합니다. 부분 실패 허용 — 성공한 호텔은 저장되고 실패한 호텔만 결과 패널에 오류로 표시됩니다. 동일 payload 내 slug 중복은 검증 단계에서 차단됩니다. 평점/URL/booking_query_override/thumbnail_url/tripcom_booking_url/agoda_hotel_id 등 옵션 필드는 3번 카드 예시 참고. tripcom_booking_url을 입력하면 그 URL로 직접 진입 (없으면 호텔명 검색 fallback). ⚠️ 슬러그·위경도·주소 등은 반드시 실제 값으로 교체하세요.',
     snippet: `{
   "stays": [
     {
@@ -121,6 +122,7 @@ const FORMATS: readonly FormatEntry[] = [
       "short_tagline": "도심에서 즐기는 인피니티풀과 한강 야경",
       "description": "한강뷰가 일품인 도심형 호텔.",
       "tripcom_booking_url": "https://kr.trip.com/hotels/detail/?hotelId=12345678&Allianceid=AAA&SID=BBB",
+      "agoda_hotel_id": "24180119",
       "recommendation_points": [
         "인피니티풀에서 보는 한강 일몰",
         "키즈 어메니티 무료 제공"
