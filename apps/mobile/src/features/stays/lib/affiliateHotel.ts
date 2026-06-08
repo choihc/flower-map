@@ -64,8 +64,10 @@ export async function openAgodaHotel(opts: {
   agodaHotelId: string | null;
 }): Promise<void> {
   const hid = (opts.agodaHotelId ?? '').trim();
+  // 방어선: hid가 숫자가 아니면(레거시·오염 데이터 등) 깨진 직링크 대신 호텔명 검색으로 fallback.
+  // trip.com 경로의 ^https?:// 방어선과 동일한 취지(NFR-1).
   const url =
-    hid.length > 0
+    /^\d+$/.test(hid)
       ? buildAgodaHotelDeepLink(hid)
       : buildAgodaHotelSearchUrl(resolveBookingQuery(opts.name, opts.queryOverride));
 

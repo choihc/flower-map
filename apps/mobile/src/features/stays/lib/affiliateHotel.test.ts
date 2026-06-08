@@ -144,6 +144,14 @@ describe('openAgodaHotel', () => {
     expect((openSpy.mock.calls[0][0] as string)).toContain('hname=');
   });
 
+  it('agodaHotelId가 비숫자(레거시·오염 데이터)면 호텔명 검색으로 fallback (방어선)', async () => {
+    const openSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as unknown as void);
+    await openAgodaHotel({ name: '호텔 나루', queryOverride: null, agodaHotelId: 'https://agoda.com/x?hid=1' });
+    const calledUrl = openSpy.mock.calls[0][0] as string;
+    expect(calledUrl).toContain('hname=');
+    expect(calledUrl).not.toContain('hid=');
+  });
+
   it('Linking 실패 시 Alert.alert가 호출된다', async () => {
     vi.spyOn(Linking, 'openURL').mockRejectedValue(new Error('cannot open'));
     const alertSpy = vi.spyOn(Alert, 'alert').mockImplementation(() => {});

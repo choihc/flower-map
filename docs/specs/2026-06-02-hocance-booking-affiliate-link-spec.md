@@ -155,7 +155,7 @@ export function openAgodaHotel(opts: {
 
 계약:
 - `openTripcomHotel`은 `tripcomBookingUrl`이 http(s) URL이면(trim 후 `^https?://`) 그 값을, 아니면 검색 URL을 오픈한다(NFR-1 방어선).
-- `openAgodaHotel`은 `agodaHotelId`(trim 후 비어있지 않으면)로 직링크를, 아니면 검색 URL을 오픈한다.
+- `openAgodaHotel`은 `agodaHotelId`가 **숫자(trim 후 `^\d+$`)이면** `buildAgodaHotelDeepLink`를, 아니면(비어있거나 비숫자) `buildAgodaHotelSearchUrl`을 오픈한다(NFR-1 방어선 — trip.com 경로의 http(s) 방어선과 동일 취지로, 레거시·오염 hid는 검색으로 fallback).
 - Agoda 빌더는 CID를 `process.env.EXPO_PUBLIC_AGODA_CID?.trim()`에서 읽는다. trip.com 경로는 전역 ID를 읽지 않는다.
 - 두 함수 모두 `Linking.openURL` 실패 시 `resolveBookingQuery` 결과를 클립보드 복사(silent) 후 동일 Alert("예약 페이지를 열 수 없어요")를 띄운다.
 
