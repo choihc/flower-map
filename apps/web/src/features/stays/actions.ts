@@ -3,10 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { bulkUpdateStayStatus, updateStayTripcomUrl, updateStayThumbnail } from '@/lib/data/stays';
+import { bulkUpdateStayStatus, updateStayAgodaHotelId, updateStayTripcomUrl, updateStayThumbnail } from '@/lib/data/stays';
 import type { Database, StayStatus } from '@/lib/types';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { httpsOnlyUrlSchema } from './staySchema';
+import { parseAgodaHotelId } from './agodaHidParser';
 
 export async function bulkUpdateStayStatusAction(ids: string[], status: StayStatus): Promise<void> {
   if (ids.length === 0) return;
@@ -60,6 +61,30 @@ export async function updateStayTripcomUrlAction(id: string, rawUrl: string): Pr
   }
 
   await updateStayTripcomUrl(client, id, url);
+
+  revalidatePath('/admin/stays');
+  revalidatePath(`/admin/stays/${id}`);
+}
+
+/**
+ * 호텔 Agoda hid 업데이트.
+ * 입력은 전체 Agoda URL 또는 숫자 hid 또는 빈 문자열(→ null, 검색 fallback).
+ * 유효하지 않은 입력은 Error throw(폼이 메시지 표시).
+ */
+export async function updateStayAgodaHotelIdAction(id: string, rawInput: string): Promise<void> {
+  const supabase = await createServerSupabaseClient();
+  const client = supabase as unknown as SupabaseClient<Database>;
+
+  const trimmed = rawInput.trim();
+  let hid: string | null = null;
+  if (trimmed.length > 0) {
+    hid = parseAgodaHotelId(trimmed);
+    if (hid == null) {
+      throw new Error('유효한 Agoda 호텔 ID(숫자) 또는 Agoda 호텔 URL을 입력하세요.');
+    }
+  }
+
+  await updateStayAgodaHotelId(client, id, hid);
 
   revalidatePath('/admin/stays');
   revalidatePath(`/admin/stays/${id}`);
