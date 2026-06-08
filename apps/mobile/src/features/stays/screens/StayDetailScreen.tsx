@@ -62,6 +62,8 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
     enabled: !!stay,
   });
 
+  const [bookingStay, setBookingStay] = useState<Stay | null>(null);
+
   if (isLoading) {
     return (
       <ScreenShell showBack hideTitleHeader>
@@ -99,8 +101,6 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   const hasAddress = trimmedAddress.length > 0;
   const videos = content?.videos ?? [];
   const blogs = content?.blogs ?? [];
-
-  const [bookingStay, setBookingStay] = useState<Stay | null>(null);
 
   const handleDirections = () => {
     if (directionsDisabled) {
