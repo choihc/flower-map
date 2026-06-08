@@ -2,7 +2,10 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { Alert, Linking } from 'react-native';
 
 import {
+  buildAgodaHotelDeepLink,
+  buildAgodaHotelSearchUrl,
   buildTripcomHotelSearchUrl,
+  openAgodaHotel,
   openTripcomHotel,
   resolveBookingQuery,
 } from './affiliateHotel';
@@ -82,6 +85,69 @@ describe('openTripcomHotel', () => {
       queryOverride: null,
       tripcomBookingUrl: 'https://kr.trip.com/hotels/detail/?hotelId=123',
     });
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(alertSpy.mock.calls[0][0]).toContain('예약');
+  });
+});
+
+describe('buildAgodaHotelSearchUrl', () => {
+  it('partnersearch + hname + hl 파라미터를 포함한다', () => {
+    const url = buildAgodaHotelSearchUrl('호텔 나루');
+    expect(url.startsWith('https://www.agoda.com/partners/partnersearch.aspx')).toBe(true);
+    expect(url).toContain(`hname=${encodeURIComponent('호텔 나루')}`);
+    expect(url).toContain('hl=ko-kr');
+  });
+});
+
+describe('buildAgodaHotelDeepLink', () => {
+  it('hid 파라미터로 호텔 페이지 직링크를 만든다', () => {
+    const url = buildAgodaHotelDeepLink('24180119');
+    expect(url.startsWith('https://www.agoda.com/partners/partnersearch.aspx')).toBe(true);
+    expect(url).toContain('hid=24180119');
+    expect(url).toContain('hl=ko-kr');
+  });
+
+  it('EXPO_PUBLIC_AGODA_CID가 설정되면 cid 파라미터를 포함한다', () => {
+    const prev = process.env.EXPO_PUBLIC_AGODA_CID;
+    process.env.EXPO_PUBLIC_AGODA_CID = '1965770';
+    try {
+      expect(buildAgodaHotelDeepLink('24180119')).toContain('cid=1965770');
+    } finally {
+      if (prev === undefined) delete process.env.EXPO_PUBLIC_AGODA_CID;
+      else process.env.EXPO_PUBLIC_AGODA_CID = prev;
+    }
+  });
+});
+
+describe('openAgodaHotel', () => {
+  beforeEach(() => { vi.restoreAllMocks(); });
+
+  it('agodaHotelId가 있으면 hid 직링크를 연다', async () => {
+    const openSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as unknown as void);
+    await openAgodaHotel({ name: '호텔 나루', queryOverride: null, agodaHotelId: '24180119' });
+    const calledUrl = openSpy.mock.calls[0][0] as string;
+    expect(calledUrl).toContain('hid=24180119');
+    expect(calledUrl).not.toContain('hname=');
+  });
+
+  it('agodaHotelId가 null이면 호텔명 검색을 연다', async () => {
+    const openSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as unknown as void);
+    await openAgodaHotel({ name: '호텔 나루', queryOverride: null, agodaHotelId: null });
+    const calledUrl = openSpy.mock.calls[0][0] as string;
+    expect(calledUrl).toContain('hname=');
+    expect(calledUrl).not.toContain('hid=');
+  });
+
+  it('agodaHotelId가 공백이면 호텔명 검색을 연다', async () => {
+    const openSpy = vi.spyOn(Linking, 'openURL').mockResolvedValue(true as unknown as void);
+    await openAgodaHotel({ name: '호텔 나루', queryOverride: null, agodaHotelId: '   ' });
+    expect((openSpy.mock.calls[0][0] as string)).toContain('hname=');
+  });
+
+  it('Linking 실패 시 Alert.alert가 호출된다', async () => {
+    vi.spyOn(Linking, 'openURL').mockRejectedValue(new Error('cannot open'));
+    const alertSpy = vi.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await openAgodaHotel({ name: '호텔 나루', queryOverride: null, agodaHotelId: null });
     expect(alertSpy).toHaveBeenCalledTimes(1);
     expect(alertSpy.mock.calls[0][0]).toContain('예약');
   });
