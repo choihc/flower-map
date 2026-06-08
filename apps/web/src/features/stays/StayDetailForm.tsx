@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ImageUploader } from '@/features/spots/ImageUploader';
 import type { StayRow } from '@/lib/types';
 
-import { updateStayThumbnailAction, updateStayTripcomUrlAction } from './actions';
+import { updateStayAgodaHotelIdAction, updateStayThumbnailAction, updateStayTripcomUrlAction } from './actions';
 
 type Props = {
   stay: StayRow;
@@ -27,6 +27,26 @@ export function StayDetailForm({ stay }: Props) {
 
   const [tripcomPending, startTripcomTransition] = useTransition();
   const [tripcomMessage, setTripcomMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+
+  const [agodaPending, startAgodaTransition] = useTransition();
+  const [agodaMessage, setAgodaMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+
+  function handleAgodaSubmit(formData: FormData) {
+    const raw = String(formData.get('agoda_hotel_id_input') ?? '');
+    setAgodaMessage(null);
+    startAgodaTransition(async () => {
+      try {
+        await updateStayAgodaHotelIdAction(stay.id, raw);
+        setAgodaMessage({ kind: 'success', text: 'Agoda 호텔 ID를 저장했습니다.' });
+        router.refresh();
+      } catch (error) {
+        setAgodaMessage({
+          kind: 'error',
+          text: error instanceof Error ? error.message : 'Agoda 호텔 ID 저장 중 오류가 발생했습니다.',
+        });
+      }
+    });
+  }
 
   function handleTripcomSubmit(formData: FormData) {
     const raw = String(formData.get('tripcom_booking_url_input') ?? '');
@@ -188,6 +208,70 @@ export function StayDetailForm({ stay }: Props) {
                   role={tripcomMessage.kind === 'error' ? 'alert' : undefined}
                 >
                   {tripcomMessage.text}
+                </p>
+              ) : null}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden xl:col-span-full">
+        <CardHeader className="px-6 py-6">
+          <CardTitle>Agoda 호텔 ID</CardTitle>
+          <CardDescription>
+            Agoda 호텔 페이지 URL 전체를 붙여넣거나 숫자 hid를 입력하세요. 비우면 호텔명으로 Agoda 검색이 열립니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-6 pb-6">
+          <form action={handleAgodaSubmit} className="space-y-4">
+            <div className="rounded-2xl border border-border bg-background px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-foreground">현재 상태</span>
+                {stay.agoda_hotel_id ? (
+                  <Badge variant="default" className="rounded-full px-2.5 py-1">
+                    직링크 활성
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="rounded-full px-2.5 py-1">
+                    검색 fallback
+                  </Badge>
+                )}
+              </div>
+              {stay.agoda_hotel_id ? (
+                <p className="mt-2 break-all text-sm text-foreground">hid: {stay.agoda_hotel_id}</p>
+              ) : (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  hid가 없어 호텔명 검색으로 fallback됩니다.
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="agoda_hotel_id_input" className="text-sm font-medium text-foreground">
+                Agoda 호텔 ID / URL 입력
+              </label>
+              <input
+                id="agoda_hotel_id_input"
+                name="agoda_hotel_id_input"
+                type="text"
+                defaultValue={stay.agoda_hotel_id ?? ''}
+                placeholder="24180119 또는 https://www.agoda.com/partners/partnersearch.aspx?...&hid=..."
+                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={agodaPending}>
+                저장
+              </Button>
+              {agodaMessage ? (
+                <p
+                  className={
+                    agodaMessage.kind === 'success'
+                      ? 'text-sm text-foreground'
+                      : 'text-sm text-destructive'
+                  }
+                  role={agodaMessage.kind === 'error' ? 'alert' : undefined}
+                >
+                  {agodaMessage.text}
                 </p>
               ) : null}
             </div>
