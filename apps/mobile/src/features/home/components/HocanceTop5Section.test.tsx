@@ -66,6 +66,14 @@ async function flushQueries() {
 }
 
 describe('HocanceTop5Section', () => {
+  it('의존 쿼리가 pending이면 스켈레톤을 보여준다 (FR-4)', () => {
+    vi.mocked(getPublishedStays).mockReturnValue(new Promise(() => {}) as never);
+    vi.mocked(getTopSpots).mockReturnValue(new Promise(() => {}) as never);
+    const { getByTestId, queryByTestId } = render(wrap(<HocanceTop5Section />));
+    expect(getByTestId('hocance-skeleton')).toBeTruthy();
+    expect(queryByTestId('hocance-top5-section')).toBeNull();
+  });
+
   it('호캉스 0건이면 섹션 자체를 미렌더한다', async () => {
     vi.mocked(getPublishedStays).mockResolvedValue([]);
     vi.mocked(getTopSpots).mockResolvedValue([]);

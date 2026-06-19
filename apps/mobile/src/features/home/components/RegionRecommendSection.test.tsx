@@ -1,0 +1,88 @@
+import { act } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+
+import { RegionRecommendSection } from './RegionRecommendSection';
+
+vi.mock('../../../shared/data/spotRepository', () => ({
+  getPublishedSpots: vi.fn(),
+  spotKeys: { all: ['spots'], top: (n: number) => ['spots', 'top', n] },
+  deriveRegionSummaries: vi.fn(),
+}));
+const push = vi.fn();
+vi.mock('expo-router', () => ({
+  useRouter: () => ({ push }),
+}));
+
+import {
+  deriveRegionSummaries,
+  getPublishedSpots,
+} from '../../../shared/data/spotRepository';
+
+function wrap(node: ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={client}>{node}</QueryClientProvider>;
+}
+
+async function flushQueries() {
+  await act(async () => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+  });
+}
+
+describe('RegionRecommendSection', () => {
+  it('쿼리 pending이면 스켈레톤을 보여준다 (FR-4)', () => {
+    vi.mocked(getPublishedSpots).mockReturnValue(new Promise(() => {}) as never);
+    vi.mocked(deriveRegionSummaries).mockReturnValue([]);
+    const { getByTestId } = render(wrap(<RegionRecommendSection />));
+    expect(getByTestId('region-skeleton')).toBeTruthy();
+  });
+
+  it('지역 요약이 있으면 헤더와 타일을 렌더한다', async () => {
+    vi.mocked(getPublishedSpots).mockResolvedValue([]);
+    vi.mocked(deriveRegionSummaries).mockReturnValue(['서울', '제주']);
+    const { getByText, queryByTestId } = render(wrap(<RegionRecommendSection />));
+    await flushQueries();
+    expect(queryByTestId('region-skeleton')).toBeNull();
+    expect(getByText('지역별 추천')).toBeTruthy();
+    expect(getByText('서울')).toBeTruthy();
+    expect(getByText('제주')).toBeTruthy();
+  });
+
+  it('지역 요약이 0개면 섹션을 숨긴다 (FR-5)', async () => {
+    vi.mocked(getPublishedSpots).mockResolvedValue([]);
+    vi.mocked(deriveRegionSummaries).mockReturnValue([]);
+    const { queryByText } = render(wrap(<RegionRecommendSection />));
+    await flushQueries();
+    expect(queryByText('지역별 추천')).toBeNull();
+  });
+
+  it('타일을 누르면 검색 탭으로 지역 쿼리를 전달한다', async () => {
+    push.mockClear();
+    vi.mocked(getPublishedSpots).mockResolvedValue([]);
+    vi.mocked(deriveRegionSummaries).mockReturnValue(['서울']);
+    const { getByText } = render(wrap(<RegionRecommendSection />));
+    await flushQueries();
+    fireEvent.press(getByText('서울'));
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/(tabs)/search',
+      params: { query: '서울' },
+    });
+  });
+
+  it('쿼리 에러면 섹션을 숨기고 console.error로 관측 가능하다 (FR-6)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(getPublishedSpots).mockRejectedValue(new Error('boom'));
+    vi.mocked(deriveRegionSummaries).mockReturnValue([]);
+    const { queryByText } = render(wrap(<RegionRecommendSection />));
+    await flushQueries();
+    expect(queryByText('지역별 추천')).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[RegionRecommendSection]'),
+      expect.anything(),
+    );
+    errorSpy.mockRestore();
+  });
+});
