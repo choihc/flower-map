@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>모바일 홈 로딩 동작 스펙</title>
+<style>
+  :root{
+    --bg:#FBF7F4; --card:#fff; --ink:#2B2118; --muted:#7A6E63; --line:#ECE3DA;
+    --pink:#C45C7E; --pink-soft:#FDE8F0; --accent:#B57A2E; --accent-soft:#F8EFD9;
+    --green:#2F7D57; --green-soft:#E4F3EA; --red:#C0492F; --red-soft:#FBE7E1;
+    --blue:#3A6BA5; --blue-soft:#E5EEF8; --code:#3A2E23;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 80px}
+  header.doc{border-bottom:2px solid var(--line);padding-bottom:18px;margin-bottom:8px}
+  h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+  .meta{color:var(--muted);font-size:.86rem;display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px}
+  .meta b{color:var(--ink);font-weight:600}
+  h2{font-size:1.3rem;margin:38px 0 12px;padding-top:10px;letter-spacing:-.01em}
+  h3{font-size:1.04rem;margin:24px 0 8px;color:var(--pink)}
+  h2 .num{color:var(--pink);font-weight:800;margin-right:8px}
+  p{margin:10px 0}
+  a{color:var(--pink);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{background:#F0E9E2;border-radius:5px;padding:1px 6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;color:var(--code)}
+  pre{background:#2B2118;color:#F3ECE2;border-radius:12px;padding:16px 18px;overflow-x:auto;font-size:.82rem;line-height:1.55}
+  pre code{background:none;color:inherit;padding:0}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.9rem;background:var(--card);border-radius:10px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#F4ECE4;font-weight:700;font-size:.82rem;letter-spacing:.01em}
+  tr:last-child td{border-bottom:none}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .summary{background:linear-gradient(180deg,#FFF 0%,#FDF7F2 100%);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin:18px 0 8px}
+  .summary h2{margin-top:0}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.02em;vertical-align:middle}
+  .b-p1{background:var(--pink-soft);color:var(--pink)}
+  .b-p2{background:var(--blue-soft);color:var(--blue)}
+  .b-new{background:var(--green-soft);color:var(--green)}
+  .b-mod{background:var(--accent-soft);color:var(--accent)}
+  .b-del{background:var(--red-soft);color:var(--red)}
+  .b-keep{background:#EEE9E3;color:var(--muted)}
+  .fr{font-weight:700;color:var(--pink)}
+  .fr.p2{color:var(--blue)}
+  ul.toc{list-style:none;padding:0;margin:6px 0;columns:2;column-gap:28px}
+  ul.toc li{margin:4px 0;break-inside:avoid}
+  .pill{display:inline-flex;gap:8px;flex-wrap:wrap;margin:6px 0 0}
+  .pill span{background:#F0E9E2;border-radius:999px;padding:4px 12px;font-size:.8rem;color:var(--muted)}
+  .note{border-left:3px solid var(--pink);background:#FDF1F5;padding:10px 14px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.9rem}
+  .supersede{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.88rem}
+  @media(max-width:620px){ul.toc{columns:1}h1{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <h1>모바일 홈 로딩 동작 스펙</h1>
+  <div class="pill">
+    <span>대상: <b>apps/mobile</b> (Expo)</span>
+    <span class="badge b-p1">P1 점진적 렌더링</span>
+    <span class="badge b-p2">P2 캐시 영속화</span>
+  </div>
+  <div class="meta">
+    <span><b>작성일</b> 2026-06-19</span>
+    <span><b>최종 수정일</b> 2026-06-19</span>
+    <span><b>관련 플랜</b> docs/plans/mobile-home-loading.md (작성 예정)</span>
+  </div>
+  <div class="supersede">
+    <b>대체 관계</b> — 본 스펙은 <code>2026-06-05-home-loading-skeleton-spec.md</code> 의 "통합 대기 게이트" 모델(FR-1~FR-5, <code>useHomeReady</code>)을 <b>대체(supersede)</b>한다. <code>SkeletonBox</code> 공용 프리미티브 정의(구 스펙 5.1)는 변경 없이 계승한다.
+  </div>
+</header>
+
+<div class="summary">
+  <h2>핵심 요약</h2>
+  <p>현재 홈은 <b>4개 쿼리가 모두 끝날 때까지</b>(또는 5초 타임아웃) 화면 전체를 단일 스켈레톤으로 막는다(<code>useHomeReady</code> 게이트). 가장 느린 쿼리 하나에 빠른 섹션까지 묶인다. 또 영속 캐시가 없어 <b>앱을 켤 때마다</b> 네트워크 왕복 후에야 콘텐츠가 뜬다.</p>
+  <p>본 스펙은 두 가지로 해결한다.</p>
+  <ul>
+    <li><span class="badge b-p1">P1</span> <b>점진적 렌더링</b> — 전체 게이트 제거. 셸은 즉시, 각 섹션은 자기 데이터가 준비되는 즉시 독립 노출.</li>
+    <li><span class="badge b-p2">P2</span> <b>캐시 영속화</b> — React Query 캐시를 AsyncStorage에 영속(24h). 재방문 시 직전 데이터 즉시 표시 후 백그라운드 갱신.</li>
+  </ul>
+  <p class="note">데이터는 서버 cron으로 하루 1~2회만 갱신되므로 공격적 캐싱이 신선도를 해치지 않는다.</p>
+</div>
+
+<h2>목차</h2>
+<ul class="toc">
+  <li><a href="#s1">1. 개요</a></li>
+  <li><a href="#s2">2. 기능 요구사항 (FR)</a></li>
+  <li><a href="#s3">3. 비기능 요구사항 (NFR)</a></li>
+  <li><a href="#s4">4. 구조 / 데이터 흐름</a></li>
+  <li><a href="#s5">5. 구성 요소별 책임·계약</a></li>
+  <li><a href="#s6">6. 타입 정의</a></li>
+  <li><a href="#s7">7. 외부 의존성</a></li>
+  <li><a href="#s8">8. 명시적 가정</a></li>
+</ul>
+
+<h2 id="s1"><span class="num">1</span>개요</h2>
+<p>모바일 앱(<code>apps/mobile</code>, Expo) 홈 화면(<code>HomeScreen</code>)의 <b>데이터 로딩·렌더링 동작</b>과, 이를 뒷받침하는 <b>앱 전역 React Query 캐시 영속화</b>의 명세다. <code>apps/web</code>·<code>apps/toss-mini</code>·공유 패키지와 무관하다.</p>
+<table><thead><tr><th>결과물</th><th>정의</th></tr></thead><tbody>
+  <tr><td><span class="badge b-p1">P1</span> 점진적 렌더링</td><td>화면 셸은 즉시 표시, 각 섹션은 자기 데이터 준비 즉시 <b>독립</b> 노출. 화면 전체를 단일 게이트로 묶지 않음.</td></tr>
+  <tr><td><span class="badge b-p2">P2</span> 캐시 영속화</td><td>React Query 캐시를 디바이스 저장소에 영속. 콜드 스타트 시 직전 데이터 <b>즉시 표시</b> + 백그라운드 갱신(stale-while-revalidate).</td></tr>
+</tbody></table>
+
+<h2 id="s2"><span class="num">2</span>기능 요구사항 (FR)</h2>
+
+<h3>2.1 점진적 렌더링 <span class="badge b-p1">P1</span></h3>
+<table><thead><tr><th>ID</th><th>요구사항</th></tr></thead><tbody>
+  <tr><td><span class="fr">FR-1</span></td><td><b>화면 셸 즉시 표시</b> — 진입 시 <code>ScreenShell</code>(헤더·레이아웃·스크롤)은 데이터를 기다리지 않고 즉시 렌더.</td></tr>
+  <tr><td><span class="fr">FR-2</span></td><td><b>전체 대기 게이트 부재</b> — 통합 준비 판정(<code>useHomeReady</code>)·전체 화면 통합 스켈레톤(<code>HomeSkeleton</code>)은 <b>존재하지 않음</b>. 한 섹션의 <code>pending</code>이 다른 섹션을 막지 않음.</td></tr>
+  <tr><td><span class="fr">FR-3</span></td><td><b>섹션 독립 렌더링</b> — 각 섹션은 자기 쿼리 상태에 따라 독립 렌더(아래 매핑).</td></tr>
+  <tr><td><span class="fr">FR-4</span></td><td><b>섹션별 로딩 표시</b> — 의존 쿼리 <code>pending</code> 동안 자기 영역 크기의 <code>SkeletonBox</code> 스켈레톤 표시. 셸·헤더는 즉시 노출.</td></tr>
+  <tr><td><span class="fr">FR-5</span></td><td><b>빈 상태</b> — <code>success</code>+데이터 없음이면 섹션 숨김/안내. 다른 섹션에 영향 없음.</td></tr>
+  <tr><td><span class="fr">FR-6</span></td><td><b>에러 상태</b> — <code>error</code>면 해당 섹션만 빈/에러 처리(숨김 허용) + <code>console.error</code> 관측. 다른 섹션 정상.</td></tr>
+</tbody></table>
+
+<p><b>FR-3 섹션 ↔ 데이터 의존 매핑</b></p>
+<div class="scroll"><table><thead><tr><th>섹션</th><th>데이터 의존 (쿼리 키 / 함수)</th><th>비고</th></tr></thead><tbody>
+  <tr><td>큐레이션 <code>SeasonCurationSlot[]</code></td><td><code>homeCurationKeys.active</code> / <code>getActiveHomeCurationSlots</code></td><td>유효 슬롯 없으면 숨김</td></tr>
+  <tr><td>꽃 명소 TOP <code>TopSpotsSection</code></td><td><code>spotKeys.top(10)</code> / <code>getTopSpots(10)</code></td><td>자체 로딩/빈 상태 보유</td></tr>
+  <tr><td>호캉스 <code>HocanceTop5Section</code></td><td><code>stayKeys.all</code> / <code>getPublishedStays</code> + <code>spotKeys.top(10)</code></td><td>결과 0건이면 숨김</td></tr>
+  <tr><td>곧 끝나는 축제</td><td><code>spotKeys.all</code> / <code>getPublishedSpots</code></td><td>대상 없으면 숨김</td></tr>
+  <tr><td>광고 <code>NativeSpotAd</code></td><td>(데이터 쿼리 없음)</td><td>광고 SDK 자체 처리</td></tr>
+  <tr><td>지역별 추천</td><td><code>spotKeys.all</code> / <code>getPublishedSpots</code></td><td>—</td></tr>
+</tbody></table></div>
+
+<h3>2.2 쿼리 캐시 영속화 <span class="badge b-p2">P2</span></h3>
+<table><thead><tr><th>ID</th><th>요구사항</th></tr></thead><tbody>
+  <tr><td><span class="fr p2">FR-7</span></td><td><b>캐시 영속</b> — 전역 캐시를 AsyncStorage에 영속, 콜드 스타트 시 복원.</td></tr>
+  <tr><td><span class="fr p2">FR-8</span></td><td><b>즉시 표시 후 갱신</b> — 복원 캐시 있으면 즉시 표시(무스켈레톤) + 백그라운드 최신화(stale-while-revalidate).</td></tr>
+  <tr><td><span class="fr p2">FR-9</span></td><td><b>캐시 만료</b> — 보존 기한 <b>24h</b>(<code>maxAge</code>). 초과 시 복원 안 함.</td></tr>
+  <tr><td><span class="fr p2">FR-10</span></td><td><b>캐시 무효화</b> — 앱 버전/스키마 버전 변경 시 기존 캐시 폐기(<code>buster</code>).</td></tr>
+  <tr><td><span class="fr p2">FR-11</span></td><td><b>영속 대상</b> — <code>success</code> 쿼리만 영속. 에러/<code>pending</code> 제외.</td></tr>
+</tbody></table>
+
+<h2 id="s3"><span class="num">3</span>비기능 요구사항 (NFR)</h2>
+<table><thead><tr><th>ID</th><th>요구사항</th></tr></thead><tbody>
+  <tr><td><b>NFR-1</b></td><td>앱 격리 — 변경은 <code>apps/mobile/</code>에 국한. 타 앱·공유 패키지 동작 불변.</td></tr>
+  <tr><td><b>NFR-2</b></td><td>신선도 — 일 단위 갱신에 맞춘 <code>staleTime</code>/<code>maxAge</code>. 최대 24h 캐시 + 진입 시 갱신.</td></tr>
+  <tr><td><b>NFR-3</b></td><td>테스트 — 신규·변경 동작 모두 자동 테스트. <code>SkeletonBox</code> 애니메이션이 테스트 렌더를 깨지 않음.</td></tr>
+  <tr><td><b>NFR-4</b></td><td>성능 — 유효 캐시 재방문 시 네트워크 왕복 없이 첫 콘텐츠 표시.</td></tr>
+  <tr><td><b>NFR-5</b></td><td>의존성 최소 — 공식 TanStack persist 패키지 + 기존 AsyncStorage만. 그 외 신규 의존성 금지.</td></tr>
+  <tr><td><b>NFR-6</b></td><td>중복 요청 없음 — 동일 키 공유 섹션 간 중복 네트워크 요청 없음.</td></tr>
+</tbody></table>
+
+<h2 id="s4"><span class="num">4</span>구조 / 데이터 흐름</h2>
+<h3>4.1 합성 트리 (목표)</h3>
+<pre><code>RootLayout
+└─ PersistQueryClientProvider(client, persistOptions)   // FR-7~FR-11
+   └─ AuthProvider
+      └─ Stack ...
+         └─ HomeScreen
+            └─ ScreenShell                                // 즉시 렌더 (FR-1)
+               ├─ CurationSection      ─ useQuery(curation.active)
+               ├─ TopSpotsSection      ─ useQuery(spot.top(10))
+               ├─ HocanceTop5Section   ─ useQuery(stays.all, top(10))
+               ├─ EndingSoonSection    ─ useQuery(spot.all)
+               ├─ NativeSpotAd
+               └─ RegionRecommendSection ─ useQuery(spot.all)</code></pre>
+<p><code>HomeScreen</code>은 더 이상 준비 게이트로 분기하지 않는다. 각 섹션은 자기 데이터 의존과 로딩/빈/에러 계약을 갖는 자족적 단위다.</p>
+
+<h3>4.2 데이터 흐름</h3>
+<pre><code>앱 시작 ─▶ 저장소에서 캐시 복원(maxAge 24h, buster 일치 시)
+HomeScreen 마운트 ─▶ 각 섹션 useQuery 구독
+   캐시 적중(유효) ─▶ 즉시 데이터 렌더 + 백그라운드 갱신
+   캐시 미스/만료 ─▶ 섹션별 스켈레톤 ─ 응답 도착 시 해당 섹션만 콘텐츠로 교체</code></pre>
+
+<h3>4.3 디렉터리 (변경 대상)</h3>
+<div class="scroll"><table><thead><tr><th>파일</th><th>종류</th><th>비고</th></tr></thead><tbody>
+  <tr><td><code>src/shared/lib/queryClient.ts</code></td><td><span class="badge b-mod">수정</span></td><td><code>gcTime ≥ maxAge</code>(24h)로 상향, 영속 호환</td></tr>
+  <tr><td><code>src/shared/lib/queryPersister.ts</code></td><td><span class="badge b-new">신규</span></td><td>AsyncStorage persister + persistOptions(maxAge·buster)</td></tr>
+  <tr><td><code>app/_layout.tsx</code></td><td><span class="badge b-mod">수정</span></td><td><code>QueryClientProvider</code> → <code>PersistQueryClientProvider</code></td></tr>
+  <tr><td><code>features/home/screens/HomeScreen.tsx</code></td><td><span class="badge b-mod">수정</span></td><td>게이트 분기 제거, 섹션 합성</td></tr>
+  <tr><td><code>features/home/lib/useHomeReady.ts</code></td><td><span class="badge b-del">삭제</span></td><td>통합 게이트 폐기(FR-2)</td></tr>
+  <tr><td><code>features/home/components/HomeSkeleton.tsx</code></td><td><span class="badge b-del">삭제</span></td><td>전체 화면 통합 스켈레톤 폐기(FR-2)</td></tr>
+  <tr><td><code>features/home/components/CurationSection.tsx</code></td><td><span class="badge b-new">신규</span><span class="badge b-keep">또는 인라인</span></td><td>큐레이션 섹션 자족화</td></tr>
+  <tr><td><code>features/home/components/EndingSoonSection.tsx</code></td><td><span class="badge b-new">신규</span><span class="badge b-keep">또는 인라인</span></td><td>곧 끝나는 축제 자족화</td></tr>
+  <tr><td><code>features/home/components/RegionRecommendSection.tsx</code></td><td><span class="badge b-new">신규</span><span class="badge b-keep">또는 인라인</span></td><td>지역별 추천 자족화</td></tr>
+  <tr><td><code>features/home/components/HocanceTop5Section.tsx</code></td><td><span class="badge b-mod">수정</span></td><td><code>pending</code> 시 스켈레톤 추가</td></tr>
+  <tr><td><code>src/shared/ui/SkeletonBox.tsx</code></td><td><span class="badge b-keep">변경 없음</span></td><td>구 스펙 5.1 계승</td></tr>
+</tbody></table></div>
+<p class="note">인라인 유지 vs 컴포넌트 추출은 플랜의 최소 Diff 판단에 따른다. 본 스펙은 "각 섹션이 자족적 로딩/빈/에러 계약을 가진다"는 동작만 규정한다.</p>
+
+<h2 id="s5"><span class="num">5</span>구성 요소별 책임·계약</h2>
+<h3>5.1 <code>queryClient</code> (수정)</h3>
+<pre><code>export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 30,      // 30분(데이터 일 단위 갱신 — 상향)
+      gcTime: 1000 * 60 * 60 * 24,    // 24h — persist maxAge 이상이어야 복원 대상 유지
+      retry: 2,
+    },
+  },
+});</code></pre>
+<p>영속 복원이 동작하려면 각 쿼리의 <code>gcTime</code>이 <code>maxAge</code> 이상이어야 한다. 기존 기본 <code>gcTime</code>(5분)은 부적합하므로 상향한다.</p>
+
+<h3>5.2 <code>queryPersister</code> (신규)</h3>
+<pre><code>import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export const CACHE_BUSTER: string;                 // 앱 버전 또는 캐시 스키마 버전
+export const PERSIST_MAX_AGE = 1000 * 60 * 60 * 24; // 24h (FR-9)
+
+export const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+  key: 'flower-map-rq-cache',
+});
+
+export const persistOptions = {
+  persister: asyncStoragePersister,
+  maxAge: PERSIST_MAX_AGE,
+  buster: CACHE_BUSTER,
+  dehydrateOptions: {
+    shouldDehydrateQuery: (query) => query.state.status === 'success', // FR-11
+  },
+};</code></pre>
+
+<h3>5.3 <code>_layout.tsx</code> (수정)</h3>
+<pre><code>import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+
+&lt;PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}&gt;
+  &lt;AuthProvider&gt; ... &lt;/AuthProvider&gt;
+&lt;/PersistQueryClientProvider&gt;</code></pre>
+
+<h3>5.4 <code>HomeScreen</code> (수정)</h3>
+<ul>
+  <li><code>useHomeReady</code> 호출·<code>ready</code> 분기·<code>HomeSkeleton</code> 반환 제거.</li>
+  <li><code>ScreenShell</code> 내부에 각 섹션 직접 합성. 각 섹션이 자기 쿼리·로딩/빈/에러 처리.</li>
+  <li>기존 파생 로직(<code>deriveRegionSummaries</code>, <code>endingSoonSpot</code> 선정, 큐레이션 필터)은 섹션 단위로 귀속.</li>
+</ul>
+
+<h3>5.5 섹션 컴포넌트 공통 계약</h3>
+<table><thead><tr><th>상태</th><th>동작</th></tr></thead><tbody>
+  <tr><td><code>pending</code> (캐시 미스)</td><td>자기 영역 크기의 <code>SkeletonBox</code> 스켈레톤 (FR-4)</td></tr>
+  <tr><td><code>success</code> + 데이터 있음</td><td>콘텐츠 렌더</td></tr>
+  <tr><td><code>success</code> + 데이터 없음</td><td>섹션 숨김 또는 빈 안내 (FR-5)</td></tr>
+  <tr><td><code>error</code></td><td>섹션 숨김 허용 + <code>console.error</code> (FR-6)</td></tr>
+  <tr><td>캐시 적중(유효)</td><td>최초 렌더 즉시 콘텐츠(무스켈레톤) + 백그라운드 갱신 (FR-8)</td></tr>
+</tbody></table>
+
+<h2 id="s6"><span class="num">6</span>타입 정의</h2>
+<pre><code>type PersistOptions = {
+  persister: Persister;
+  maxAge: number;       // ms
+  buster: string;
+  dehydrateOptions?: { shouldDehydrateQuery: (query: Query) => boolean };
+};</code></pre>
+
+<h2 id="s7"><span class="num">7</span>외부 의존성</h2>
+<table><thead><tr><th>의존성</th><th>용도</th></tr></thead><tbody>
+  <tr><td><code>@tanstack/react-query</code> (설치본)</td><td>쿼리/캐시/상태</td></tr>
+  <tr><td><span class="badge b-new">신규</span> <code>@tanstack/react-query-persist-client</code></td><td>영속 Provider</td></tr>
+  <tr><td><span class="badge b-new">신규</span> <code>@tanstack/query-async-storage-persister</code></td><td>AsyncStorage persister</td></tr>
+  <tr><td><code>@react-native-async-storage/async-storage</code> (설치본)</td><td>영속 저장소</td></tr>
+  <tr><td><code>react-native-reanimated</code> (설치본)</td><td><code>SkeletonBox</code> 펄스</td></tr>
+  <tr><td>repository 함수·키</td><td><code>spotRepository</code>·<code>homeCurationRepository</code>·<code>stayRepository</code></td></tr>
+</tbody></table>
+
+<h2 id="s8"><span class="num">8</span>명시적 가정</h2>
+<ul>
+  <li>조회 함수·쿼리 키는 현행 그대로 존재하며, 섹션들이 동일 키로 캐시를 공유한다(NFR-6).</li>
+  <li>React Query v5의 <code>status</code> 의미(<code>pending</code>=최초 응답 전, 에러 시 <code>pending</code> 해제)를 따른다.</li>
+  <li><code>react-query-persist-client</code>는 복원을 비동기 수행하며, 복원 완료 전에는 섹션이 스켈레톤을 보일 수 있다(허용). 완료 시 즉시 데이터로 전환.</li>
+  <li>AsyncStorage는 테스트에서 mock 대체 가능하며, 영속 설정 검증은 설정 객체 계약(maxAge·buster·dehydrate 조건) 단위로 가능하다.</li>
+  <li><code>CACHE_BUSTER</code>는 앱 버전(<code>app.config.ts</code>의 <code>version</code>) 또는 별도 캐시 스키마 버전에서 파생(플랜에서 확정).</li>
+</ul>
+
+</div>
+</body>
+</html>
