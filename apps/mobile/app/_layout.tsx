@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Stack } from 'expo-router';
 
 import { AuthProvider } from '../src/shared/context/AuthContext';
 import { queryClient } from '../src/shared/lib/queryClient';
+import { persistOptions } from '../src/shared/lib/queryPersister';
 import { registerPushToken } from '../src/shared/lib/pushNotifications';
 
 export default function RootLayout() {
@@ -14,7 +15,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
       <AuthProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
@@ -28,6 +29,6 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
       </AuthProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

@@ -33,6 +33,11 @@ export default defineConfig({
         import.meta.url,
       ).pathname,
       'expo-router': new URL('./src/__mocks__/expo-router.ts', import.meta.url).pathname,
+      'expo-constants': new URL('./src/__mocks__/expo-constants.ts', import.meta.url).pathname,
+      '@react-native-async-storage/async-storage': new URL(
+        './src/__mocks__/async-storage.ts',
+        import.meta.url,
+      ).pathname,
     },
     environmentMatchGlobs: [
       ['src/shared/ui/**/*.test.tsx', 'jsdom'],
