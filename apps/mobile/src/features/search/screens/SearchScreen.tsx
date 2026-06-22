@@ -21,6 +21,7 @@ import {
   getPublishedSpots,
   spotKeys,
 } from '../../../shared/data/spotRepository';
+import { boostFirst } from '../../../shared/data/boost';
 import { colors } from '../../../shared/theme/colors';
 import { SearchResultCard } from '../../../shared/ui/SearchResultCard';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
@@ -90,15 +91,15 @@ export function SearchScreen() {
 
   const trimmedQuery = query.trim();
 
-  // 정렬 함수 선택
+  // 정렬 함수 선택 (FR-5-2: 부스트 우선 → 기존 기준)
   const sortSpots = (list: FlowerSpot[]): FlowerSpot[] => {
     if (sortMode === 'ending') {
-      return [...list].sort(
-        (a, b) => getCountdownValue(a.eventEndsIn) - getCountdownValue(b.eventEndsIn),
-      );
+      const byEnding = (a: FlowerSpot, b: FlowerSpot) =>
+        getCountdownValue(a.eventEndsIn) - getCountdownValue(b.eventEndsIn);
+      return [...list].sort(boostFirst(byEnding));
     }
     // 'recommended' (기본) — now_score 내림차순 (nulls last)
-    return [...list].sort(compareByRecommendation);
+    return [...list].sort(boostFirst(compareByRecommendation));
   };
 
   // 검색 결과 (검색어 있을 때)

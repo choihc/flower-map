@@ -5,6 +5,7 @@ import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import { deriveFlowerLabels, getPublishedSpots, spotKeys, toRegionSummary } from '../../../shared/data/spotRepository';
+import { boostFirst } from '../../../shared/data/boost';
 import { SkeletonBox } from '../../../shared/ui/SkeletonBox';
 import { colors } from '../../../shared/theme/colors';
 import { ScreenShell } from '../../../shared/ui/ScreenShell';
@@ -39,9 +40,13 @@ export function SpotListScreen() {
     .filter((spot) => (activeRegion ? toRegionSummary(spot.location) === activeRegion : true));
 
   if (sortByEnding) {
-    visibleSpots = [...visibleSpots].sort(
-      (a, b) => getCountdownValue(a.eventEndsIn) - getCountdownValue(b.eventEndsIn),
-    );
+    // FR-5-3: 종료 임박순에서도 부스트 그룹이 상위
+    const byEnding = (a: (typeof visibleSpots)[0], b: (typeof visibleSpots)[0]) =>
+      getCountdownValue(a.eventEndsIn) - getCountdownValue(b.eventEndsIn);
+    visibleSpots = [...visibleSpots].sort(boostFirst(byEnding));
+  } else {
+    // FR-5-3: 기본(display_order) 정렬에서도 부스트 그룹이 상위 (display_order는 조회 시 이미 정렬됨)
+    visibleSpots = [...visibleSpots].sort(boostFirst(() => 0));
   }
 
   const title = activeRegion ? `${activeRegion} 명소` : '명소 리스트';

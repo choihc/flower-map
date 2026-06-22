@@ -14,9 +14,11 @@ vi.mock('expo-router', () => ({
 vi.mock('../../../shared/data/spotRepository', () => ({
   getPublishedSpots: vi.fn(),
   getTopSpots: vi.fn(),
+  getTopSpotsWithBoost: vi.fn(),
   spotKeys: {
     all: ['spots'],
     top: (n: number) => ['spots', 'top', n],
+    topBoosted: (n: number) => ['spots', 'top-boosted', n],
   },
   deriveFlowerLabels: vi.fn().mockReturnValue([]),
   deriveRegionSummaries: vi.fn().mockReturnValue(['서울', '제주']),
@@ -30,7 +32,7 @@ vi.mock('../../../shared/data/homeCurationRepository', () => ({
   homeCurationKeys: { all: ['home-curation'], active: ['home-curation', 'active'] },
 }));
 
-import { getPublishedSpots, getTopSpots } from '../../../shared/data/spotRepository';
+import { getPublishedSpots, getTopSpots, getTopSpotsWithBoost } from '../../../shared/data/spotRepository';
 import { getPublishedStays } from '../../../shared/data/stayRepository';
 import { getActiveHomeCurationSlots } from '../../../shared/data/homeCurationRepository';
 
@@ -38,6 +40,7 @@ import { getActiveHomeCurationSlots } from '../../../shared/data/homeCurationRep
 function mockAllPending() {
   vi.mocked(getPublishedSpots).mockReturnValue(new Promise(() => {}) as never);
   vi.mocked(getTopSpots).mockReturnValue(new Promise(() => {}) as never);
+  vi.mocked(getTopSpotsWithBoost).mockReturnValue(new Promise(() => {}) as never);
   vi.mocked(getPublishedStays).mockReturnValue(new Promise(() => {}) as never);
   vi.mocked(getActiveHomeCurationSlots).mockReturnValue(new Promise(() => {}) as never);
 }
@@ -46,6 +49,7 @@ function mockAllPending() {
 function mockAllEmpty() {
   vi.mocked(getPublishedSpots).mockResolvedValue([]);
   vi.mocked(getTopSpots).mockResolvedValue([]);
+  vi.mocked(getTopSpotsWithBoost).mockResolvedValue([]);
   vi.mocked(getPublishedStays).mockResolvedValue([]);
   vi.mocked(getActiveHomeCurationSlots).mockResolvedValue([]);
 }
@@ -78,6 +82,7 @@ describe('HomeScreen', () => {
     // spots 의존(곧 끝나는 축제·지역 추천)·호캉스는 보류, 큐레이션만 success
     vi.mocked(getPublishedSpots).mockReturnValue(new Promise(() => {}) as never);
     vi.mocked(getTopSpots).mockReturnValue(new Promise(() => {}) as never);
+    vi.mocked(getTopSpotsWithBoost).mockReturnValue(new Promise(() => {}) as never);
     vi.mocked(getPublishedStays).mockReturnValue(new Promise(() => {}) as never);
     vi.mocked(getActiveHomeCurationSlots).mockResolvedValue([
       {

@@ -10,6 +10,8 @@ export type FlowerRow = {
   is_active: boolean;
   thumbnail_url: string | null;
   aliases: string[];
+  boost_start_at: string | null; // 'YYYY-MM-DD'
+  boost_end_at: string | null;   // 'YYYY-MM-DD'
   created_at: string;
   updated_at: string;
 };
@@ -70,6 +72,8 @@ export type FlowerInsert = {
   is_active?: boolean;
   thumbnail_url?: string | null;
   aliases?: string[];
+  boost_start_at?: string | null; // 'YYYY-MM-DD'
+  boost_end_at?: string | null;   // 'YYYY-MM-DD'
   id?: string;
   created_at?: string;
   updated_at?: string;

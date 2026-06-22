@@ -1,3 +1,4 @@
+import { isActiveBoost } from './boost';
 import type { FlowerSpot, FlowerSpotTone, PublishedSpotRow } from './types';
 
 function formatDateRange(start: string | null, end: string | null) {
@@ -118,6 +119,7 @@ export function toFlowerSpot(row: PublishedSpotRow, now = new Date()): FlowerSpo
     flower: row.flower.name_ko,
     flowerIsActive: row.flower.is_active,
     helper: row.short_tip,
+    isBoosted: isActiveBoost(row.flower, now),
     latitude: row.latitude,
     longitude: row.longitude,
     location: row.region_secondary,

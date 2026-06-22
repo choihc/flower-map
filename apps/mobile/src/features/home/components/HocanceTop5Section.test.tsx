@@ -48,7 +48,7 @@ function makeSpot(id: string, latitude = 0, longitude = 0, place = `Spot ${id}`)
     id, slug: `sp-${id}`, badge: '', bloomEndAt: '', bloomStartAt: '',
     bloomStatus: '', description: '', fee: '', festivalDate: '',
     flower: '벚꽃', flowerIsActive: true, flowerThumbnailUrl: null,
-    helper: '', latitude, longitude, location: '', parking: '',
+    helper: '', isBoosted: false, latitude, longitude, location: '', parking: '',
     place, thumbnailUrl: null, tone: 'pink',
   };
 }

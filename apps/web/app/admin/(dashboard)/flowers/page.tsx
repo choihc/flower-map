@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DataListPanel } from '@/components/ui/data-list-panel';
 import { DashboardShell } from '@/features/dashboard/DashboardShell';
 import { FlowerForm } from '@/features/flowers/FlowerForm';
+import { boostStatus } from '@/features/flowers/boostStatus';
 import { createFlower, listFlowers } from '@/lib/data/flowers';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Database, FlowerInsert, FlowerRow } from '@/lib/types';
@@ -42,7 +43,9 @@ export default async function FlowersPage() {
             </p>
           }
         >
-          {flowers.map((flower) => (
+          {flowers.map((flower) => {
+            const boost = boostStatus(flower);
+            return (
             <article
               key={flower.id}
               className="rounded-2xl border border-border bg-background px-4 py-3 shadow-sm"
@@ -59,9 +62,24 @@ export default async function FlowersPage() {
                   </div>
                   <p className="text-xs text-muted-foreground">{flower.slug}</p>
                 </div>
-                <Badge variant={flower.is_active ? 'default' : 'outline'}>
-                  {flower.is_active ? '활성' : '비활성'}
-                </Badge>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <Badge variant={flower.is_active ? 'default' : 'outline'}>
+                    {flower.is_active ? '활성' : '비활성'}
+                  </Badge>
+                  {boost.kind !== 'none' && (
+                    <Badge
+                      variant={
+                        boost.kind === 'active'
+                          ? 'default'
+                          : boost.kind === 'scheduled'
+                            ? 'secondary'
+                            : 'outline'
+                      }
+                    >
+                      {boost.label}
+                    </Badge>
+                  )}
+                </div>
               </div>
               <dl className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
                 <div className="space-y-1">
@@ -84,7 +102,8 @@ export default async function FlowersPage() {
                 </Link>
               </div>
             </article>
-          ))}
+          );
+          })}
         </DataListPanel>
 
         <Card className="overflow-hidden">

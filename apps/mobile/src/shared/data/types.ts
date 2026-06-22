@@ -15,6 +15,7 @@ export type FlowerSpot = {
   flowerIsActive: boolean;
   flowerThumbnailUrl: string | null;
   helper: string;
+  isBoosted: boolean;
   latitude: number;
   longitude: number;
   location: string;
@@ -48,6 +49,8 @@ export type PublishedSpotFlower = {
   name_ko: string;
   thumbnail_url: string | null;
   is_active: boolean;
+  boost_start_at: string | null;
+  boost_end_at: string | null;
 };
 
 export type PublishedSpotRow = {

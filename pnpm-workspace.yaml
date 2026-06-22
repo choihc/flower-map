@@ -1,5 +1,3 @@
 packages:
   - 'apps/*'
   - 'packages/*'
-patchedDependencies:
-  '@sentry/browser@10.47.0': patches/@sentry__browser@10.47.0.patch

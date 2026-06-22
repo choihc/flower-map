@@ -6,7 +6,7 @@ const baseRow = {
   id: 'spot-1',
   slug: 'yeouido-yunjung-ro',
   name: '여의도 윤중로',
-  flower: { name_ko: '벚꽃', thumbnail_url: null },
+  flower: { name_ko: '벚꽃', thumbnail_url: null, is_active: true, boost_start_at: null, boost_end_at: null },
   region_secondary: '서울 영등포구',
   description: '한강 바람을 따라 걷기 좋은 서울 대표 벚꽃 산책 코스',
   short_tip: '산책 동선이 좋고 축제 분위기가 살아 있는 대표 스팟',
@@ -46,12 +46,12 @@ describe('toFlowerSpot', () => {
   });
 
   it('maps flower.thumbnail_url to flowerThumbnailUrl', () => {
-    const withNull = toFlowerSpot({ ...baseRow, flower: { name_ko: '벚꽃', thumbnail_url: null } });
+    const withNull = toFlowerSpot({ ...baseRow, flower: { name_ko: '벚꽃', thumbnail_url: null, is_active: true, boost_start_at: null, boost_end_at: null } });
     expect(withNull.flowerThumbnailUrl).toBeNull();
 
     const withUrl = toFlowerSpot({
       ...baseRow,
-      flower: { name_ko: '벚꽃', thumbnail_url: 'https://blob.example.com/flower-cherry.jpg' },
+      flower: { name_ko: '벚꽃', thumbnail_url: 'https://blob.example.com/flower-cherry.jpg', is_active: true, boost_start_at: null, boost_end_at: null },
     });
     expect(withUrl.flowerThumbnailUrl).toBe('https://blob.example.com/flower-cherry.jpg');
   });
@@ -114,6 +114,48 @@ describe('toFlowerSpot', () => {
     expect(missingScores.nowScoreAt).toBeUndefined();
   });
 
+  it('부스트 활성 꽃의 명소는 isBoosted=true로 매핑된다', () => {
+    // KST 2026-04-05 기준, 활성 부스트 (2026-04-01 ~ 2026-04-10)
+    const now = new Date('2026-04-05T00:00:00+09:00');
+    const activeBoosted = toFlowerSpot(
+      {
+        ...baseRow,
+        flower: {
+          name_ko: '벚꽃',
+          thumbnail_url: null,
+          is_active: true,
+          boost_start_at: '2026-04-01',
+          boost_end_at: '2026-04-10',
+        },
+      } as never,
+      now,
+    );
+    expect(activeBoosted.isBoosted).toBe(true);
+  });
+
+  it('부스트 미설정 꽃(null)의 명소는 isBoosted=false로 매핑된다', () => {
+    const result = toFlowerSpot(baseRow as never);
+    expect(result.isBoosted).toBe(false);
+  });
+
+  it('부스트 만료 꽃의 명소는 isBoosted=false로 매핑된다', () => {
+    const now = new Date('2026-04-15T00:00:00+09:00');
+    const expired = toFlowerSpot(
+      {
+        ...baseRow,
+        flower: {
+          name_ko: '벚꽃',
+          thumbnail_url: null,
+          is_active: true,
+          boost_start_at: '2026-04-01',
+          boost_end_at: '2026-04-10',
+        },
+      } as never,
+      now,
+    );
+    expect(expired.isBoosted).toBe(false);
+  });
+
   it('derives fallback presentation labels from raw row data', () => {
     const result = toFlowerSpot(
       {
@@ -121,7 +163,7 @@ describe('toFlowerSpot', () => {
         id: 'spot-2',
         slug: 'jeju-noksan-ro',
         name: '제주 녹산로',
-        flower: { name_ko: '유채꽃', thumbnail_url: null },
+        flower: { name_ko: '유채꽃', thumbnail_url: null, is_active: true, boost_start_at: null, boost_end_at: null },
         region_secondary: '제주 서귀포시',
         description: '도로를 따라 길게 펼쳐지는 유채꽃 풍경이 인상적인 드라이브 코스',
         short_tip: '넓게 펼쳐진 노란 들판과 드라이브 감성이 좋은 코스',

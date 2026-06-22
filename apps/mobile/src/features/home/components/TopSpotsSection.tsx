@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
-import { getTopSpots, spotKeys } from '../../../shared/data/spotRepository';
+import { getTopSpotsWithBoost, spotKeys } from '../../../shared/data/spotRepository';
 import type { FlowerSpot } from '../../../shared/data/types';
 import { colors } from '../../../shared/theme/colors';
 import { NowScoreBadges } from '../../../shared/ui/NowScoreBadges';
@@ -13,8 +13,8 @@ const TOP_COUNT = 10;
 export function TopSpotsSection() {
   const router = useRouter();
   const { data, isLoading, error } = useQuery({
-    queryKey: spotKeys.top(TOP_COUNT),
-    queryFn: () => getTopSpots(TOP_COUNT),
+    queryKey: spotKeys.topBoosted(TOP_COUNT),
+    queryFn: () => getTopSpotsWithBoost(TOP_COUNT),
     staleTime: 1000 * 60 * 30,
   });
 
