@@ -32,6 +32,7 @@ function makeSpot(over: Partial<FlowerSpot> & { id: string }): FlowerSpot {
     flowerIsActive: true,
     flowerThumbnailUrl: null,
     helper: '도움말',
+    isBoosted: false,
     latitude: 0,
     longitude: 0,
     location: '서울',

@@ -8,8 +8,11 @@ vi.mock('expo-router', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 vi.mock('../../../shared/data/spotRepository', () => ({
-  spotKeys: { top: (n: number) => ['spots', 'top', n] },
-  getTopSpots: vi.fn(),
+  spotKeys: {
+    top: (n: number) => ['spots', 'top', n],
+    topBoosted: (n: number) => ['spots', 'top-boosted', n],
+  },
+  getTopSpotsWithBoost: vi.fn(),
 }));
 
 import { useQuery } from '@tanstack/react-query';
@@ -38,6 +41,7 @@ const mockSpots: FlowerSpot[] = [
     longitude: 126.9,
     parking: '',
     flowerIsActive: true,
+    isBoosted: false,
     nowScore: 90,
     bloomScore: 85,
     trendScore: 72,
@@ -63,6 +67,7 @@ const mockSpots: FlowerSpot[] = [
     longitude: 126.5,
     parking: '',
     flowerIsActive: true,
+    isBoosted: false,
     nowScore: 80,
     bloomScore: 60,
   },

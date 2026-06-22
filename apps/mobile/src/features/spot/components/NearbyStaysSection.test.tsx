@@ -44,7 +44,7 @@ function makeSpot(): FlowerSpot {
     id: 'spot-1', slug: 'spot-1', badge: '', bloomEndAt: '', bloomStartAt: '',
     bloomStatus: '', description: '', fee: '', festivalDate: '',
     flower: '벚꽃', flowerIsActive: true, flowerThumbnailUrl: null,
-    helper: '', latitude: 0, longitude: 0, location: '', parking: '',
+    helper: '', isBoosted: false, latitude: 0, longitude: 0, location: '', parking: '',
     place: '학동흑진주몽돌해변', thumbnailUrl: null, tone: 'pink',
   };
 }
