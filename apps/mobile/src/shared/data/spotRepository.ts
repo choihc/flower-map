@@ -68,7 +68,7 @@ export async function getTopSpots(n: number): Promise<FlowerSpot[]> {
  * 않아 비부스트 명소가 혼입되고 flower:null 행이 들어올 수 있으므로, 그 불확실성을
  * 제거하기 위해 2-step을 사용한다(NFR-3: 보조 쿼리 1회 허용).
  */
-export async function getActiveBoostedSpots(now = new Date()): Promise<FlowerSpot[]> {
+export async function getActiveBoostedSpots(now = new Date(), limit?: number): Promise<FlowerSpot[]> {
   const today = kstToday(now);
 
   // ① 활성 부스트 꽃 id 조회 (§3.2: 두 날짜 모두 not null AND start<=today<=end)
@@ -86,12 +86,19 @@ export async function getActiveBoostedSpots(now = new Date()): Promise<FlowerSpo
   if (flowerIds.length === 0) return [];
 
   // ② 해당 꽃의 published 명소 (now_score desc)
-  const { data, error } = await supabase
+  //    홈 TOP은 어차피 상위 n개만 노출하므로 limit가 주어지면 페이로드를 줄인다.
+  let query = supabase
     .from('spots')
     .select(SPOT_SELECT)
     .eq('status', 'published')
     .in('flower_id', flowerIds)
     .order('now_score', { ascending: false, nullsFirst: false });
+
+  if (limit != null) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 
@@ -107,7 +114,7 @@ export async function getActiveBoostedSpots(now = new Date()): Promise<FlowerSpo
  * ⚠️ getTopSpots(n) 동작 불변 — HocanceTop5Section은 getTopSpots를 그대로 사용
  */
 export async function getTopSpotsWithBoost(n: number, now = new Date()): Promise<FlowerSpot[]> {
-  const [top, boosted] = await Promise.all([getTopSpots(n), getActiveBoostedSpots(now)]);
+  const [top, boosted] = await Promise.all([getTopSpots(n), getActiveBoostedSpots(now, n)]);
 
   // 부스트 명소를 앞에 두고 top 결과를 뒤에 이어서 중복 제거
   const seen = new Set<string>();
