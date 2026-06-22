@@ -66,6 +66,14 @@ async function flushQueries() {
 }
 
 describe('HocanceTop5Section', () => {
+  it('의존 쿼리가 pending이면 스켈레톤을 보여준다 (FR-4)', () => {
+    vi.mocked(getPublishedStays).mockReturnValue(new Promise(() => {}) as never);
+    vi.mocked(getTopSpots).mockReturnValue(new Promise(() => {}) as never);
+    const { getByTestId, queryByTestId } = render(wrap(<HocanceTop5Section />));
+    expect(getByTestId('hocance-skeleton')).toBeTruthy();
+    expect(queryByTestId('hocance-top5-section')).toBeNull();
+  });
+
   it('호캉스 0건이면 섹션 자체를 미렌더한다', async () => {
     vi.mocked(getPublishedStays).mockResolvedValue([]);
     vi.mocked(getTopSpots).mockResolvedValue([]);
@@ -106,5 +114,37 @@ describe('HocanceTop5Section', () => {
     await flushQueries();
     expect(getByTestId('hocance-top5-section')).toBeTruthy();
     expect(queryByTestId('stay-card-boost-badge')).toBeNull();
+  });
+
+  it('쿼리 에러로 데이터가 없으면 섹션을 숨기고 console.error로 관측 가능하다 (FR-6)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(getPublishedStays).mockRejectedValue(new Error('boom'));
+    vi.mocked(getTopSpots).mockRejectedValue(new Error('boom'));
+    const { queryByTestId } = render(wrap(<HocanceTop5Section />));
+    await flushQueries();
+    expect(queryByTestId('hocance-top5-section')).toBeNull();
+    expect(queryByTestId('hocance-skeleton')).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[HocanceTop5Section]'),
+      expect.anything(),
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('백그라운드 리패치가 실패해도 캐시 데이터가 있으면 계속 렌더한다 (FR-8 SWR)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['stays'], [makeStay({ id: '1', latitude: 0.05, longitude: 0 })]);
+    client.setQueryData(['spots', 'top', 10], [makeSpot('s1', 0, 0, '장미공원')]);
+    vi.mocked(getPublishedStays).mockRejectedValue(new Error('refetch fail'));
+    vi.mocked(getTopSpots).mockRejectedValue(new Error('refetch fail'));
+    await client.refetchQueries();
+    const { getByTestId } = render(
+      <QueryClientProvider client={client}>
+        <HocanceTop5Section />
+      </QueryClientProvider>,
+    );
+    expect(getByTestId('hocance-top5-section')).toBeTruthy();
+    errorSpy.mockRestore();
   });
 });

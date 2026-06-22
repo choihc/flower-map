@@ -35,6 +35,7 @@ function createComponent(name: string) {
 const View = createComponent('View');
 const Text = createComponent('Text');
 const Image = createComponent('Image');
+const ImageBackground = createComponent('ImageBackground');
 const TextInput = createComponent('TextInput');
 const ScrollView = createComponent('ScrollView');
 const TouchableOpacity = createComponent('TouchableOpacity');
@@ -153,6 +154,7 @@ export {
   Dimensions,
   FlatList,
   Image,
+  ImageBackground,
   Keyboard,
   Linking,
   Modal,

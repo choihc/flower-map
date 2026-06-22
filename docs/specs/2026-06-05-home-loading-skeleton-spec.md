@@ -1,5 +1,7 @@
 # 홈 로딩 스켈레톤 스펙
 
+> ⚠️ **대체됨(Superseded)** — 본 스펙의 "통합 대기 게이트" 모델(FR-1~FR-5, `useHomeReady`, 전체 화면 `HomeSkeleton`)은 `docs/specs/mobile-home-loading-spec.md`(모바일 홈 로딩 동작 스펙)의 **점진적 렌더링 + 캐시 영속화** 모델로 대체되었다(2026-06-19). `SkeletonBox` 공용 프리미티브 정의(5.1)만 유효하게 계승된다. 신규 작업은 대체 스펙을 기준으로 한다.
+
 - 대상 앱: `apps/mobile` (Expo). `apps/web`·`apps/toss-mini`·공유 패키지와 무관.
 - 관련 플랜: (작성 예정) `docs/plans/2026-06-05-home-loading-skeleton.md`
 
