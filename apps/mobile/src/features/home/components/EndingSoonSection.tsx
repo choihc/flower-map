@@ -27,8 +27,13 @@ export function EndingSoonSection() {
     [spots],
   );
 
-  // 응답 전이면 자기 영역 스켈레톤. (FR-4)
-  if (isPending) {
+  // 에러는 console.error로 관측. (FR-6) — 표시할 캐시 데이터가 있으면 가리지 않는다(아래).
+  if (error) {
+    console.error('[EndingSoonSection] spots query error:', error);
+  }
+
+  // 데이터가 아직 없고 응답 전이면 자기 영역 스켈레톤. (FR-4)
+  if (!endingSoonSpot && isPending) {
     return (
       <View testID="ending-soon-skeleton">
         <SectionHeading meta="종료된 일정은 제외해 보여드려요" title="곧 끝나는 축제" />
@@ -37,13 +42,8 @@ export function EndingSoonSection() {
     );
   }
 
-  // 에러는 섹션 숨김 + console.error로 관측. (FR-6)
-  if (error) {
-    console.error('[EndingSoonSection] spots query error:', error);
-    return null;
-  }
-
-  // 표시할 명소가 없으면 섹션을 숨긴다. (FR-5)
+  // 표시할 명소가 없으면 섹션을 숨긴다(빈 결과 FR-5 / 데이터 없는 에러 FR-6).
+  // 명소가 있으면 백그라운드 리패치 실패(error)와 무관하게 계속 노출(SWR, FR-8).
   if (!endingSoonSpot) return null;
 
   return (

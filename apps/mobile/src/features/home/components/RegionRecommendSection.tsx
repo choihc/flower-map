@@ -21,8 +21,14 @@ export function RegionRecommendSection() {
 
   const regionSummaries = useMemo(() => deriveRegionSummaries(spots), [spots]);
 
-  // 응답 전이면 헤더 + 자기 영역 스켈레톤. (FR-4)
-  if (isPending) {
+  // 에러는 console.error로 관측. (FR-6) — 표시할 캐시 데이터가 있으면 가리지 않는다(아래).
+  if (error) {
+    console.error('[RegionRecommendSection] spots query error:', error);
+  }
+
+  // 표시할 지역 요약이 있으면 렌더한다. 백그라운드 리패치 실패(error)와 무관하게
+  // 복원/캐시된 데이터는 계속 노출한다(stale-while-revalidate, FR-8).
+  if (regionSummaries.length === 0 && isPending) {
     return (
       <View testID="region-skeleton">
         <SectionHeading meta="주말 나들이 큐레이션" title="지역별 추천" />
@@ -34,24 +40,18 @@ export function RegionRecommendSection() {
     );
   }
 
-  // 에러는 섹션 숨김 + console.error로 관측. (FR-6)
-  if (error) {
-    console.error('[RegionRecommendSection] spots query error:', error);
-    return null;
-  }
-
-  // 표시할 지역 요약이 없으면 섹션을 숨긴다. (FR-5)
+  // 빈 결과(FR-5) 또는 데이터 없는 에러(FR-6) → 섹션 숨김.
   if (regionSummaries.length === 0) return null;
 
   return (
     <>
       <SectionHeading meta="주말 나들이 큐레이션" title="지역별 추천" />
       <View style={styles.regionGrid}>
-        {regionSummaries.map((item, index) => (
+        {regionSummaries.map((item) => (
           <Pressable
             key={item}
             onPress={() => router.push({ pathname: '/(tabs)/search', params: { query: item } })}
-            style={[styles.regionTile, index % 2 === 0 ? styles.regionTileTall : null]}
+            style={styles.regionTile}
           >
             <Text style={styles.regionTitle}>{item}</Text>
             <Text style={styles.regionHelper}>지금 인기 명소 보기</Text>
@@ -83,7 +83,6 @@ const styles = StyleSheet.create({
     padding: 16,
     width: '48%',
   },
-  regionTileTall: {},
   regionTitle: {
     color: colors.text,
     fontSize: 18,

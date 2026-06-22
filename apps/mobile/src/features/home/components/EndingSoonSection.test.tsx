@@ -105,4 +105,19 @@ describe('EndingSoonSection', () => {
     );
     errorSpy.mockRestore();
   });
+
+  it('백그라운드 리패치가 실패해도 캐시 데이터가 있으면 계속 렌더한다 (FR-8 SWR)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['spots'], [makeSpot({ id: 'b', place: '곧 끝나는 곳', eventEndsIn: 'D-2' })]);
+    vi.mocked(getPublishedSpots).mockRejectedValue(new Error('refetch fail'));
+    await client.refetchQueries({ queryKey: ['spots'] });
+    const { getByText } = render(
+      <QueryClientProvider client={client}>
+        <EndingSoonSection />
+      </QueryClientProvider>,
+    );
+    expect(getByText('곧 끝나는 곳')).toBeTruthy();
+    errorSpy.mockRestore();
+  });
 });

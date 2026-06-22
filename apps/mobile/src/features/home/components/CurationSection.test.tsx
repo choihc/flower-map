@@ -84,4 +84,21 @@ describe('CurationSection', () => {
     );
     errorSpy.mockRestore();
   });
+
+  it('백그라운드 리패치가 실패해도 캐시 데이터가 있으면 계속 렌더한다 (FR-8 SWR)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['homeCuration', 'active'], [validSlot]); // 복원된 캐시 모사
+    vi.mocked(getActiveHomeCurationSlots).mockRejectedValue(new Error('refetch fail'));
+    // 리패치를 먼저 실패시켜 status='error' + data 유지 상태를 결정적으로 만든다.
+    await client.refetchQueries({ queryKey: ['homeCuration', 'active'] });
+    const { getByText, getByTestId } = render(
+      <QueryClientProvider client={client}>
+        <CurationSection />
+      </QueryClientProvider>,
+    );
+    expect(getByTestId('curation-section')).toBeTruthy();
+    expect(getByText('이번 주말, 호캉스 어디 갈까?')).toBeTruthy();
+    errorSpy.mockRestore();
+  });
 });
