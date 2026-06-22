@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>꽃 집중 노출(Boost) 기능 명세</title>
+<style>
+  :root {
+    --bg: #faf8f9;
+    --fg: #2b2530;
+    --muted: #6b6470;
+    --line: #e7e1e6;
+    --card: #ffffff;
+    --accent: #c0588f;
+    --accent-soft: #fbe9f3;
+    --code-bg: #2b2530;
+    --code-fg: #f4eef2;
+    --ok: #2f7d4f;
+    --ok-bg: #e6f4ec;
+    --warn: #b06a00;
+    --warn-bg: #fbf0db;
+    --info: #2563a8;
+    --info-bg: #e4eefa;
+    --crit: #b3261e;
+    --crit-bg: #fbe5e3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", Roboto, sans-serif;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px 96px; }
+  header.hero {
+    background: linear-gradient(135deg, #c0588f 0%, #8e4fa8 100%);
+    color: #fff;
+    padding: 48px 24px 40px;
+    margin-bottom: 32px;
+  }
+  header.hero .inner { max-width: 920px; margin: 0 auto; }
+  header.hero h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.5px; }
+  header.hero .sub { font-size: 15px; opacity: 0.92; }
+  header.hero .meta { margin-top: 18px; font-size: 13px; opacity: 0.85; display: flex; gap: 20px; flex-wrap: wrap; }
+  header.hero .meta span { display: inline-flex; gap: 6px; }
+  h2 {
+    margin: 44px 0 16px;
+    font-size: 22px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent-soft);
+    scroll-margin-top: 20px;
+  }
+  h3 { margin: 28px 0 10px; font-size: 17px; color: var(--fg); }
+  p { margin: 10px 0; }
+  a { color: var(--accent); }
+  code {
+    background: var(--accent-soft);
+    color: #9a3a6e;
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 13.5px;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14.5px;
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 0 var(--line);
+  }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--accent-soft); color: #8a345f; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .summary {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+  .summary h2 { margin-top: 0; border: none; padding: 0; font-size: 18px; }
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 24px;
+    margin-bottom: 28px;
+    columns: 2;
+    column-gap: 32px;
+  }
+  .toc h2 { margin: 0 0 10px; border: none; padding: 0; font-size: 16px; column-span: all; }
+  .toc ol { margin: 0; padding-left: 20px; }
+  .toc li { margin: 4px 0; font-size: 14px; break-inside: avoid; }
+  .toc a { text-decoration: none; color: var(--fg); }
+  .toc a:hover { color: var(--accent); }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    margin-right: 6px;
+    letter-spacing: 0.2px;
+  }
+  .b-ok { background: var(--ok-bg); color: var(--ok); }
+  .b-warn { background: var(--warn-bg); color: var(--warn); }
+  .b-info { background: var(--info-bg); color: var(--info); }
+  .b-crit { background: var(--crit-bg); color: var(--crit); }
+  .b-fr { background: #efe7fb; color: #6b3fa0; }
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14.5px;
+    border: 1px solid;
+  }
+  .callout.info { background: var(--info-bg); border-color: #c3dbf5; }
+  .callout.warn { background: var(--warn-bg); border-color: #f0d8a8; }
+  .fr-block {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 4px 20px 16px;
+    margin: 16px 0;
+  }
+  .fr-block h3 { display: flex; align-items: center; gap: 8px; }
+  ul.tight { margin: 8px 0; padding-left: 22px; }
+  ul.tight li { margin: 5px 0; }
+  .diagram { background: var(--code-bg); color: #e9e2e7; padding: 20px; border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  @media (max-width: 620px) { .toc { columns: 1; } header.hero h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="inner">
+    <h1>꽃 집중 노출(Boost) 기능 명세</h1>
+    <div class="sub">특정 꽃을 기간 지정으로 우선 노출시키는 상위 그룹 고정 메커니즘</div>
+    <div class="meta">
+      <span>작성일 2026-06-22</span>
+      <span>최종 수정일 2026-06-22</span>
+      <span>flower-boost-exposure-spec.md</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="summary">
+    <h2>핵심 요약 (Executive Summary)</h2>
+    <p>미디어·SNS에서 화제가 된 꽃이 자동 점수(<code>now_score</code>)에 밀려 노출되지 않는 문제를 해결한다. 어드민이 <strong>꽃 단위로 집중 노출 기간을 지정</strong>하면, 그 기간 동안 해당 꽃의 모든 공개 명소가 모바일 앱의 모든 노출 지점에서 <strong>상위 그룹으로 고정</strong>된다.</p>
+    <ul class="tight">
+      <li><span class="badge b-ok">방식</span> 상위 그룹 고정 — 부스트 그룹을 위로, 그룹 내부는 기존 정렬(점수/순서) 유지</li>
+      <li><span class="badge b-ok">범위</span> 모바일 앱 — 홈 TOP · 검색 · 명소목록</li>
+      <li><span class="badge b-ok">운영</span> 기간 지정 + 자동 만료 — 종료일 경과 시 조작 없이 해제(배치 불필요)</li>
+      <li><span class="badge b-ok">강도</span> 단일 on/off — 꽃 간 우선순위 구분 없음</li>
+      <li><span class="badge b-info">데이터</span> <code>flowers</code> 테이블에 <code>boost_start_at</code> · <code>boost_end_at</code> 두 컬럼 추가</li>
+    </ul>
+  </div>
+
+  <nav class="toc">
+    <h2>목차</h2>
+    <ol>
+      <li><a href="#s1">개요</a></li>
+      <li><a href="#s2">용어</a></li>
+      <li><a href="#s3">데이터 모델</a></li>
+      <li><a href="#s4">기능 요구사항 (FR)</a></li>
+      <li><a href="#s5">비기능 요구사항 (NFR)</a></li>
+      <li><a href="#s6">구조 / 데이터 흐름</a></li>
+      <li><a href="#s7">타입 / 인터페이스 계약</a></li>
+      <li><a href="#s8">외부 의존성</a></li>
+      <li><a href="#s9">명시적 가정</a></li>
+      <li><a href="#s10">범위 외</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="s1">1. 개요</h2>
+  <h3>1.1 정의</h3>
+  <p><strong>집중 노출(Boost)</strong>은 어드민이 특정 <strong>꽃(flower)</strong>에 대해 기간을 지정하여, 해당 기간 동안 그 꽃에 속한 <strong>명소(spot)</strong>들을 다른 꽃의 명소보다 항상 상위에 노출시키는 기능이다. 기존 자동 점수(<code>now_score</code>)·수동 정렬(<code>display_order</code>)과 독립적으로 동작하는 <strong>상위 그룹 고정(pinning)</strong> 메커니즘이다.</p>
+  <h3>1.2 도메인 책임</h3>
+  <table>
+    <tr><th>책임</th><th>설명</th></tr>
+    <tr><td>집중 노출 설정</td><td>어드민이 꽃 단위로 시작일/종료일을 지정·해제</td></tr>
+    <tr><td>활성 부스트 판정</td><td>조회 시점(오늘)을 기준으로 "현재 집중 노출 중"인지 판정</td></tr>
+    <tr><td>상위 그룹 고정</td><td>활성 부스트 꽃의 명소를 모든 노출 지점에서 비부스트보다 상위 배치</td></tr>
+    <tr><td>자동 만료</td><td>종료일 경과 시 별도 조작 없이 자동 해제</td></tr>
+  </table>
+  <h3>1.3 해결하는 문제</h3>
+  <p>특정 꽃이 미디어·SNS에서 화제가 되어 노출 수요가 급증했으나, 자동 점수 산정상 다른 꽃에 밀려 충분히 노출되지 않는 상황에서, 운영자가 전략적·일시적으로 노출 빈도를 끌어올릴 수 있게 한다.</p>
+
+  <h2 id="s2">2. 용어</h2>
+  <table>
+    <tr><th>용어</th><th>정의</th></tr>
+    <tr><td>부스트 기간</td><td><code>boost_start_at</code> ~ <code>boost_end_at</code> (양 끝 포함, 일 단위)</td></tr>
+    <tr><td><span class="badge b-ok">활성</span> active boost</td><td>조회 시점이 부스트 기간 안에 들어 실제 우선순위가 적용되는 상태</td></tr>
+    <tr><td><span class="badge b-info">예약</span> scheduled</td><td>기간이 설정됐으나 시작일이 아직 도래하지 않은 상태</td></tr>
+    <tr><td><span class="badge b-warn">만료</span> expired</td><td>종료일이 지나 비활성화된 상태</td></tr>
+    <tr><td>부스트 그룹</td><td>한 화면에서 활성 부스트 꽃에 속한 명소 집합 (상단 배치)</td></tr>
+  </table>
+
+  <h2 id="s3">3. 데이터 모델</h2>
+  <h3>3.1 <code>flowers</code> 테이블 확장</h3>
+  <pre><code>ALTER TABLE public.flowers
+  ADD COLUMN boost_start_at date,   -- 집중 노출 시작일 (nullable)
+  ADD COLUMN boost_end_at   date;   -- 집중 노출 종료일 (nullable)</code></pre>
+  <ul class="tight">
+    <li>기본값 둘 다 <code>NULL</code>(미설정)</li>
+    <li><strong>별도 boolean 플래그를 두지 않는다.</strong> 활성 여부는 항상 두 날짜와 조회 시점으로 도출 (단일 진실 원천 = 기간)</li>
+    <li>기존 <code>sort_order</code>, <code>is_active</code>는 의미 변경 없이 유지, 집중 노출과 독립 동작</li>
+  </ul>
+  <h3>3.2 활성 부스트 판정 규칙</h3>
+  <pre><code>isBoosted(f, today) :=
+  f.boost_start_at IS NOT NULL
+  AND f.boost_end_at IS NOT NULL
+  AND f.boost_start_at &lt;= today
+  AND today &lt;= f.boost_end_at</code></pre>
+  <div class="callout info">
+    <strong>핵심:</strong> 별도 배치(cron) 없이 <strong>조회/매핑 시점의 날짜 비교만으로</strong> 활성/예약/만료를 판정한다. 시작일이 미래면 예약, 종료일이 과거면 만료.
+  </div>
+
+  <h2 id="s4">4. 기능 요구사항 (FR)</h2>
+
+  <div class="fr-block">
+    <h3><span class="badge b-fr">FR-1</span> 어드민 — 집중 노출 설정</h3>
+    <ul class="tight">
+      <li><strong>FR-1-1</strong> 꽃 편집 화면(<code>FlowerForm</code>)에서 시작일·종료일 입력</li>
+      <li><strong>FR-1-2</strong> 두 날짜를 비우고 저장 시 해제(둘 다 <code>NULL</code>)</li>
+      <li><strong>FR-1-3</strong> 기존 <code>updateFlower</code> 경로로 저장, 저장 후 공개 노출 경로 재검증(revalidate)</li>
+    </ul>
+  </div>
+
+  <div class="fr-block">
+    <h3><span class="badge b-fr">FR-2</span> 어드민 — 상태 표시·검증</h3>
+    <ul class="tight">
+      <li><strong>FR-2-1</strong> 꽃 목록에 상태 배지: <span class="badge b-ok">집중 노출 중(D-n)</span> <span class="badge b-info">예약(MM.DD~)</span> <span class="badge b-warn">만료</span> (없음)</li>
+      <li><strong>FR-2-2</strong> 배지 구분은 FR-3 판정 규칙과 동일 기준</li>
+      <li><strong>FR-2-3</strong> 검증: ① 둘 다 입력하거나 둘 다 비움(한쪽만 불가) ② <code>start &lt;= end</code>. 위반 시 저장 거부</li>
+    </ul>
+  </div>
+
+  <div class="fr-block">
+    <h3><span class="badge b-fr">FR-3</span> 활성 부스트 판정</h3>
+    <ul class="tight">
+      <li><strong>FR-3-1</strong> §3.2 <code>isBoosted</code> 규칙으로 판정</li>
+      <li><strong>FR-3-2</strong> 기준 날짜는 KST "오늘"</li>
+    </ul>
+  </div>
+
+  <div class="fr-block">
+    <h3><span class="badge b-fr">FR-4</span> 노출 정렬 — 상위 그룹 고정 (공통 계약)</h3>
+    <ul class="tight">
+      <li><strong>FR-4-1</strong> 모든 노출 지점에서 부스트 그룹이 비부스트보다 <strong>항상 상위</strong></li>
+      <li><strong>FR-4-2</strong> 부스트 그룹 <strong>내부</strong> 순서는 화면의 기존 기준(<code>now_score</code>/<code>display_order</code>/종료 임박순) 유지</li>
+      <li><strong>FR-4-3</strong> 비부스트 그룹 내부 순서도 기존 기준 유지</li>
+      <li><strong>FR-4-4</strong> 여러 꽃 동시 부스트 시 꽃 간 구분 없음(단일 on/off), 그룹 전체를 기존 기준으로 정렬</li>
+      <li><strong>FR-4-5</strong> 안정 정렬 — 1차 키 부스트 여부, 2차 키 기존 기준과 동치</li>
+    </ul>
+  </div>
+
+  <div class="fr-block">
+    <h3><span class="badge b-fr">FR-5</span> 적용 지점별 동작 <span class="badge b-info">모바일 앱</span></h3>
+    <table>
+      <tr><th>지점</th><th>동작</th></tr>
+      <tr><td><strong>FR-5-1</strong> 모바일 홈 TOP</td><td><code>getTopSpots(n)</code>에서 부스트 명소가 <strong><code>limit n</code>에 의해 누락되지 않도록</strong> 우선 포함. 부스트 먼저 채우고 남은 자리를 <code>now_score</code> 상위로 채운 뒤 FR-4로 정렬한 결과와 동치</td></tr>
+      <tr><td><strong>FR-5-2</strong> 모바일 검색 추천순</td><td><code>compareByRecommendation</code>이 1차 부스트, 2차 <code>now_score</code> desc</td></tr>
+      <tr><td><strong>FR-5-3</strong> 모바일 명소목록</td><td>기본(<code>display_order</code>) 및 "종료 임박순" 모두 부스트 그룹 상위. 내부는 각 모드 기준</td></tr>
+    </table>
+  </div>
+
+  <div class="fr-block">
+    <h3><span class="badge b-fr">FR-6</span> 자동 만료</h3>
+    <ul class="tight">
+      <li><strong>FR-6-1</strong> 종료일 경과 꽃은 다음 조회부터 비부스트 처리</li>
+      <li><strong>FR-6-2</strong> 만료 설정 데이터는 자동 삭제하지 않음(이력·재설정 보존)</li>
+    </ul>
+  </div>
+
+  <h2 id="s5">5. 비기능 요구사항 (NFR)</h2>
+  <table>
+    <tr><th>ID</th><th>요구사항</th></tr>
+    <tr><td><span class="badge b-crit">NFR-1</span></td><td><strong>모바일 앱 격리 구현</strong> — 모바일은 자체 <code>spotRepository</code>/<code>spotMappers</code>로 정렬 계약(FR-4)을 구현한다. 공유 패키지(<code>flower-domain</code>/<code>supabase</code>)와 독립적으로 동작한다.</td></tr>
+    <tr><td><span class="badge b-warn">NFR-2</span></td><td><strong>공유 패키지 영향 범위</strong> — <code>flower-domain</code>·<code>supabase</code>는 boost 기능에서 사용하지 않는다(모바일/어드민 자체 코드 사용). <code>flowers</code> 테이블 스키마 변경만 DB 차원의 공통 사항이다.</td></tr>
+    <tr><td><span class="badge b-info">NFR-3</span></td><td><strong>네트워크 최소화</strong> — 부스트 정보는 기존 <code>flower</code> 조인 select에 컬럼 추가. 목록은 추가 쿼리 없이 메모리 정렬. 홈 TOP만 보조 쿼리 1회 허용</td></tr>
+    <tr><td><span class="badge b-ok">NFR-4</span></td><td><strong>배치 불필요</strong> — 만료 전이는 조회 시점 날짜 비교로 도출</td></tr>
+    <tr><td><span class="badge b-info">NFR-5</span></td><td><strong>시간대 일관성</strong> — "오늘"은 KST 기준, 기존 개화 D-day와 동일 경계</td></tr>
+    <tr><td><span class="badge b-crit">NFR-6</span></td><td><strong>기존 동작 보존</strong> — 미설정 상태에서 모든 정렬 결과가 현행과 동일(회귀 없음)</td></tr>
+    <tr><td><span class="badge b-info">NFR-7</span></td><td><strong>어드민 권한</strong> — 기존 <code>admin_users</code> 체계 내, 신규 권한 추가 없음</td></tr>
+  </table>
+
+  <h2 id="s6">6. 구조 / 데이터 흐름</h2>
+  <div class="diagram"><pre style="background:none;padding:0;color:inherit;">[어드민 웹]
+  FlowerForm (시작일/종료일 입력)
+      │  flowerSchema 검증 (FR-2-3)
+      ▼
+  updateFlower() → flowers.boost_start_at / boost_end_at 저장
+      │
+      ▼ revalidate
+┌──────────── DB: flowers(boost_start_at, boost_end_at) ────────────┐
+│                                                                    │
+│  [모바일 앱]                                                        │
+│  spotRepository                                                    │
+│    SPOT_SELECT에 boost 컬럼 포함                                    │
+│    toFlowerSpot → isBoosted 계산                                   │
+│      │                                                             │
+│      ▼ 정렬(FR-4)                                                  │
+│    홈 TOP / 검색 / 명소목록                                         │
+└────────────────────────────────────────────────────────────────┘</pre></div>
+
+  <h2 id="s7">7. 타입 / 인터페이스 계약</h2>
+  <h3>7.1 어드민 (apps/web)</h3>
+  <pre><code>// FlowerRow 확장 (src/lib/types.ts)
+type FlowerRow = {
+  // ...기존 필드
+  boost_start_at: string | null; // 'YYYY-MM-DD'
+  boost_end_at: string | null;
+};
+
+// flowerSchema 확장 — nullable date + refine:
+//   (둘 다 null) OR (둘 다 not null AND start &lt;= end)</code></pre>
+  <h3>7.2 클라이언트 도메인 타입 (모바일)</h3>
+  <pre><code>// FlowerSpot 확장 (shared/data/types)
+type FlowerSpot = { /* ...기존 */ isBoosted: boolean };
+
+// select 확장
+//   flower:flowers(name_ko, thumbnail_url[, is_active],
+//                  boost_start_at, boost_end_at)
+
+// 매퍼 — now 주입 가능 (기존 패턴 유지)
+//   toFlowerSpot(row, now=new Date()): FlowerSpot</code></pre>
+  <h3>7.3 정렬 헬퍼 계약</h3>
+  <pre><code>// isActiveBoost(flower, now): boolean   (모바일 자체 구현)
+
+// boostFirst(base) → 비교자
+//   1차: isBoosted(true 먼저), 2차: base(a, b)
+
+// 검색 추천순:  sort(boostFirst(compareByRecommendation))
+// 명소목록 기본: sort(boostFirst(byDisplayOrder))
+// 명소목록 임박: sort(boostFirst(byEndingSoon))</code></pre>
+  <h3>7.4 홈 TOP 조회 계약 (FR-5-1)</h3>
+  <pre><code>// getTopSpots(n): Promise&lt;FlowerSpot[]&gt;
+//   - 활성 부스트 명소를 누락 없이 포함
+//   - 반환 = boostFirst(now_score desc) 순서와 동치
+//   - 구현 방식(보조 조회 병합 vs 단일 조회 메모리 정렬)은 플랜에서 확정</code></pre>
+
+  <h2 id="s8">8. 외부 의존성</h2>
+  <ul class="tight">
+    <li><strong>Supabase PostgreSQL</strong> — <code>flowers</code> 스키마 변경(마이그레이션), <code>flower</code> 조인 컬럼 확장</li>
+    <li><strong>기존 어드민 인증</strong> — <code>admin_users</code> 기반(변경 없음)</li>
+    <li>신규 외부 API·라이브러리 없음</li>
+  </ul>
+
+  <h2 id="s9">9. 명시적 가정</h2>
+  <ul class="tight">
+    <li>조정 단위는 <strong>꽃</strong>(명소 단위 <code>is_featured</code>와 독립). 한 꽃 부스트 시 그 꽃의 모든 공개 명소 포함</li>
+    <li>집중 노출은 공개 여부(<code>status='published'</code>)를 바꾸지 않음. 비공개 명소는 대상 아님</li>
+    <li>개화 종료 여부와 무관하게 적용(운영자 의도 우선)</li>
+    <li>Supabase가 <code>date</code>를 <code>'YYYY-MM-DD'</code> 문자열로 반환(기존 <code>bloom_start_at</code>과 동일)</li>
+  </ul>
+
+  <h2 id="s10">10. 범위 외 (Out of Scope)</h2>
+  <ul class="tight">
+    <li>꽃 간 부스트 우선순위(가중치·레벨) — 단일 on/off로 확정</li>
+    <li>명소 단위 개별 부스트</li>
+    <li>부스트 성과(클릭·전환) 측정·리포팅</li>
+    <li>부스트 설정 변경 이력(audit log)</li>
+    <li>푸시 알림·홈 큐레이션 연동</li>
+    <li>토스 미니앱: 프로젝트가 삭제되어 본 기능의 적용 대상이 아니다.</li>
+  </ul>
+
+  <footer>
+    꽃 어디 프로젝트 · 꽃 집중 노출(Boost) 기능 명세 · 최종 수정일 2026-06-22<br>
+    원본: docs/specs/flower-boost-exposure-spec.md
+  </footer>
+
+</div>
+</body>
+</html>
