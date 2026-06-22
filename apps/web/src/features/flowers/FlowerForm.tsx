@@ -36,6 +36,8 @@ export function FlowerForm({ defaultValue, submitAction }: FlowerFormProps) {
       is_active: formData.get('is_active') === 'on',
       thumbnail_url: normalizeOptionalText(formData.get('thumbnail_url')),
       aliases: parseCommaSeparated(formData.get('aliases')),
+      boost_start_at: normalizeOptionalText(formData.get('boost_start_at')),
+      boost_end_at: normalizeOptionalText(formData.get('boost_end_at')),
     });
 
     if (!parsed.success) {
@@ -184,6 +186,41 @@ export function FlowerForm({ defaultValue, submitAction }: FlowerFormProps) {
         description="명소 썸네일이 없을 때 표시될 꽃 대표 이미지입니다."
       >
         <ImageUploader defaultUrl={defaultValue?.thumbnail_url} />
+      </FormSection>
+
+      <Separator />
+
+      <FormSection
+        title="집중 노출"
+        description="지정한 기간 동안 이 꽃의 명소를 다른 꽃보다 상위에 노출합니다. 시작일과 종료일을 모두 입력하거나 모두 비워야 합니다."
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="flower-boost-start" className="text-sm font-medium text-foreground">
+              집중 노출 시작일
+            </label>
+            <Input
+              id="flower-boost-start"
+              name="boost_start_at"
+              type="date"
+              defaultValue={defaultValue?.boost_start_at ?? ''}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="flower-boost-end" className="text-sm font-medium text-foreground">
+              집중 노출 종료일
+            </label>
+            <Input
+              id="flower-boost-end"
+              name="boost_end_at"
+              type="date"
+              defaultValue={defaultValue?.boost_end_at ?? ''}
+            />
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          두 날짜를 모두 비우면 집중 노출이 해제됩니다.
+        </p>
       </FormSection>
 
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}

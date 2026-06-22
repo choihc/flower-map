@@ -15,6 +15,8 @@ export function buildFlowerWriteInput(input: FlowerWriteDraft): FlowerInsert {
     thumbnail_url: emptyToNull(input.thumbnail_url),
     sort_order: input.sort_order ?? 0,
     is_active: input.is_active ?? true,
+    boost_start_at: emptyToNull(input.boost_start_at),
+    boost_end_at: emptyToNull(input.boost_end_at),
   };
 }
 

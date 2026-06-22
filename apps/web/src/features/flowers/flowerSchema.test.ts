@@ -112,4 +112,108 @@ describe('flowerSchema', () => {
     expect(result.success).toBe(true);
     expect(result.data?.aliases).toEqual([]);
   });
+
+  // ── boost 날짜 검증 (FR-2-3) ──────────────────────────────────────────────
+
+  it('accepts boost dates when both are null (no boost)', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      boost_start_at: null,
+      boost_end_at: null,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts boost dates when both are omitted (no boost)', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts boost dates when both are valid and start <= end', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      boost_start_at: '2026-06-01',
+      boost_end_at: '2026-06-30',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts boost dates when start equals end', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      boost_start_at: '2026-06-15',
+      boost_end_at: '2026-06-15',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects when only boost_start_at is provided (missing end)', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      boost_start_at: '2026-06-01',
+      boost_end_at: null,
+    });
+
+    expect(result.success).toBe(false);
+    const messages = result.error?.issues.map((i) => i.message) ?? [];
+    expect(messages.some((m) => m.includes('시작일과 종료일을 모두 입력'))).toBe(true);
+  });
+
+  it('rejects when only boost_end_at is provided (missing start)', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      boost_start_at: null,
+      boost_end_at: '2026-06-30',
+    });
+
+    expect(result.success).toBe(false);
+    const messages = result.error?.issues.map((i) => i.message) ?? [];
+    expect(messages.some((m) => m.includes('시작일과 종료일을 모두 입력'))).toBe(true);
+  });
+
+  it('rejects when boost_start_at is after boost_end_at', () => {
+    const result = flowerSchema.safeParse({
+      slug: 'cherry-blossom',
+      name_ko: '벚꽃',
+      color_hex: '#F6B7C1',
+      season_start_month: 3,
+      season_end_month: 4,
+      boost_start_at: '2026-06-30',
+      boost_end_at: '2026-06-01',
+    });
+
+    expect(result.success).toBe(false);
+    const messages = result.error?.issues.map((i) => i.message) ?? [];
+    expect(messages.some((m) => m.includes('종료일은 시작일과 같거나 이후'))).toBe(true);
+  });
 });
