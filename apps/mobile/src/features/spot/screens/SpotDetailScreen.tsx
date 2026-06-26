@@ -47,10 +47,12 @@ export function SpotDetailScreen({ slug }: SpotDetailScreenProps) {
   if (isLoading) {
     return (
       <ScreenShell showBack hideTitleHeader>
-        <SkeletonBox height={280} borderRadius={28} />
-        <SkeletonBox height={100} borderRadius={20} />
-        <SkeletonBox height={80} borderRadius={20} />
-        <SkeletonBox height={60} borderRadius={20} />
+        <View style={{ gap: 12 }}>
+          <SkeletonBox height={280} borderRadius={28} />
+          <SkeletonBox height={100} borderRadius={20} />
+          <SkeletonBox height={80} borderRadius={20} />
+          <SkeletonBox height={60} borderRadius={20} />
+        </View>
       </ScreenShell>
     );
   }

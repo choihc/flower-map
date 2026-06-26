@@ -245,9 +245,11 @@ export function MapScreen() {
   if (isLoading) {
     return (
       <ScreenShell titleText="지도 탐색">
-        <SkeletonBox height={400} borderRadius={24} />
-        <SkeletonBox height={80} borderRadius={20} />
-        <SkeletonBox height={80} borderRadius={20} />
+        <View style={{ gap: 12 }}>
+          <SkeletonBox height={400} borderRadius={24} />
+          <SkeletonBox height={80} borderRadius={20} />
+          <SkeletonBox height={80} borderRadius={20} />
+        </View>
       </ScreenShell>
     );
   }
