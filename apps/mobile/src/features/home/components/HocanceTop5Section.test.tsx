@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
@@ -72,6 +73,18 @@ describe('HocanceTop5Section', () => {
     const { getByTestId, queryByTestId } = render(wrap(<HocanceTop5Section />));
     expect(getByTestId('hocance-skeleton')).toBeTruthy();
     expect(queryByTestId('hocance-top5-section')).toBeNull();
+  });
+
+  it('로딩 스켈레톤은 StayCard와 동일한 height·borderRadius를 가진다 (FR-4)', () => {
+    // 실제 StayCard: 가로형, height 112(hero), borderRadius 18
+    vi.mocked(getPublishedStays).mockReturnValue(new Promise(() => {}) as never);
+    vi.mocked(getTopSpots).mockReturnValue(new Promise(() => {}) as never);
+    const { getAllByTestId } = render(wrap(<HocanceTop5Section />));
+    const flat = StyleSheet.flatten(
+      getAllByTestId('hocance-skeleton-box')[0].props.style as never,
+    ) as Record<string, unknown>;
+    expect(flat.height).toBe(112);
+    expect(flat.borderRadius).toBe(18);
   });
 
   it('호캉스 0건이면 섹션 자체를 미렌더한다', async () => {

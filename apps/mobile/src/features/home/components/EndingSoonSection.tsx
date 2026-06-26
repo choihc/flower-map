@@ -37,7 +37,7 @@ export function EndingSoonSection() {
     return (
       <View testID="ending-soon-skeleton">
         <SectionHeading meta="종료된 일정은 제외해 보여드려요" title="곧 끝나는 축제" />
-        <SkeletonBox height={180} borderRadius={30} />
+        <SkeletonBox testID="ending-soon-skeleton-box" height={300} borderRadius={30} />
       </View>
     );
   }

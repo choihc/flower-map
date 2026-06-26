@@ -33,8 +33,8 @@ export function RegionRecommendSection() {
       <View testID="region-skeleton">
         <SectionHeading meta="주말 나들이 큐레이션" title="지역별 추천" />
         <View style={styles.regionGrid}>
-          <SkeletonBox height={92} width="48%" />
-          <SkeletonBox height={92} width="48%" />
+          <SkeletonBox testID="region-skeleton-box" height={76} width="48%" borderRadius={24} />
+          <SkeletonBox testID="region-skeleton-box" height={76} width="48%" borderRadius={24} />
         </View>
       </View>
     );

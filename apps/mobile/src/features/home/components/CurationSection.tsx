@@ -39,7 +39,7 @@ export function CurationSection() {
   if (isPending) {
     return (
       <View testID="curation-skeleton" style={styles.curationSection}>
-        <SkeletonBox height={92} />
+        <SkeletonBox testID="curation-skeleton-box" height={220} borderRadius={28} />
       </View>
     );
   }

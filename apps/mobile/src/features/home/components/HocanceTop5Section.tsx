@@ -46,8 +46,8 @@ export function HocanceTop5Section() {
       <View testID="hocance-skeleton" style={styles.container}>
         <Text style={styles.title}>꽃 명소 주변 호텔보기</Text>
         <View style={styles.list}>
-          <SkeletonBox height={120} />
-          <SkeletonBox height={120} />
+          <SkeletonBox testID="hocance-skeleton-box" height={112} borderRadius={18} />
+          <SkeletonBox testID="hocance-skeleton-box" height={112} borderRadius={18} />
         </View>
       </View>
     );
