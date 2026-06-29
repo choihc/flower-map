@@ -24,9 +24,14 @@ export function TopSpotsSection() {
         <SectionHeading />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
           {[0, 1, 2].map((i) => (
-            <View key={i} style={styles.card}>
-              <SkeletonBox testID="top-spots-skeleton" height={120} borderRadius={16} />
-            </View>
+            <SkeletonBox
+              key={i}
+              testID="top-spots-skeleton"
+              width={CARD_WIDTH}
+              height={CARD_SKELETON_HEIGHT}
+              borderRadius={20}
+              style={styles.skeletonCard}
+            />
           ))}
         </ScrollView>
       </View>
@@ -107,6 +112,8 @@ function TopSpotCard({ spot, onPress }: { spot: FlowerSpot; onPress: () => void 
 }
 
 const CARD_WIDTH = 220;
+// 실제 카드(이미지 120 + 본문: 제목·메타·NOW 배지)의 평균 높이에 맞춰 풀카드로 채운다.
+const CARD_SKELETON_HEIGHT = 200;
 
 const styles = StyleSheet.create({
   card: {
@@ -167,6 +174,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     fontWeight: '700',
+  },
+  skeletonCard: {
+    marginRight: 12,
   },
   title: {
     color: colors.text,

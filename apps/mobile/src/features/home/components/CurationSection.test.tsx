@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
@@ -45,6 +46,17 @@ describe('CurationSection', () => {
     vi.mocked(getActiveHomeCurationSlots).mockReturnValue(new Promise(() => {}) as never);
     const { getByTestId } = render(wrap(<CurationSection />));
     expect(getByTestId('curation-skeleton')).toBeTruthy();
+  });
+
+  it('로딩 스켈레톤은 큐레이션 카드와 동일한 height·borderRadius를 가진다 (FR-4)', () => {
+    // 실제 SeasonCurationSlot: height 220, borderRadius 28
+    vi.mocked(getActiveHomeCurationSlots).mockReturnValue(new Promise(() => {}) as never);
+    const { getByTestId } = render(wrap(<CurationSection />));
+    const flat = StyleSheet.flatten(
+      getByTestId('curation-skeleton-box').props.style as never,
+    ) as Record<string, unknown>;
+    expect(flat.height).toBe(220);
+    expect(flat.borderRadius).toBe(28);
   });
 
   it('유효 슬롯이 없으면 섹션을 숨긴다 (FR-5)', async () => {

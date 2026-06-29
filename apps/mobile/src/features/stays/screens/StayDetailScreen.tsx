@@ -67,10 +67,12 @@ export function StayDetailScreen({ slug }: StayDetailScreenProps) {
   if (isLoading) {
     return (
       <ScreenShell showBack hideTitleHeader>
-        <SkeletonBox height={320} borderRadius={28} />
-        <SkeletonBox height={120} borderRadius={20} />
-        <SkeletonBox height={100} borderRadius={20} />
-        <SkeletonBox height={80} borderRadius={20} />
+        <View style={{ gap: 12 }}>
+          <SkeletonBox height={320} borderRadius={28} />
+          <SkeletonBox height={120} borderRadius={20} />
+          <SkeletonBox height={100} borderRadius={20} />
+          <SkeletonBox height={80} borderRadius={20} />
+        </View>
       </ScreenShell>
     );
   }

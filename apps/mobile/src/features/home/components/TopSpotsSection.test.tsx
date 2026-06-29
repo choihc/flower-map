@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: vi.fn(),
@@ -93,6 +94,21 @@ describe('TopSpotsSection', () => {
 
     expect(getByText('꽃 명소 TOP 10')).toBeTruthy();
     expect(getAllByTestId('top-spots-skeleton').length).toBeGreaterThan(0);
+  });
+
+  it('로딩 스켈레톤은 실제 카드와 동일한 width·borderRadius를 가진다(흰 여백 없는 풀카드)', () => {
+    // 흰 배경 카드 래퍼 안에 작은 박스를 넣어 하단 흰 여백이 남던 회귀를 막는다(FR-4).
+    (useQuery as any).mockReturnValue({ data: undefined, isLoading: true });
+    const { getAllByTestId } = render(<TopSpotsSection />);
+
+    const flat = StyleSheet.flatten(
+      getAllByTestId('top-spots-skeleton')[0].props.style as never,
+    ) as Record<string, unknown>;
+    // 실제 카드: width 220, borderRadius 20
+    expect(flat.width).toBe(220);
+    expect(flat.borderRadius).toBe(20);
+    // 이미지(120)만 한 작은 박스가 아니라 카드 전체 높이를 채운다
+    expect(flat.height as number).toBeGreaterThanOrEqual(180);
   });
 
   it('데이터가 비어 있으면 "추천 집계 준비 중" 안내를 표시한다', () => {

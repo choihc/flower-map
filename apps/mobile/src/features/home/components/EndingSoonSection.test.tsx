@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
@@ -60,6 +61,17 @@ describe('EndingSoonSection', () => {
     vi.mocked(getPublishedSpots).mockReturnValue(new Promise(() => {}) as never);
     const { getByTestId } = render(wrap(<EndingSoonSection />));
     expect(getByTestId('ending-soon-skeleton')).toBeTruthy();
+  });
+
+  it('로딩 스켈레톤은 이벤트 카드 전체 높이를 채우고 동일한 borderRadius를 가진다 (FR-4)', () => {
+    // 실제 eventCard: 이미지(180) + 본문 영역 → 이미지만 한 작은 박스가 아니라 카드 전체를 대표한다.
+    vi.mocked(getPublishedSpots).mockReturnValue(new Promise(() => {}) as never);
+    const { getByTestId } = render(wrap(<EndingSoonSection />));
+    const flat = StyleSheet.flatten(
+      getByTestId('ending-soon-skeleton-box').props.style as never,
+    ) as Record<string, unknown>;
+    expect(flat.borderRadius).toBe(30);
+    expect(flat.height as number).toBeGreaterThanOrEqual(280);
   });
 
   it('명소가 없으면 섹션을 숨긴다 (FR-5)', async () => {

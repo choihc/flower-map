@@ -30,9 +30,11 @@ export function StayListScreen() {
   if (isLoading) {
     return (
       <ScreenShell titleText="호캉스">
-        <SkeletonBox height={120} borderRadius={18} />
-        <SkeletonBox height={120} borderRadius={18} />
-        <SkeletonBox height={120} borderRadius={18} />
+        <View style={{ gap: 12 }}>
+          <SkeletonBox height={120} borderRadius={18} />
+          <SkeletonBox height={120} borderRadius={18} />
+          <SkeletonBox height={120} borderRadius={18} />
+        </View>
       </ScreenShell>
     );
   }

@@ -1,5 +1,11 @@
 {
   "name": "flower-map",
   "private": true,
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "pnpm --filter kkot-eodi-mobile start",
+    "dev:ios": "pnpm --filter kkot-eodi-mobile ios",
+    "dev:android": "pnpm --filter kkot-eodi-mobile android",
+    "dev:web": "pnpm --filter flower-map-web dev"
+  }
 }

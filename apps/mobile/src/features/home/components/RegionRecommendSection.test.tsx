@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
@@ -38,6 +39,18 @@ describe('RegionRecommendSection', () => {
     vi.mocked(deriveRegionSummaries).mockReturnValue([]);
     const { getByTestId } = render(wrap(<RegionRecommendSection />));
     expect(getByTestId('region-skeleton')).toBeTruthy();
+  });
+
+  it('로딩 스켈레톤은 지역 타일과 동일한 width·borderRadius를 가진다 (FR-4)', () => {
+    // 실제 regionTile: width 48%, borderRadius 24
+    vi.mocked(getPublishedSpots).mockReturnValue(new Promise(() => {}) as never);
+    vi.mocked(deriveRegionSummaries).mockReturnValue([]);
+    const { getAllByTestId } = render(wrap(<RegionRecommendSection />));
+    const flat = StyleSheet.flatten(
+      getAllByTestId('region-skeleton-box')[0].props.style as never,
+    ) as Record<string, unknown>;
+    expect(flat.width).toBe('48%');
+    expect(flat.borderRadius).toBe(24);
   });
 
   it('지역 요약이 있으면 헤더와 타일을 렌더한다', async () => {

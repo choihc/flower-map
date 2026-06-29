@@ -59,10 +59,12 @@ export function SpotListScreen() {
   if (isLoading) {
     return (
       <ScreenShell titleText={title} subtitle={subtitle}>
-        <SkeletonBox height={72} borderRadius={16} />
-        <SkeletonBox height={72} borderRadius={16} />
-        <SkeletonBox height={72} borderRadius={16} />
-        <SkeletonBox height={72} borderRadius={16} />
+        <View style={{ gap: 12 }}>
+          <SkeletonBox height={72} borderRadius={16} />
+          <SkeletonBox height={72} borderRadius={16} />
+          <SkeletonBox height={72} borderRadius={16} />
+          <SkeletonBox height={72} borderRadius={16} />
+        </View>
       </ScreenShell>
     );
   }
