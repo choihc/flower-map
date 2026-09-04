@@ -17,6 +17,7 @@ import {
   averageAtWeeks,
   newestWeekStarts,
   oldestWeekStarts,
+  peakRelativeAverage,
   weekAlignedTrendWindow,
 } from '@/lib/now-score/trendWindow';
 import { calcYoyScore } from '@/lib/now-score/yoy';
@@ -173,10 +174,20 @@ async function collectTrendAndYoyScores(
 
     for (const spot of batch) {
       const data = byName.get(spot.id)?.data ?? [];
+      // trend는 그룹 자신의 창 내 최댓값 대비 상대값으로 잰다. 데이터랩이
+      // 요청에 든 모든 그룹을 통틀어 정규화하므로, 원시 ratio를 쓰면 같은
+      // 명소 점수가 배치 동료에 따라 달라진다.
+      const recentPeakRelative = peakRelativeAverage(data, newestWeeks);
+      // yoy는 최근/작년의 비율이라 정규화 배율이 이미 상쇄된다. 원시 값 사용.
       const recentAvg = averageAtWeeks(data, newestWeeks);
       const lastYearAvg = averageAtWeeks(data, oldestWeeks);
 
-      trend.set(spot.id, recentAvg === null ? null : calcTrendScore(recentAvg));
+      trend.set(
+        spot.id,
+        recentPeakRelative === null
+          ? null
+          : calcTrendScore(recentPeakRelative),
+      );
 
       yoy.set(
         spot.id,

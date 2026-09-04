@@ -116,6 +116,15 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+/**
+ * 계절성이 있는 주간 비율. 작년 동기 40, 최신 60, 중간에 창 최댓값 100.
+ * `scale`은 데이터랩이 요청 전체를 통틀어 정규화할 때 생기는 배율을 흉내낸다.
+ */
+function seasonalRatio(index: number, total: number, scale = 1): number {
+  if (index === Math.floor(total / 2)) return 100 * scale;
+  return (index < total / 2 ? 40 : 60) * scale;
+}
+
 /** 주 시작일(월요일) 기준 54개 주간 버킷을 만든다. 데이터랩 주단위 응답 형태. */
 function buildWeeklyBuckets(
   startDate: string,
@@ -188,9 +197,9 @@ describe('GET /api/cron/now-score', () => {
       precipitationMm: 2,
     });
 
-    // 54주 주간 버킷을 요청받은 구간에서 그대로 생성한다. 앞쪽(작년 동기)은
-    // 40, 뒤쪽(최신)은 60으로 두어 최신/최고(가장 오래된) 매핑이 뒤집히면
-    // trend_score·yoy_score 값으로 즉시 드러나게 한다.
+    // 54주 주간 버킷을 요청받은 구간에서 그대로 생성한다. 앞쪽(작년 동기)
+    // 40, 뒤쪽(최신) 60, 중간에 창 최댓값 100을 둔다. 최신/최고(가장 오래된)
+    // 매핑이 뒤집히거나 최댓값 나눗셈이 빠지면 값으로 즉시 드러난다.
     mocks.fetchSearchTrends.mockImplementation(
       async (args: {
         startDate: string;
@@ -198,9 +207,7 @@ describe('GET /api/cron/now-score', () => {
         timeUnit?: string;
         groups: Array<{ groupName: string }>;
       }) => {
-        const data = buildWeeklyBuckets(args.startDate, (i, total) =>
-          i < total / 2 ? 40 : 60,
-        );
+        const data = buildWeeklyBuckets(args.startDate, seasonalRatio);
         return args.groups.map((g) => ({ groupName: g.groupName, data }));
       },
     );
@@ -247,13 +254,63 @@ describe('GET /api/cron/now-score', () => {
     >) {
       const payload = call[0];
       expect(payload.bloom_score).toEqual(expect.any(Number));
-      // 최신 주 = 60, 작년 동기 = 40. 매핑이 뒤집히면 40 / 33.33이 된다.
+      // 최신 주 60 / 창 최댓값 100 = 60. 매핑이 뒤집히면 40이 된다.
       expect(payload.trend_score).toBe(60);
+      // yoy는 최근 60 대 작년 40 → 1.5배 → 75.
       expect(payload.yoy_score).toBe(75);
       expect(payload.content_score).toEqual(expect.any(Number));
       expect(payload.now_score).toEqual(expect.any(Number));
       expect(payload.now_score_at).toEqual(expect.any(String));
     }
+  });
+
+  it('데이터랩 응답이 배치 동료 때문에 축소돼도 trend_score가 같다', async () => {
+    // 데이터랩은 한 요청에 든 모든 키워드 그룹을 통틀어 정규화한다. 그래서
+    // 같은 명소의 원시 ratio가 함께 묶인 명소에 따라 달라진다. trend는 그룹
+    // 자신의 최댓값 대비 상대값이어야 이 배율에 흔들리지 않는다.
+    const runWithScale = async (scale: number) => {
+      vi.resetModules();
+      vi.stubEnv('CRON_SECRET', 'ok');
+      const spots: SpotFixture[] = [
+        {
+          id: 'spot-1',
+          name: '태화강국가정원',
+          latitude: 35.55,
+          longitude: 129.31,
+          bloom_start_at: '2026-09-01T00:00:00Z',
+          bloom_end_at: '2026-10-15T00:00:00Z',
+          flower_id: 'flower-1',
+          flowers: { name_ko: '코스모스', aliases: [] },
+        },
+      ];
+      const { from, updateMock } = buildSupabaseMock(spots);
+      mocks.createAdminSupabaseClient.mockReturnValue({ from });
+      mocks.fetchShortForecast.mockResolvedValue({
+        tempC: 20,
+        precipitationMm: 0,
+      });
+      mocks.fetchSearchTrends.mockImplementation(
+        async (args: {
+          startDate: string;
+          groups: Array<{ groupName: string }>;
+        }) => {
+          const data = buildWeeklyBuckets(args.startDate, (i, t) =>
+            seasonalRatio(i, t, scale),
+          );
+          return args.groups.map((g) => ({ groupName: g.groupName, data }));
+        },
+      );
+      const { GET } = await import('./route');
+      await GET(buildRequest('Bearer ok'));
+      return (updateMock.mock.calls[0] as [Record<string, unknown>])[0];
+    };
+
+    const full = await runWithScale(1);
+    const shrunk = await runWithScale(0.8383); // 실측된 축소 배율
+
+    expect(full.trend_score).toBe(60);
+    expect(shrunk.trend_score).toBe(60);
+    expect(shrunk.yoy_score).toBe(full.yoy_score);
   });
 
   it('개화기에만 데이터가 있는 희소 응답은 비수기 점수를 올리지 않는다', async () => {

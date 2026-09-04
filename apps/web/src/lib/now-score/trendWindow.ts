@@ -110,3 +110,30 @@ export function averageAtWeeks(
   const sum = weekStarts.reduce((acc, k) => acc + (byPeriod.get(k) ?? 0), 0);
   return sum / weekStarts.length;
 }
+
+/**
+ * 창 안의 최댓값을 100으로 본 상대값. `trend_score`의 실제 계산 단위다.
+ *
+ * 데이터랩은 **한 요청에 든 모든 키워드 그룹을 통틀어** 정규화한다. 최댓값
+ * 100은 요청 전체의 최댓값이라, 같은 그룹의 `ratio`가 배치 동료가 누구냐에
+ * 따라 달라진다. (실측: 단독 요청에서 최댓값 100이던 그룹이 인기 그룹과 함께
+ * 보내니 83.83으로 축소) 명소를 5개씩 묶어 보내고 그 묶음이 실행마다 바뀌면
+ * 같은 명소의 trend가 실행마다 5배까지 흔들린다. (실측: 울산 태화강국가정원
+ * 코스모스 7.96 ↔ 37.82)
+ *
+ * 그룹 자신의 창 내 최댓값으로 나누면 이 배율이 정확히 상쇄된다. 그리고 그
+ * 값이 곧 의도했던 지표 자체다 — "연중 최고 대비 지금 어디쯤인가".
+ *
+ * `yoy_score`는 최근/작년의 비율이라 배율이 이미 상쇄되므로 손대지 않는다.
+ * 실제로 배치가 바뀐 두 실행에서 trend만 흔들리고 yoy는 그대로였다.
+ */
+export function peakRelativeAverage(
+  data: readonly TrendDataPoint[],
+  weekStarts: readonly string[],
+): number | null {
+  const avg = averageAtWeeks(data, weekStarts);
+  if (avg === null) return null;
+  const peak = data.reduce((max, p) => (p.ratio > max ? p.ratio : max), 0);
+  if (peak <= 0) return null;
+  return (avg / peak) * 100;
+}

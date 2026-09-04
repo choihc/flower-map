@@ -4,6 +4,7 @@ import {
   averageAtWeeks,
   newestWeekStarts,
   oldestWeekStarts,
+  peakRelativeAverage,
   weekAlignedTrendWindow,
 } from './trendWindow';
 
@@ -97,6 +98,59 @@ describe('averageAtWeeks', () => {
     ];
     expect(averageAtWeeks(holed, newestWeekStarts(WINDOW, 2))).toBe(6);
     expect(averageAtWeeks(holed, oldestWeekStarts(WINDOW, 2))).toBe(15);
+  });
+});
+
+describe('peakRelativeAverage', () => {
+  it('창 안의 최댓값을 100으로 본 상대값을 돌려준다', () => {
+    const data = [
+      { period: '2026-08-10', ratio: 100 },
+      { period: '2026-08-17', ratio: 40 },
+      { period: '2026-08-24', ratio: 20 },
+    ];
+    expect(peakRelativeAverage(data, ['2026-08-24', '2026-08-17'])).toBe(30);
+  });
+
+  it('함께 보낸 그룹 때문에 응답 전체가 축소돼도 같은 값을 낸다', () => {
+    // 데이터랩은 한 요청에 든 모든 그룹을 통틀어 정규화한다. 그래서 같은
+    // 키워드 그룹의 ratio가 배치 동료에 따라 달라진다. 실측: 단독 요청 때
+    // 최댓값 100이던 그룹이 인기 그룹과 함께 보내니 83.83으로 축소됐다.
+    // 자기 창의 최댓값으로 나누면 이 배율이 정확히 상쇄된다.
+    const alone = [
+      { period: '2026-08-17', ratio: 35.36 },
+      { period: '2026-08-24', ratio: 32.96 },
+      { period: '2026-08-31', ratio: 100 },
+    ];
+    const shrunk = [
+      { period: '2026-08-17', ratio: 29.64 },
+      { period: '2026-08-24', ratio: 27.63 },
+      { period: '2026-08-31', ratio: 83.83 },
+    ];
+    const weeks = ['2026-08-24', '2026-08-17'];
+    const a = peakRelativeAverage(alone, weeks) as number;
+    const b = peakRelativeAverage(shrunk, weeks) as number;
+    expect(b).toBeCloseTo(a, 2);
+    expect(a).toBeCloseTo(34.16, 2);
+  });
+
+  it('응답이 비면 null', () => {
+    expect(peakRelativeAverage([], ['2026-08-24'])).toBeNull();
+  });
+
+  it('창 안의 값이 모두 0이면 기준이 없어 null', () => {
+    const zero = [
+      { period: '2026-08-17', ratio: 0 },
+      { period: '2026-08-24', ratio: 0 },
+    ];
+    expect(peakRelativeAverage(zero, ['2026-08-24'])).toBeNull();
+  });
+
+  it('응답에 없는 주는 0으로 보아 상대값을 낮춘다', () => {
+    const data = [
+      { period: '2026-03-23', ratio: 100 },
+      { period: '2026-08-24', ratio: 50 },
+    ];
+    expect(peakRelativeAverage(data, ['2026-08-24', '2026-08-17'])).toBe(25);
   });
 });
 
