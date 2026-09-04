@@ -14,8 +14,9 @@ import { calcContentScore } from '@/lib/now-score/content';
 import { calcNowScore } from '@/lib/now-score/aggregate';
 import { calcTrendScore } from '@/lib/now-score/trend';
 import {
-  averageNewest,
-  averageOldest,
+  averageAtWeeks,
+  newestWeekStarts,
+  oldestWeekStarts,
   weekAlignedTrendWindow,
 } from '@/lib/now-score/trendWindow';
 import { calcYoyScore } from '@/lib/now-score/yoy';
@@ -32,7 +33,9 @@ export const maxDuration = 300;
 // 'week'은 54포인트라 안전하고, 작년 동기가 같은 응답 앞부분에 들어 있어
 // yoy용 별도 요청도 필요 없다.
 const TREND_TIME_UNIT = 'week' as const;
-// 최신·최고(最古) 각 몇 개 포인트를 평균할지. 경계 주가 부분 주일 수 있어 2개.
+// 최신 주 / 가장 오래된 주를 각각 몇 주씩 평균할지. 한 주만 쓰면 그 주의
+// 우연한 변동에 점수가 흔들려 2주를 평균한다. 대신 개화 급상승 구간에서
+// 신호가 약 1주 늦게 반영된다.
 const TREND_EDGE_POINTS = 2;
 const TREND_GROUP_BATCH_SIZE = 5;
 const SPOT_PROCESS_CONCURRENCY = 4;
@@ -136,9 +139,15 @@ async function collectTrendAndYoyScores(
   // 1년 남짓한 창을 주단위로 한 번만 요청한다. 데이터랩이 이 구간의 최댓값을
   // 100으로 정규화하므로 최근 값이 곧 계절 위치가 되고, 창의 앞부분이 작년
   // 동기라 yoy도 같은 응답에서 계산할 수 있다. (요청 횟수 배치당 2회 → 1회)
-  // 구간은 주 경계에 맞춘다 — 부분 주가 끼면 값이 깎이고 cron이 도는 요일에
-  // 따라 점수가 달라진다.
-  const { startDate, endDate } = weekAlignedTrendWindow(now);
+  // 구간은 주 경계에 맞춘다 — 아직 다 게시되지 않은 주가 끼면 값이 깎이고
+  // cron이 도는 요일에 따라 점수가 달라진다.
+  const searchWindow = weekAlignedTrendWindow(now);
+  const { startDate, endDate } = searchWindow;
+  // 값은 배열 위치가 아니라 주 시작일로 집는다. 데이터랩이 검색량 미달 주를
+  // 버킷째로 생략하므로, 위치로 뽑으면 희소한 키워드에서 엉뚱한 달력 위치를
+  // 최신값으로 집는다.
+  const newestWeeks = newestWeekStarts(searchWindow, TREND_EDGE_POINTS);
+  const oldestWeeks = oldestWeekStarts(searchWindow, TREND_EDGE_POINTS);
 
   const batches = chunk(spots, TREND_GROUP_BATCH_SIZE);
 
@@ -164,8 +173,8 @@ async function collectTrendAndYoyScores(
 
     for (const spot of batch) {
       const data = byName.get(spot.id)?.data ?? [];
-      const recentAvg = averageNewest(data, TREND_EDGE_POINTS);
-      const lastYearAvg = averageOldest(data, TREND_EDGE_POINTS);
+      const recentAvg = averageAtWeeks(data, newestWeeks);
+      const lastYearAvg = averageAtWeeks(data, oldestWeeks);
 
       trend.set(spot.id, recentAvg === null ? null : calcTrendScore(recentAvg));
 
