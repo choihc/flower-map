@@ -43,6 +43,10 @@ export interface TrendWindow {
  */
 const TREND_WINDOW_WEEKS = 54;
 const DAY_MS = 86400000;
+// 데이터랩은 한국 서비스라 버킷 경계가 한국 시간 기준이다. cron은 18:00 UTC
+// (= KST 03:00)에 도므로, UTC 요일로 판정하면 UTC 일요일 18:00 = KST 월요일인
+// 실행에서 방금 끝난 주를 한 번 더 건너뛴다. KST는 서머타임이 없어 고정 +9h.
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 function formatUtcDate(date: Date): string {
   const y = date.getUTCFullYear().toString().padStart(4, '0');
@@ -56,13 +60,18 @@ function formatUtcDate(date: Date): string {
  *
  * 주 경계에 맞추지 않으면 양 끝 버킷이 부분 주가 되어 값이 낮게 나오고,
  * cron이 도는 요일에 따라 같은 명소의 점수가 달라진다.
+ *
+ * 요일·날짜 판정은 한국 시간 기준이다. 반환하는 날짜 문자열도 한국 시간
+ * 달력의 날짜이므로 데이터랩 버킷과 그대로 맞물린다.
  */
 export function weekAlignedTrendWindow(now: Date): TrendWindow {
+  // UTC 시각을 +9h 밀어, 이후 UTC 게터로 읽으면 한국 시간 달력이 나온다.
+  const kst = new Date(now.getTime() + KST_OFFSET_MS);
   // 진행 중인 주를 배제하고 직전 일요일을 종료일로 삼는다.
   // getUTCDay(): 일=0 … 토=6. 일요일이면 그 주가 아직 끝나지 않았으므로 7일 전.
-  const day = now.getUTCDay();
+  const day = kst.getUTCDay();
   const end = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) -
+    Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate()) -
       (day === 0 ? 7 : day) * DAY_MS,
   );
   const start = new Date(end.getTime() - (TREND_WINDOW_WEEKS * 7 - 1) * DAY_MS);

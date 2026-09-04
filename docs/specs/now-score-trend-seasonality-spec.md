@@ -67,6 +67,8 @@ trend.set(spot.id, calcTrendScore(averageRatio(recentData)));
 
 계산은 `weekAlignedTrendWindow(now)`가 담당한다. 종료일은 진행 중인 주를 배제한 직전 일요일이다. 오늘이 일요일이면 그 주가 아직 끝나지 않았으므로 한 주 전 일요일을 쓴다.
 
+**요일·날짜 판정은 한국 시간(KST, UTC+9) 기준이다.** 데이터랩은 한국 서비스라 버킷 경계가 한국 시간 달력이다. cron은 매일 18:00 UTC에 도는데, 이는 한국 시간 다음 날 03:00이다. UTC 요일로 판정하면 **UTC 일요일 18:00 = KST 월요일**인 실행에서 방금 끝난 주를 한 번 더 건너뛰어, 매주 월요일마다 최신 한 주치 데이터를 잃는다. (실측: 잘못된 창은 최신 버킷이 `2026-08-17`, 올바른 창은 `2026-08-24`) KST는 서머타임이 없어 고정 +9시간 시프트로 처리한다.
+
 ### FR-2 — `timeUnit`을 `week`으로 요청한다
 
 `naverDatalab.ts`의 `timeUnit: 'date'`가 하드코딩돼 있다. 인자로 받게 열고, now-score cron은 `week`으로 호출한다.
@@ -116,6 +118,7 @@ trend_score = calcTrendScore(avg(data[-2:].ratio))
 - `naverDatalab.test.ts` — `timeUnit`을 넘기면 요청 body에 반영된다. 안 넘기면 `'date'`다.
 - `trendWindow.test.ts` — `averageNewest`/`averageOldest`가 최근 2개·최초 2개를 올바로 뽑는다. 포인트 0개·1개·2개 경계.
 - `trendWindow.test.ts` — `weekAlignedTrendWindow`가 종료일을 직전 일요일로 맞춘다(평일·월요일·일요일 각각), 시작일이 월요일이고 구간이 54주다.
+- `trendWindow.test.ts` — cron 실행 시각(18:00 UTC)에 한국 시간 날짜·요일로 판정한다. UTC 일요일 18:00(=KST 월요일)은 방금 끝난 주를 포함하고, UTC 토요일 18:00(=KST 일요일)은 한 주 전 일요일을 쓴다.
 
 ### 수용 기준
 
@@ -149,7 +152,7 @@ TOP30 꽃 분포: 꽃무릇 15 · 코스모스 9 · 핑크뮬리 2 · 구절초 
 ### 회귀 주의
 
 - 데이터랩 호출이 절반(100 → 50회)으로 줄고 응답은 커진다. 실측 33초로 문제없었다.
-- `weekAlignedTrendWindow`는 UTC 기준으로 요일을 판정한다. 한국 시간 자정~오전 9시 사이에 cron이 돌면 UTC 날짜가 하루 이르지만, 주 경계를 쓰므로 결과는 같은 주로 수렴한다. (cron 스케줄은 18:00 UTC = KST 03:00)
+- `weekAlignedTrendWindow`는 KST 기준으로 요일을 판정한다. 실행 시각이 바뀌어도(예: cron 스케줄 변경) 같은 한국 날짜 안에서는 같은 창이 나온다.
 
 ## 6. 알려진 한계
 

@@ -66,6 +66,21 @@ describe('weekAlignedTrendWindow', () => {
     expect(weekAlignedTrendWindow(now).endDate).toBe('2026-08-23');
   });
 
+  it('cron 실행 시각(18:00 UTC = KST 03:00)에 방금 끝난 주를 포함한다', () => {
+    // vercel.json의 cron은 매일 18:00 UTC에 돈다. UTC 일요일 18:00은 이미
+    // 한국 시간 월요일 03:00이므로, 한국 시간으로 방금 끝난 일요일까지의
+    // 주가 종료일이 되어야 한다. UTC 요일로 판정하면 한 주를 더 건너뛴다.
+    const now = new Date('2026-08-30T18:00:00Z'); // UTC 일요일 = KST 월요일
+    expect(weekAlignedTrendWindow(now).endDate).toBe('2026-08-30');
+  });
+
+  it('한국 시간으로 날짜가 넘어가면 그 날짜를 기준으로 판정한다', () => {
+    // UTC 토요일 18:00 = KST 일요일 03:00. 한국 시간 일요일은 그 주가 아직
+    // 끝나지 않았으므로 한 주 전 일요일이 종료일이다.
+    const now = new Date('2026-08-29T18:00:00Z'); // UTC 토요일 = KST 일요일
+    expect(weekAlignedTrendWindow(now).endDate).toBe('2026-08-23');
+  });
+
   it('시작일은 월요일이며 54주 구간을 만든다', () => {
     // 54주여야 최신 2개 버킷과 최초 2개 버킷이 정확히 364일(=52주) 차이가
     // 나서 yoy 비교의 달력 위치가 맞는다.
