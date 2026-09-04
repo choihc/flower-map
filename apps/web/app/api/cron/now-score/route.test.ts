@@ -116,6 +116,28 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+/**
+ * 계절성이 있는 주간 비율. 작년 동기 40, 최신 60, 중간에 창 최댓값 100.
+ * `scale`은 데이터랩이 요청 전체를 통틀어 정규화할 때 생기는 배율을 흉내낸다.
+ */
+function seasonalRatio(index: number, total: number, scale = 1): number {
+  if (index === Math.floor(total / 2)) return 100 * scale;
+  return (index < total / 2 ? 40 : 60) * scale;
+}
+
+/** 주 시작일(월요일) 기준 54개 주간 버킷을 만든다. 데이터랩 주단위 응답 형태. */
+function buildWeeklyBuckets(
+  startDate: string,
+  ratioAt: (index: number, total: number) => number,
+  total = 54,
+): Array<{ period: string; ratio: number }> {
+  const first = Date.parse(`${startDate}T00:00:00Z`);
+  return Array.from({ length: total }, (_, i) => ({
+    period: new Date(first + i * 7 * 86400000).toISOString().slice(0, 10),
+    ratio: ratioAt(i, total),
+  }));
+}
+
 describe('GET /api/cron/now-score', () => {
   it('인증 실패 시 401을 반환하고 Supabase를 호출하지 않는다', async () => {
     vi.stubEnv('CRON_SECRET', 'valid-secret');
@@ -175,38 +197,18 @@ describe('GET /api/cron/now-score', () => {
       precipitationMm: 2,
     });
 
+    // 54주 주간 버킷을 요청받은 구간에서 그대로 생성한다. 앞쪽(작년 동기)
+    // 40, 뒤쪽(최신) 60, 중간에 창 최댓값 100을 둔다. 최신/최고(가장 오래된)
+    // 매핑이 뒤집히거나 최댓값 나눗셈이 빠지면 값으로 즉시 드러난다.
     mocks.fetchSearchTrends.mockImplementation(
       async (args: {
         startDate: string;
         endDate: string;
+        timeUnit?: string;
         groups: Array<{ groupName: string }>;
       }) => {
-        // startDate가 1년 전인 경우(yoy 호출): 최근 7일 + 작년 7일 구간 모두 데이터 제공
-        // trend 호출은 최근 7일 구간만 포함된 데이터 제공
-        const today = new Date();
-        const recent: Array<{ period: string; ratio: number }> = [];
-        for (let i = 0; i < 8; i++) {
-          const d = new Date(today.getTime() - i * 86400000);
-          const y = d.getUTCFullYear().toString().padStart(4, '0');
-          const m = (d.getUTCMonth() + 1).toString().padStart(2, '0');
-          const day = d.getUTCDate().toString().padStart(2, '0');
-          recent.push({ period: `${y}-${m}-${day}`, ratio: 60 });
-        }
-        const lastYear: Array<{ period: string; ratio: number }> = [];
-        const oneYearAgo = new Date(today);
-        oneYearAgo.setUTCFullYear(oneYearAgo.getUTCFullYear() - 1);
-        for (let i = 0; i < 8; i++) {
-          const d = new Date(oneYearAgo.getTime() - i * 86400000);
-          const y = d.getUTCFullYear().toString().padStart(4, '0');
-          const m = (d.getUTCMonth() + 1).toString().padStart(2, '0');
-          const day = d.getUTCDate().toString().padStart(2, '0');
-          lastYear.push({ period: `${y}-${m}-${day}`, ratio: 40 });
-        }
-
-        return args.groups.map((g) => ({
-          groupName: g.groupName,
-          data: [...recent, ...lastYear],
-        }));
+        const data = buildWeeklyBuckets(args.startDate, seasonalRatio);
+        return args.groups.map((g) => ({ groupName: g.groupName, data }));
       },
     );
 
@@ -223,17 +225,142 @@ describe('GET /api/cron/now-score', () => {
     expect(updateMock).toHaveBeenCalledTimes(2);
     expect(updateEqMock).toHaveBeenCalledTimes(2);
 
+    // 배치당 데이터랩 호출은 1회다. 명소 2건은 배치 크기 5 안에 들어가므로
+    // 전체 1회여야 한다. (yoy용 두 번째 요청을 되살리면 여기서 깨진다)
+    expect(mocks.fetchSearchTrends).toHaveBeenCalledTimes(1);
+
+    const trendArgs = mocks.fetchSearchTrends.mock.calls[0][0] as {
+      startDate: string;
+      endDate: string;
+      timeUnit: string;
+      groups: Array<{ groupName: string; keywords: string[] }>;
+    };
+    expect(trendArgs.timeUnit).toBe('week');
+    // 주 경계 정렬: 시작은 월요일, 종료는 일요일, 구간은 54주다.
+    expect(new Date(`${trendArgs.startDate}T00:00:00Z`).getUTCDay()).toBe(1);
+    expect(new Date(`${trendArgs.endDate}T00:00:00Z`).getUTCDay()).toBe(0);
+    expect(
+      (Date.parse(trendArgs.endDate) - Date.parse(trendArgs.startDate)) /
+        86400000 +
+        1,
+    ).toBe(54 * 7);
+    expect(trendArgs.groups.map((g) => g.groupName)).toEqual([
+      'spot-1',
+      'spot-2',
+    ]);
+
     for (const call of updateMock.mock.calls as Array<
       [Record<string, unknown>]
     >) {
       const payload = call[0];
       expect(payload.bloom_score).toEqual(expect.any(Number));
-      expect(payload.trend_score).toEqual(expect.any(Number));
+      // 최신 주 60 / 창 최댓값 100 = 60. 매핑이 뒤집히면 40이 된다.
+      expect(payload.trend_score).toBe(60);
+      // yoy는 최근 60 대 작년 40 → 1.5배 → 75.
+      expect(payload.yoy_score).toBe(75);
       expect(payload.content_score).toEqual(expect.any(Number));
-      expect(payload.yoy_score).toEqual(expect.any(Number));
       expect(payload.now_score).toEqual(expect.any(Number));
       expect(payload.now_score_at).toEqual(expect.any(String));
     }
+  });
+
+  it('데이터랩 응답이 배치 동료 때문에 축소돼도 trend_score가 같다', async () => {
+    // 데이터랩은 한 요청에 든 모든 키워드 그룹을 통틀어 정규화한다. 그래서
+    // 같은 명소의 원시 ratio가 함께 묶인 명소에 따라 달라진다. trend는 그룹
+    // 자신의 최댓값 대비 상대값이어야 이 배율에 흔들리지 않는다.
+    const runWithScale = async (scale: number) => {
+      vi.resetModules();
+      vi.stubEnv('CRON_SECRET', 'ok');
+      const spots: SpotFixture[] = [
+        {
+          id: 'spot-1',
+          name: '태화강국가정원',
+          latitude: 35.55,
+          longitude: 129.31,
+          bloom_start_at: '2026-09-01T00:00:00Z',
+          bloom_end_at: '2026-10-15T00:00:00Z',
+          flower_id: 'flower-1',
+          flowers: { name_ko: '코스모스', aliases: [] },
+        },
+      ];
+      const { from, updateMock } = buildSupabaseMock(spots);
+      mocks.createAdminSupabaseClient.mockReturnValue({ from });
+      mocks.fetchShortForecast.mockResolvedValue({
+        tempC: 20,
+        precipitationMm: 0,
+      });
+      mocks.fetchSearchTrends.mockImplementation(
+        async (args: {
+          startDate: string;
+          groups: Array<{ groupName: string }>;
+        }) => {
+          const data = buildWeeklyBuckets(args.startDate, (i, t) =>
+            seasonalRatio(i, t, scale),
+          );
+          return args.groups.map((g) => ({ groupName: g.groupName, data }));
+        },
+      );
+      const { GET } = await import('./route');
+      await GET(buildRequest('Bearer ok'));
+      return (updateMock.mock.calls[0] as [Record<string, unknown>])[0];
+    };
+
+    const full = await runWithScale(1);
+    const shrunk = await runWithScale(0.8383); // 실측된 축소 배율
+
+    expect(full.trend_score).toBe(60);
+    expect(shrunk.trend_score).toBe(60);
+    expect(shrunk.yoy_score).toBe(full.yoy_score);
+  });
+
+  it('개화기에만 데이터가 있는 희소 응답은 비수기 점수를 올리지 않는다', async () => {
+    // 데이터랩은 검색량이 기준 미달인 주를 버킷째로 생략한다. 배열 위치로
+    // 최신값을 뽑으면 응답에 남은 지난 개화기 피크를 "지금 인기"로 오독해,
+    // 이 변경이 없애려던 비수기 고득점이 그대로 되살아난다.
+    vi.stubEnv('CRON_SECRET', 'ok');
+
+    const spots: SpotFixture[] = [
+      {
+        id: 'spot-1',
+        name: '여좌천',
+        latitude: 35.152,
+        longitude: 128.712,
+        bloom_start_at: '2026-03-25T00:00:00Z',
+        bloom_end_at: '2026-04-05T00:00:00Z',
+        flower_id: 'flower-1',
+        flowers: { name_ko: '벚꽃', aliases: [] },
+      },
+    ];
+    const { from, updateMock } = buildSupabaseMock(spots);
+    mocks.createAdminSupabaseClient.mockReturnValue({ from });
+    mocks.fetchShortForecast.mockResolvedValue({
+      tempC: 20,
+      precipitationMm: 0,
+    });
+
+    mocks.fetchSearchTrends.mockImplementation(
+      async (args: {
+        startDate: string;
+        groups: Array<{ groupName: string }>;
+      }) => {
+        // 창 앞쪽에서 3주만 값이 있고 나머지 주는 생략된 응답.
+        const all = buildWeeklyBuckets(args.startDate, () => 0);
+        const data = all
+          .slice(2, 5)
+          .map((p, i) => ({ period: p.period, ratio: [50, 100, 70][i] }));
+        return args.groups.map((g) => ({ groupName: g.groupName, data }));
+      },
+    );
+
+    const { GET } = await import('./route');
+    const res = await GET(buildRequest('Bearer ok'));
+
+    expect(res.status).toBe(200);
+    const payload = (updateMock.mock.calls[0] as [Record<string, unknown>])[0];
+    // 최신 2주가 응답에 없으므로 검색량 0으로 본다.
+    expect(payload.trend_score).toBe(0);
+    // 작년 동기도 0이라 전년 대비를 계산할 수 없다.
+    expect(payload.yoy_score).toBeNull();
   });
 
   it('일부 외부 API 실패 시 해당 sub-score를 null로 두고 나머지는 계산한다', async () => {

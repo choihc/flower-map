@@ -28,14 +28,28 @@ interface DatalabApiResponse {
 const DATALAB_ENDPOINT = 'https://openapi.naver.com/v1/datalab/search';
 const MAX_GROUPS = 5;
 
+export type TrendTimeUnit = 'date' | 'week' | 'month';
+
 export async function fetchSearchTrends(args: {
   clientId: string;
   clientSecret: string;
   startDate: string;
   endDate: string;
   groups: TrendGroup[];
+  /**
+   * 데이터랩 집계 단위. 장기 구간을 'date'로 받으면 포인트가 너무 많아
+   * 응답이 무거워지므로, 1년 단위 조회는 'week'을 쓴다.
+   */
+  timeUnit?: TrendTimeUnit;
 }): Promise<TrendResult[]> {
-  const { clientId, clientSecret, startDate, endDate, groups } = args;
+  const {
+    clientId,
+    clientSecret,
+    startDate,
+    endDate,
+    groups,
+    timeUnit = 'date',
+  } = args;
 
   if (groups.length > MAX_GROUPS) {
     throw new Error(
@@ -55,7 +69,7 @@ export async function fetchSearchTrends(args: {
       body: JSON.stringify({
         startDate,
         endDate,
-        timeUnit: 'date',
+        timeUnit,
         keywordGroups: groups,
       }),
     },

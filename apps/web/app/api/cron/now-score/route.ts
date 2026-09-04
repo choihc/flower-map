@@ -13,16 +13,32 @@ import { calcBloomScore } from '@/lib/now-score/bloom';
 import { calcContentScore } from '@/lib/now-score/content';
 import { calcNowScore } from '@/lib/now-score/aggregate';
 import { calcTrendScore } from '@/lib/now-score/trend';
+import {
+  averageAtWeeks,
+  newestWeekStarts,
+  oldestWeekStarts,
+  peakRelativeAverage,
+  weekAlignedTrendWindow,
+} from '@/lib/now-score/trendWindow';
 import { calcYoyScore } from '@/lib/now-score/yoy';
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import type { SpotUpdate } from '@/lib/types';
 
 export const maxDuration = 300;
 
-const TREND_LOOKBACK_DAYS = 7;
-const YOY_WINDOW_DAYS = 7;
+// 데이터랩은 "요청한 기간 안에서 최댓값을 100"으로 정규화해 돌려준다.
+// 7일만 요청하면 그 7일의 최댓값이 100이 되어 비수기 꽃도 평균 90점을 받았다.
+// 1년 남짓을 요청해야 최근 값이 곧 연중 위치(=계절성)를 나타낸다.
+// 구간 계산은 weekAlignedTrendWindow가 담당한다.
+// 장기 구간을 'date'로 받으면 포인트가 수백 개가 되어 과거 타임아웃이 재발한다.
+// 'week'은 54포인트라 안전하고, 작년 동기가 같은 응답 앞부분에 들어 있어
+// yoy용 별도 요청도 필요 없다.
+const TREND_TIME_UNIT = 'week' as const;
+// 최신 주 / 가장 오래된 주를 각각 몇 주씩 평균할지. 한 주만 쓰면 그 주의
+// 우연한 변동에 점수가 흔들려 2주를 평균한다. 대신 개화 급상승 구간에서
+// 신호가 약 1주 늦게 반영된다.
+const TREND_EDGE_POINTS = 2;
 const TREND_GROUP_BATCH_SIZE = 5;
-const DAY_MS = 86400000;
 const SPOT_PROCESS_CONCURRENCY = 4;
 // Datalab burst throttle 완화를 위해 배치 간 짧게 대기.
 const DATALAB_BATCH_INTERVAL_MS = 200;
@@ -93,13 +109,6 @@ function chunk<T>(items: readonly T[], size: number): T[][] {
   return out;
 }
 
-function formatDate(date: Date): string {
-  const y = date.getUTCFullYear().toString().padStart(4, '0');
-  const m = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const d = date.getUTCDate().toString().padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 function buildTrendGroup(spot: SpotRecord): TrendGroup {
   const base = [spot.name, spot.flowers.name_ko];
   const aliases = spot.flowers.aliases ?? [];
@@ -116,14 +125,6 @@ function buildTrendGroup(spot: SpotRecord): TrendGroup {
   };
 }
 
-function averageRatio(
-  data: ReadonlyArray<{ period: string; ratio: number }>,
-): number {
-  if (data.length === 0) return 0;
-  const sum = data.reduce((acc, d) => acc + d.ratio, 0);
-  return sum / data.length;
-}
-
 async function collectTrendAndYoyScores(
   spots: readonly SpotRecord[],
   env: { naverClientId: string; naverClientSecret: string },
@@ -136,14 +137,18 @@ async function collectTrendAndYoyScores(
   const yoy = new Map<string, number | null>();
   if (spots.length === 0) return { trend, yoy };
 
-  // 372일 연속 구간을 한 번에 가져오면 응답이 무거워 타임아웃이 잦았다.
-  // 최근 7일과 작년 동기 7일만 따로 요청해 응답 크기를 ~358일치 분량만큼 줄인다.
-  const recentEnd = now;
-  const recentStart = new Date(recentEnd.getTime() - TREND_LOOKBACK_DAYS * DAY_MS);
-  const oneYearAgoEnd = new Date(now.getTime() - 365 * DAY_MS);
-  const lastYearStart = new Date(
-    now.getTime() - (365 + YOY_WINDOW_DAYS) * DAY_MS,
-  );
+  // 1년 남짓한 창을 주단위로 한 번만 요청한다. 데이터랩이 이 구간의 최댓값을
+  // 100으로 정규화하므로 최근 값이 곧 계절 위치가 되고, 창의 앞부분이 작년
+  // 동기라 yoy도 같은 응답에서 계산할 수 있다. (요청 횟수 배치당 2회 → 1회)
+  // 구간은 주 경계에 맞춘다 — 아직 다 게시되지 않은 주가 끼면 값이 깎이고
+  // cron이 도는 요일에 따라 점수가 달라진다.
+  const searchWindow = weekAlignedTrendWindow(now);
+  const { startDate, endDate } = searchWindow;
+  // 값은 배열 위치가 아니라 주 시작일로 집는다. 데이터랩이 검색량 미달 주를
+  // 버킷째로 생략하므로, 위치로 뽑으면 희소한 키워드에서 엉뚱한 달력 위치를
+  // 최신값으로 집는다.
+  const newestWeeks = newestWeekStarts(searchWindow, TREND_EDGE_POINTS);
+  const oldestWeeks = oldestWeekStarts(searchWindow, TREND_EDGE_POINTS);
 
   const batches = chunk(spots, TREND_GROUP_BATCH_SIZE);
 
@@ -151,52 +156,45 @@ async function collectTrendAndYoyScores(
     if (i > 0) await sleep(DATALAB_BATCH_INTERVAL_MS);
     const batch = batches[i];
     const groups = batch.map(buildTrendGroup);
-    // 네이버 측 동시 호출 부담을 줄이기 위해 순차 호출.
-    const recentResults = await fetchSearchTrends({
+    const results = await fetchSearchTrends({
       clientId: env.naverClientId,
       clientSecret: env.naverClientSecret,
-      startDate: formatDate(recentStart),
-      endDate: formatDate(recentEnd),
+      startDate,
+      endDate,
       groups,
+      timeUnit: TREND_TIME_UNIT,
     }).catch((err: unknown) => {
-      console.error('now-score datalab recent batch failed', err);
-      return null;
-    });
-    const lastYearResults = await fetchSearchTrends({
-      clientId: env.naverClientId,
-      clientSecret: env.naverClientSecret,
-      startDate: formatDate(lastYearStart),
-      endDate: formatDate(oneYearAgoEnd),
-      groups,
-    }).catch((err: unknown) => {
-      console.error('now-score datalab lastYear batch failed', err);
+      console.error('now-score datalab batch failed', err);
       return null;
     });
 
-    const recentByName = new Map(
-      (recentResults ?? []).map((r: TrendResult) => [r.groupName, r]),
-    );
-    const lastYearByName = new Map(
-      (lastYearResults ?? []).map((r: TrendResult) => [r.groupName, r]),
+    const byName = new Map(
+      (results ?? []).map((r: TrendResult) => [r.groupName, r]),
     );
 
     for (const spot of batch) {
-      const recentData = recentByName.get(spot.id)?.data ?? [];
-      const lastYearData = lastYearByName.get(spot.id)?.data ?? [];
+      const data = byName.get(spot.id)?.data ?? [];
+      // trend는 그룹 자신의 창 내 최댓값 대비 상대값으로 잰다. 데이터랩이
+      // 요청에 든 모든 그룹을 통틀어 정규화하므로, 원시 ratio를 쓰면 같은
+      // 명소 점수가 배치 동료에 따라 달라진다.
+      const recentPeakRelative = peakRelativeAverage(data, newestWeeks);
+      // yoy는 최근/작년의 비율이라 정규화 배율이 이미 상쇄된다. 원시 값 사용.
+      const recentAvg = averageAtWeeks(data, newestWeeks);
+      const lastYearAvg = averageAtWeeks(data, oldestWeeks);
 
       trend.set(
         spot.id,
-        recentData.length === 0 ? null : calcTrendScore(averageRatio(recentData)),
+        recentPeakRelative === null
+          ? null
+          : calcTrendScore(recentPeakRelative),
       );
 
-      if (recentData.length === 0 || lastYearData.length === 0) {
-        yoy.set(spot.id, null);
-      } else {
-        yoy.set(
-          spot.id,
-          calcYoyScore(averageRatio(recentData), averageRatio(lastYearData)),
-        );
-      }
+      yoy.set(
+        spot.id,
+        recentAvg === null || lastYearAvg === null
+          ? null
+          : calcYoyScore(recentAvg, lastYearAvg),
+      );
     }
   }
 

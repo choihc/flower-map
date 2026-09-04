@@ -129,3 +129,46 @@ describe('fetchSearchTrends', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe('fetchSearchTrends timeUnit', () => {
+  function stubFetch() {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ results: [] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  }
+
+  it('timeUnit을 넘기면 요청 body에 그대로 실린다', async () => {
+    const fetchMock = stubFetch();
+
+    await fetchSearchTrends({
+      clientId: 'CID',
+      clientSecret: 'CSECRET',
+      startDate: '2025-09-04',
+      endDate: '2026-09-04',
+      groups: BASE_GROUPS,
+      timeUnit: 'week',
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.timeUnit).toBe('week');
+  });
+
+  it('timeUnit을 넘기지 않으면 date를 쓴다 (기존 호출부 동작 보존)', async () => {
+    const fetchMock = stubFetch();
+
+    await fetchSearchTrends({
+      clientId: 'CID',
+      clientSecret: 'CSECRET',
+      startDate: '2026-04-01',
+      endDate: '2026-04-07',
+      groups: BASE_GROUPS,
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.timeUnit).toBe('date');
+  });
+});
